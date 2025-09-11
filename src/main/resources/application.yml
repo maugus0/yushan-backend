@@ -1,0 +1,40 @@
+server:
+  port: 8010
+  servlet:
+    session:
+      timeout: 86400
+spring:
+  application:
+    name: Yushan Backend
+  transaction:
+    rollback-on-commit-failure: true
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+    username: postgres
+    password: zhangyan
+  servlet:
+    multipart:
+      max-file-size: 2MB
+      max-request-size: 20MB
+mybatis-plus:
+  mapper-locations: classpath:/mapper/**Mapper.xml
+  typeAliasesPackage: com.yushan.backend.entity
+  global-config:
+    #primary key type  3:"UUID";
+    id-type: 3
+    field-strategy: 2
+    db-column-underline: true
+    refresh-mapper: true
+    logic-delete-value: 1
+    logic-not-delete-value: 0
+  configuration:
+    #    map-underscore-to-camel-case: true
+    cache-enabled: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+logging:
+  level:
+    org:
+      springframework:
+        boot:
+          autoconfigure: info

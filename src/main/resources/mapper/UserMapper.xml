@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yushan.backend.dao.UserMapper">
+  <resultMap id="BaseResultMap" type="com.yushan.backend.entity.User">
+    <constructor>
+      <arg column="email" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="avatar_url" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="email_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="UUID" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="username" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="hash_password" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="profile_detail" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="is_author" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="author_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="read_time" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="read_book_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="level" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="birthday" javaType="java.util.Date" jdbcType="DATE" />
+      <arg column="gender" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="point" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="exp" javaType="java.lang.Integer" jdbcType="INTEGER" />
+    </constructor>
+  </resultMap>
+  <insert id="insert" parameterType="com.yushan.backend.entity.User">
+    insert into user (email, avatar_url, status, 
+      email_verified, create_date, update_date, 
+      UUID, username, hash_password, 
+      profile_detail, is_author, author_verified, 
+      read_time, read_book_num, level, 
+      birthday, gender, point, 
+      exp)
+    values (#{email,jdbcType=VARCHAR}, #{avatarUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{emailVerified,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{uuid,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{hashPassword,jdbcType=VARCHAR}, 
+      #{profileDetail,jdbcType=VARCHAR}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
+      #{readTime,jdbcType=REAL}, #{readBookNum,jdbcType=INTEGER}, #{level,jdbcType=INTEGER}, 
+      #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, #{point,jdbcType=REAL}, 
+      #{exp,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        email,
+      </if>
+      <if test="avatarUrl != null">
+        avatar_url,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="emailVerified != null">
+        email_verified,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="updateDate != null">
+        update_date,
+      </if>
+      <if test="uuid != null">
+        UUID,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="hashPassword != null">
+        hash_password,
+      </if>
+      <if test="profileDetail != null">
+        profile_detail,
+      </if>
+      <if test="isAuthor != null">
+        is_author,
+      </if>
+      <if test="authorVerified != null">
+        author_verified,
+      </if>
+      <if test="readTime != null">
+        read_time,
+      </if>
+      <if test="readBookNum != null">
+        read_book_num,
+      </if>
+      <if test="level != null">
+        level,
+      </if>
+      <if test="birthday != null">
+        birthday,
+      </if>
+      <if test="gender != null">
+        gender,
+      </if>
+      <if test="point != null">
+        point,
+      </if>
+      <if test="exp != null">
+        exp,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="avatarUrl != null">
+        #{avatarUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="emailVerified != null">
+        #{emailVerified,jdbcType=BIT},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="uuid != null">
+        #{uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="hashPassword != null">
+        #{hashPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="profileDetail != null">
+        #{profileDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="isAuthor != null">
+        #{isAuthor,jdbcType=BIT},
+      </if>
+      <if test="authorVerified != null">
+        #{authorVerified,jdbcType=BIT},
+      </if>
+      <if test="readTime != null">
+        #{readTime,jdbcType=REAL},
+      </if>
+      <if test="readBookNum != null">
+        #{readBookNum,jdbcType=INTEGER},
+      </if>
+      <if test="level != null">
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="birthday != null">
+        #{birthday,jdbcType=DATE},
+      </if>
+      <if test="gender != null">
+        #{gender,jdbcType=INTEGER},
+      </if>
+      <if test="point != null">
+        #{point,jdbcType=REAL},
+      </if>
+      <if test="exp != null">
+        #{exp,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <resultMap id="BaseResultMap" type="com.yushan.backend.entity.User">
+    <constructor>
+      <arg column="email" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="avatar_url" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="email_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="UUID" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="username" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="hash_password" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="profile_detail" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="is_author" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="author_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="read_time" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="read_book_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="level" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="birthday" javaType="java.util.Date" jdbcType="DATE" />
+      <arg column="gender" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="point" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="exp" javaType="java.lang.Integer" jdbcType="INTEGER" />
+    </constructor>
+  </resultMap>
+  <insert id="insert" parameterType="com.yushan.backend.entity.User">
+    insert into user (email, avatar_url, status, 
+      email_verified, create_date, update_date, 
+      UUID, username, hash_password, 
+      profile_detail, is_author, author_verified, 
+      read_time, read_book_num, level, 
+      birthday, gender, point, 
+      exp)
+    values (#{email,jdbcType=VARCHAR}, #{avatarUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{emailVerified,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{uuid,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{hashPassword,jdbcType=VARCHAR}, 
+      #{profileDetail,jdbcType=VARCHAR}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
+      #{readTime,jdbcType=REAL}, #{readBookNum,jdbcType=INTEGER}, #{level,jdbcType=INTEGER}, 
+      #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, #{point,jdbcType=REAL}, 
+      #{exp,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        email,
+      </if>
+      <if test="avatarUrl != null">
+        avatar_url,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="emailVerified != null">
+        email_verified,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="updateDate != null">
+        update_date,
+      </if>
+      <if test="uuid != null">
+        UUID,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="hashPassword != null">
+        hash_password,
+      </if>
+      <if test="profileDetail != null">
+        profile_detail,
+      </if>
+      <if test="isAuthor != null">
+        is_author,
+      </if>
+      <if test="authorVerified != null">
+        author_verified,
+      </if>
+      <if test="readTime != null">
+        read_time,
+      </if>
+      <if test="readBookNum != null">
+        read_book_num,
+      </if>
+      <if test="level != null">
+        level,
+      </if>
+      <if test="birthday != null">
+        birthday,
+      </if>
+      <if test="gender != null">
+        gender,
+      </if>
+      <if test="point != null">
+        point,
+      </if>
+      <if test="exp != null">
+        exp,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="avatarUrl != null">
+        #{avatarUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="emailVerified != null">
+        #{emailVerified,jdbcType=BIT},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="uuid != null">
+        #{uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="hashPassword != null">
+        #{hashPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="profileDetail != null">
+        #{profileDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="isAuthor != null">
+        #{isAuthor,jdbcType=BIT},
+      </if>
+      <if test="authorVerified != null">
+        #{authorVerified,jdbcType=BIT},
+      </if>
+      <if test="readTime != null">
+        #{readTime,jdbcType=REAL},
+      </if>
+      <if test="readBookNum != null">
+        #{readBookNum,jdbcType=INTEGER},
+      </if>
+      <if test="level != null">
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="birthday != null">
+        #{birthday,jdbcType=DATE},
+      </if>
+      <if test="gender != null">
+        #{gender,jdbcType=INTEGER},
+      </if>
+      <if test="point != null">
+        #{point,jdbcType=REAL},
+      </if>
+      <if test="exp != null">
+        #{exp,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+  <resultMap id="BaseResultMap" type="com.example.yushan.entity.User">
+    <constructor>
+      <arg column="email" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="avatar_url" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="email_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="update_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="UUID" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="username" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="hash_password" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="profile_detail" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <arg column="is_author" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="author_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="read_time" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="read_book_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="level" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="birthday" javaType="java.util.Date" jdbcType="DATE" />
+      <arg column="gender" javaType="java.lang.Integer" jdbcType="INTEGER" />
+      <arg column="point" javaType="java.lang.Float" jdbcType="REAL" />
+      <arg column="exp" javaType="java.lang.Integer" jdbcType="INTEGER" />
+    </constructor>
+  </resultMap>
+  <insert id="insert" parameterType="com.example.yushan.entity.User">
+    insert into user (email, avatar_url, status, 
+      email_verified, create_date, update_date, 
+      UUID, username, hash_password, 
+      profile_detail, is_author, author_verified, 
+      read_time, read_book_num, level, 
+      birthday, gender, point, 
+      exp)
+    values (#{email,jdbcType=VARCHAR}, #{avatarUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{emailVerified,jdbcType=BIT}, #{createDate,jdbcType=TIMESTAMP}, #{updateDate,jdbcType=TIMESTAMP}, 
+      #{uuid,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, #{hashPassword,jdbcType=VARCHAR}, 
+      #{profileDetail,jdbcType=VARCHAR}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
+      #{readTime,jdbcType=REAL}, #{readBookNum,jdbcType=INTEGER}, #{level,jdbcType=INTEGER}, 
+      #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, #{point,jdbcType=REAL}, 
+      #{exp,jdbcType=INTEGER})
+  </insert>
+  <insert id="insertSelective" parameterType="com.example.yushan.entity.User">
+    insert into user
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        email,
+      </if>
+      <if test="avatarUrl != null">
+        avatar_url,
+      </if>
+      <if test="status != null">
+        status,
+      </if>
+      <if test="emailVerified != null">
+        email_verified,
+      </if>
+      <if test="createDate != null">
+        create_date,
+      </if>
+      <if test="updateDate != null">
+        update_date,
+      </if>
+      <if test="uuid != null">
+        UUID,
+      </if>
+      <if test="username != null">
+        username,
+      </if>
+      <if test="hashPassword != null">
+        hash_password,
+      </if>
+      <if test="profileDetail != null">
+        profile_detail,
+      </if>
+      <if test="isAuthor != null">
+        is_author,
+      </if>
+      <if test="authorVerified != null">
+        author_verified,
+      </if>
+      <if test="readTime != null">
+        read_time,
+      </if>
+      <if test="readBookNum != null">
+        read_book_num,
+      </if>
+      <if test="level != null">
+        level,
+      </if>
+      <if test="birthday != null">
+        birthday,
+      </if>
+      <if test="gender != null">
+        gender,
+      </if>
+      <if test="point != null">
+        point,
+      </if>
+      <if test="exp != null">
+        exp,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="avatarUrl != null">
+        #{avatarUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null">
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="emailVerified != null">
+        #{emailVerified,jdbcType=BIT},
+      </if>
+      <if test="createDate != null">
+        #{createDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateDate != null">
+        #{updateDate,jdbcType=TIMESTAMP},
+      </if>
+      <if test="uuid != null">
+        #{uuid,jdbcType=VARCHAR},
+      </if>
+      <if test="username != null">
+        #{username,jdbcType=VARCHAR},
+      </if>
+      <if test="hashPassword != null">
+        #{hashPassword,jdbcType=VARCHAR},
+      </if>
+      <if test="profileDetail != null">
+        #{profileDetail,jdbcType=VARCHAR},
+      </if>
+      <if test="isAuthor != null">
+        #{isAuthor,jdbcType=BIT},
+      </if>
+      <if test="authorVerified != null">
+        #{authorVerified,jdbcType=BIT},
+      </if>
+      <if test="readTime != null">
+        #{readTime,jdbcType=REAL},
+      </if>
+      <if test="readBookNum != null">
+        #{readBookNum,jdbcType=INTEGER},
+      </if>
+      <if test="level != null">
+        #{level,jdbcType=INTEGER},
+      </if>
+      <if test="birthday != null">
+        #{birthday,jdbcType=DATE},
+      </if>
+      <if test="gender != null">
+        #{gender,jdbcType=INTEGER},
+      </if>
+      <if test="point != null">
+        #{point,jdbcType=REAL},
+      </if>
+      <if test="exp != null">
+        #{exp,jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+</mapper>
