@@ -28,16 +28,21 @@ public class AuthService {
     user.setUsername(registrationDTO.getUsername());
     user.setHashPassword(hashPassword(registrationDTO.getPassword()));
     user.setEmailVerified(false);
+    user.setAvatarUrl(""); // Set default empty string
     user.setCreateDate(new Date());
     user.setUpdateTime(new Date());
     user.setStatus(1); // 1 for normal user
 
     // set default user profile
+    user.setIsAuthor(false);
+    user.setAuthorVerified(false);
     user.setLevel(1);
     user.setExp(0f);
     user.setYuan(0f);
     user.setReadTime(0f);
     user.setReadBookNum(0);
+    user.setLastLogin(new Date());
+    user.setLastActive(new Date());
 
     try {
         userMapper.insert(user);

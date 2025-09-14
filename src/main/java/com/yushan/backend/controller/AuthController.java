@@ -26,7 +26,7 @@ public class AuthController {
         return "test";
     }
 
-    @GetMapping("/register")
+    @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterationDTO registrationDTO) {
         Map<String, Object> response = new HashMap<>();
 

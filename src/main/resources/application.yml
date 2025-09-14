@@ -32,19 +32,11 @@ spring:
           min-idle: 0
       timeout: 1000
 
-mybatis-plus:
+mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
-  typeAliasesPackage: com.yushan.backend.entity
-  global-config:
-    #primary key type  3:"UUID";
-    id-type: 3
-    field-strategy: 2
-    db-column-underline: true
-    refresh-mapper: true
-    logic-delete-value: 1
-    logic-not-delete-value: 0
+  type-aliases-package: com.yushan.backend.entity
   configuration:
-    #    map-underscore-to-camel-case: true
+    map-underscore-to-camel-case: true
     cache-enabled: true
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 

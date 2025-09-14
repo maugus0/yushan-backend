@@ -34,21 +34,21 @@
   <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from user
+    from "user"
     where uuid = #{uuid,jdbcType=VARCHAR}
   </select>
   <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from user
+    from "user"
     where email = #{email,jdbcType=VARCHAR}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-    delete from user
+    delete from "user"
     where uuid = #{uuid,jdbcType=VARCHAR}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into user (uuid, email, username, 
+    insert into "user" (uuid, email, username, 
       hash_password, email_verified, avatar_url, 
       profile_detail, birthday, gender, 
       status, is_author, author_verified, 
@@ -64,7 +64,7 @@
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
-    insert into user
+    insert into "user"
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="uuid != null">
         uuid,
