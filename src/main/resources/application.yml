@@ -1,5 +1,5 @@
 server:
-  port: 8010
+  port: 5432
   servlet:
     session:
       timeout: 86400
@@ -10,9 +10,9 @@ spring:
     rollback-on-commit-failure: true
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
+    url: jdbc:postgresql://localhost:5432/test914db?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
     username: postgres
-    password: zhangyan
+    password: 123456
   servlet:
     multipart:
       max-file-size: 2MB
