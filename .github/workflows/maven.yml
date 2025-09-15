@@ -7,7 +7,7 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened]
 
-# Tránh chạy chồng chéo
+# Avoid overlapping runs
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -154,7 +154,7 @@ jobs:
     - name: Setup Snyk CLI
       uses: snyk/actions/setup@master
       
-    - name: Snyk test (xuất SARIF)
+    - name: Snyk test (export SARIF)
       env:
         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
       run: |
@@ -203,7 +203,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha
           type=raw,value=latest,enable={{is_default_branch}}
           
     - name: Build and push Docker image
@@ -220,7 +220,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ghcr.io/${{ github.repository }}:${{ github.ref_name }}
+        image-ref: ghcr.io/${{ github.repository }}:${{ github.sha }}
         format: 'sarif'
         output: 'trivy-results.sarif'
         
@@ -229,6 +229,13 @@ jobs:
       if: always() && hashFiles('trivy-results.sarif') != ''
       with:
         sarif_file: 'trivy-results.sarif'
+
+    - name: Upload Trivy SARIF as artifact
+      uses: actions/upload-artifact@v4
+      if: always() && hashFiles('trivy-results.sarif') != ''
+      with:
+        name: trivy-sarif
+        path: trivy-results.sarif
 
   # TODO: Uncomment when ready to deploy
   # staging-deploy:
@@ -304,3 +311,48 @@ jobs:
   #         zap.html
   #         zap.json
   #         zap.md
+
+  generate-reports:
+    name: Generate CI Summary & Collect Reports
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
+    permissions:
+      contents: read
+      checks: write
+      security-events: write
+    steps:
+    - name: Download OWASP report
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        name: owasp-dependency-check-report
+        path: reports/owasp
+
+    - name: Download Trivy SARIF
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        name: trivy-sarif
+        path: reports/trivy
+
+    - name: Create CI summary
+      if: always()
+      run: |
+        {
+          echo "# Yushan Backend – CI Reports";
+          echo "- Commit: $GITHUB_SHA";
+          echo "- Branch: ${GITHUB_REF##*/}";
+          echo "";
+          echo "## Artifacts";
+          if [ -f reports/owasp/dependency-check-report.html ]; then echo "- OWASP Dependency-Check: reports/owasp/dependency-check-report.html"; fi
+          if [ -f reports/trivy/trivy-results.sarif ]; then echo "- Trivy SARIF: reports/trivy/trivy-results.sarif"; fi
+        } > summary.md
+
+    - name: Upload consolidated report bundle
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: ci-reports
+        path: |
+          summary.md
+          reports/**
