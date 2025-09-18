@@ -97,7 +97,12 @@ jobs:
       run: ./mvnw -B -Dspring.profiles.active=test test jacoco:report
       
     - name: Run SonarCloud Analysis (use compiled classes and JaCoCo report)
-      run: ./mvnw -B sonar:sonar -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.java.binaries=target/classes
+      run: |
+        ./mvnw -B sonar:sonar \
+          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+          -Dsonar.java.binaries=target/classes \
+          -Dsonar.qualitygate.wait=true \
+          -Dsonar.qualitygate.timeout=300
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
