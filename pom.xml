@@ -141,6 +141,22 @@
 
 	<dependencyManagement>
 		<dependencies>
+			<!-- Import patched Spring Framework BOM to pull spring-core 6.2.11+ -->
+			<dependency>
+				<groupId>org.springframework</groupId>
+				<artifactId>spring-framework-bom</artifactId>
+				<version>6.2.11</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+			<!-- Import patched Spring Security BOM to pull spring-security-core 6.5.4+ -->
+			<dependency>
+				<groupId>org.springframework.security</groupId>
+				<artifactId>spring-security-bom</artifactId>
+				<version>6.5.4</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 			<!-- Force secure versions for all dependencies -->
 			<dependency>
 				<groupId>org.yaml</groupId>
