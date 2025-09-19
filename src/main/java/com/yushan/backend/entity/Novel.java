@@ -65,9 +65,9 @@ public class Novel {
         this.viewCnt = viewCnt;
         this.voteCnt = voteCnt;
         this.yuanCnt = yuanCnt;
-        this.createTime = createTime;
-        this.updateTime = updateTime;
-        this.publishTime = publishTime;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
+        this.publishTime = publishTime != null ? new Date(publishTime.getTime()) : null;
     }
 
     public Novel() {
@@ -219,26 +219,26 @@ public class Novel {
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public Date getUpdateTime() {
-        return updateTime;
+        return updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public Date getPublishTime() {
-        return publishTime;
+        return publishTime != null ? new Date(publishTime.getTime()) : null;
     }
 
     public void setPublishTime(Date publishTime) {
-        this.publishTime = publishTime;
+        this.publishTime = publishTime != null ? new Date(publishTime.getTime()) : null;
     }
 }

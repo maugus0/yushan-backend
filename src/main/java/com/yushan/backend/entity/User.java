@@ -38,7 +38,7 @@ public class User {
 
     private Integer readBookNum;
 
-    private Date createDate;
+    private Date createTime;
 
     private Date updateTime;
 
@@ -46,7 +46,7 @@ public class User {
 
     private Date lastActive;
 
-    public User(UUID uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean authorVerified, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createDate, Date updateTime, Date lastLogin, Date lastActive) {
+    public User(UUID uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean authorVerified, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createTime, Date updateTime, Date lastLogin, Date lastActive) {
         this.uuid = uuid;
         this.email = email;
         this.username = username;
@@ -54,7 +54,7 @@ public class User {
         this.emailVerified = emailVerified;
         this.avatarUrl = avatarUrl;
         this.profileDetail = profileDetail;
-        this.birthday = birthday;
+        this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
         this.gender = gender;
         this.status = status;
         this.isAuthor = isAuthor;
@@ -64,10 +64,10 @@ public class User {
         this.yuan = yuan;
         this.readTime = readTime;
         this.readBookNum = readBookNum;
-        this.createDate = createDate;
-        this.updateTime = updateTime;
-        this.lastLogin = lastLogin;
-        this.lastActive = lastActive;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
+        this.lastLogin = lastLogin != null ? new Date(lastLogin.getTime()) : null;
+        this.lastActive = lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 
     public User() {
@@ -131,11 +131,11 @@ public class User {
     }
 
     public Date getBirthday() {
-        return birthday;
+        return birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public void setBirthday(Date birthday) {
-        this.birthday = birthday;
+        this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public Integer getGender() {
@@ -210,35 +210,35 @@ public class User {
         this.readBookNum = readBookNum;
     }
 
-    public Date getCreateDate() {
-        return createDate;
+    public Date getCreateTime() {
+        return createTime != null ? new Date(createTime.getTime()) : null;
     }
 
-    public void setCreateDate(Date createDate) {
-        this.createDate = createDate;
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public Date getUpdateTime() {
-        return updateTime;
+        return updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public Date getLastLogin() {
-        return lastLogin;
+        return lastLogin != null ? new Date(lastLogin.getTime()) : null;
     }
 
     public void setLastLogin(Date lastLogin) {
-        this.lastLogin = lastLogin;
+        this.lastLogin = lastLogin != null ? new Date(lastLogin.getTime()) : null;
     }
 
     public Date getLastActive() {
-        return lastActive;
+        return lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 
     public void setLastActive(Date lastActive) {
-        this.lastActive = lastActive;
+        this.lastActive = lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 }

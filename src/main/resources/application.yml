@@ -17,6 +17,10 @@ spring:
     url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
     username: postgres
     password: zhangyan
+  session:
+    store-type: jdbc
+    jdbc:
+      initialize-schema: always
   servlet:
     multipart:
       max-file-size: 2MB
@@ -35,10 +39,7 @@ spring:
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
   type-aliases-package: com.yushan.backend.entity
-  configuration:
-    map-underscore-to-camel-case: true
-    cache-enabled: true
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  config-location: classpath:config/mybatis-config.xml
 
 logging:
   level:

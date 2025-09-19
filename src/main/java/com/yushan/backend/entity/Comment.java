@@ -27,8 +27,8 @@ public class Comment {
         this.content = content;
         this.likeCnt = likeCnt;
         this.isSpoiler = isSpoiler;
-        this.createTime = createTime;
-        this.updateTime = updateTime;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public Comment() {
@@ -84,18 +84,18 @@ public class Comment {
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public Date getUpdateTime() {
-        return updateTime;
+        return updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 }

@@ -20,7 +20,7 @@
       <arg column="yuan" javaType="java.lang.Float" jdbcType="REAL" />
       <arg column="read_time" javaType="java.lang.Float" jdbcType="REAL" />
       <arg column="read_book_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
-      <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="create_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
       <arg column="update_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
       <arg column="last_login" javaType="java.util.Date" jdbcType="TIMESTAMP" />
       <arg column="last_active" javaType="java.util.Date" jdbcType="TIMESTAMP" />
@@ -29,7 +29,7 @@
   <sql id="Base_Column_List">
     uuid, email, username, hash_password, email_verified, avatar_url, profile_detail, 
     birthday, gender, status, is_author, author_verified, level, exp, yuan, read_time, 
-    read_book_num, create_date, update_time, last_login, last_active
+    read_book_num, create_time, update_time, last_login, last_active
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.util.UUID" resultMap="BaseResultMap">
     select 
@@ -53,14 +53,14 @@
       profile_detail, birthday, gender, 
       status, is_author, author_verified, 
       level, exp, yuan, read_time, 
-      read_book_num, create_date, update_time, 
+      read_book_num, create_time, update_time,
       last_login, last_active)
     values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 
       #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR}, 
       #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
       #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL}, 
-      #{readBookNum,jdbcType=INTEGER}, #{createDate,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, 
+      #{readBookNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
@@ -117,8 +117,8 @@
       <if test="readBookNum != null">
         read_book_num,
       </if>
-      <if test="createDate != null">
-        create_date,
+      <if test="createTime != null">
+        create_time,
       </if>
       <if test="updateTime != null">
         update_time,
@@ -182,8 +182,8 @@
       <if test="readBookNum != null">
         #{readBookNum,jdbcType=INTEGER},
       </if>
-      <if test="createDate != null">
-        #{createDate,jdbcType=TIMESTAMP},
+      <if test="createTime != null">
+        #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null">
         #{updateTime,jdbcType=TIMESTAMP},
@@ -247,8 +247,8 @@
       <if test="readBookNum != null">
         read_book_num = #{readBookNum,jdbcType=INTEGER},
       </if>
-      <if test="createDate != null">
-        create_date = #{createDate,jdbcType=TIMESTAMP},
+      <if test="createTime != null">
+        create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
       <if test="updateTime != null">
         update_time = #{updateTime,jdbcType=TIMESTAMP},
@@ -280,7 +280,7 @@
       yuan = #{yuan,jdbcType=REAL},
       read_time = #{readTime,jdbcType=REAL},
       read_book_num = #{readBookNum,jdbcType=INTEGER},
-      create_date = #{createDate,jdbcType=TIMESTAMP},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
       last_login = #{lastLogin,jdbcType=TIMESTAMP},
       last_active = #{lastActive,jdbcType=TIMESTAMP}

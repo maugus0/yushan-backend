@@ -29,7 +29,7 @@ public class AuthService {
     user.setHashPassword(hashPassword(registrationDTO.getPassword()));
     user.setEmailVerified(false);
     user.setAvatarUrl(""); // Set default empty string
-    user.setCreateDate(new Date());
+    user.setCreateTime(new Date());
     user.setUpdateTime(new Date());
     user.setStatus(1); // 1 for normal user
 
