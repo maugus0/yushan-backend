@@ -1,0 +1,47 @@
+# GitHub Environment configuration for Staging
+# This file defines environment-specific settings and protection rules
+
+name: yushan-staging
+displayName: Yushan Staging Environment
+description: Staging environment for testing and QA
+
+# Protection rules
+protection_rules:
+  # Require approval for deployments
+  required_reviewers:
+    - phutruonnttn  # Replace with your GitHub username
+  
+  # Wait timer before deployment (optional)
+  wait_timer: 0  # minutes
+  
+  # Prevent self-review
+  prevent_self_review: true
+  
+  # Restrict to specific branches
+  deployment_branch_policy:
+    protected_branches: false
+    custom_branch_policies: true
+    custom_branches:
+      - main
+      - ci-cd-testing
+
+# Environment variables (will be set in GitHub UI)
+# These should be configured in GitHub repository settings
+# variables:
+#   # Application (using defaults for now)
+#   SPRING_PROFILES_ACTIVE: staging
+#   SERVER_PORT: 8080
+#   CORS_ALLOWED_ORIGINS: http://localhost:3000,https://yushan-staging.vercel.app
+
+# Environment secrets (will be set in GitHub UI)
+# These should be configured in GitHub repository settings
+secrets:
+  # Railway deployment
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+  RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+  
+  # Database (Supabase)
+  STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+  
+  # Cache (Upstash)
+  STAGING_REDIS_URL: ${{ secrets.STAGING_REDIS_URL }}
