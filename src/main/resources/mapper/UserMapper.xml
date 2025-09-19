@@ -34,37 +34,37 @@
   <select id="selectByPrimaryKey" parameterType="java.util.UUID" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from user
+    from users
     where uuid = #{uuid,jdbcType=OTHER}
   </select>
   <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from user
+    from users
     where email = #{email,jdbcType=VARCHAR}
   </select>
   <delete id="deleteByPrimaryKey" parameterType="java.util.UUID">
-    delete from user
+    delete from users
     where uuid = #{uuid,jdbcType=OTHER}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into user (uuid, email, username, 
-      hash_password, email_verified, avatar_url, 
-      profile_detail, birthday, gender, 
-      status, is_author, author_verified, 
-      level, exp, yuan, read_time, 
+    insert into users (uuid, email, username,
+      hash_password, email_verified, avatar_url,
+      profile_detail, birthday, gender,
+      status, is_author, author_verified,
+      level, exp, yuan, read_time,
       read_book_num, create_time, update_time,
       last_login, last_active)
-    values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 
-      #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR}, 
-      #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, 
-      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
-      #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL}, 
+    values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR},
+      #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR},
+      #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER},
+      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT},
+      #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL},
       #{readBookNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
-    insert into user
+    insert into users
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="uuid != null">
         uuid,
@@ -197,7 +197,7 @@
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.User">
-    update user
+    update users
     <set>
       <if test="email != null">
         email = #{email,jdbcType=VARCHAR},
@@ -263,7 +263,7 @@
     where uuid = #{uuid,jdbcType=OTHER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.User">
-    update user
+    update users
     set email = #{email,jdbcType=VARCHAR},
       username = #{username,jdbcType=VARCHAR},
       hash_password = #{hashPassword,jdbcType=VARCHAR},

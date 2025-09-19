@@ -2,8 +2,11 @@ package com.yushan.backend.entity;
 
 import java.util.Date;
 import java.util.UUID;
+import java.io.Serializable;
 
-public class User {
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private UUID uuid;
 
     private String email;
