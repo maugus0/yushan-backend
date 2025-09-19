@@ -1,9 +1,10 @@
 package com.yushan.backend.entity;
 
 import java.util.Date;
+import java.util.UUID;
 
 public class User {
-    private String uuid;
+    private UUID uuid;
 
     private String email;
 
@@ -45,7 +46,7 @@ public class User {
 
     private Date lastActive;
 
-    public User(String uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean authorVerified, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createDate, Date updateTime, Date lastLogin, Date lastActive) {
+    public User(UUID uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean authorVerified, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createDate, Date updateTime, Date lastLogin, Date lastActive) {
         this.uuid = uuid;
         this.email = email;
         this.username = username;
@@ -73,12 +74,12 @@ public class User {
         super();
     }
 
-    public String getUuid() {
+    public UUID getUuid() {
         return uuid;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid == null ? null : uuid.trim();
+    public void setUuid(UUID uuid) {
+        this.uuid = uuid;
     }
 
     public String getEmail() {

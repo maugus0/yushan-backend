@@ -3,9 +3,13 @@ package com.yushan.backend.controller;
 import com.yushan.backend.dto.UserRegisterationDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.service.AuthService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -44,15 +48,17 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
+    public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
-
         try {
             String email = loginRequest.get("email");
             String password = loginRequest.get("password");
 
             User user = authService.login(email, password);
             if (user != null) {
+                //todo jwt & spring security
+                session.setAttribute("USER_SESSION", user);
+                session.setAttribute("USER_UUID", user.getUuid());
                 response.put("success", true);
                 response.put("message", "login successful");
                 response.put("user", user);
@@ -65,6 +71,25 @@ public class AuthController {
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "login failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            if (auth != null) {
+                //todo jwt & spring security
+                 request.getSession().invalidate();
+            }
+            response.put("success", true);
+            response.put("message", "logout successful");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "logout failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }

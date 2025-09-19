@@ -23,7 +23,7 @@ public class AuthService {
     }
 
     User user = new User();
-    user.setUuid(UUID.randomUUID().toString());
+    user.setUuid(UUID.randomUUID());
     user.setEmail(registrationDTO.getEmail());
     user.setUsername(registrationDTO.getUsername());
     user.setHashPassword(hashPassword(registrationDTO.getPassword()));
@@ -46,39 +46,28 @@ public class AuthService {
 
     try {
         userMapper.insert(user);
-        verifyEmail(user.getEmail());
     } catch (Exception e) {
-        // if email send failed, delete the user
         userMapper.deleteByPrimaryKey(user.getUuid());
         throw new RuntimeException("registered failed", e);
     }
-
+    verifyEmail(user.getEmail());
     return user;
 }
 
 
     public User login(String email, String password) {
-        // 输入验证
+        // verify input
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
             return null;
         }
 
         try {
-            // 使用参数化查询防止SQL注入
-            // User user = userRepository.findByEmail(email); // 假设使用ORM或DAO模式
-
-            // 实际项目中应该通过email查询用户，然后比对密码哈希值
-            // if (user != null && BCrypt.checkpw(password, user.getHashedPassword())) {
-            //     return user;
-            // }
-
-            // 这里假设密码存储使用BCrypt等安全哈希算法
-            // 在实际实现中，应该使用参数化查询防止SQL注入
-
-            return null; // 需要根据实际数据库查询实现
+             User user = userMapper.selectByEmail(email);
+             if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
+                 return user;
+             }
+            return null;
         } catch (Exception e) {
-            // 记录安全相关异常但不暴露具体错误信息
-            // logger.warn("Login attempt failed for email: " + email);
             return null;
         }
     }

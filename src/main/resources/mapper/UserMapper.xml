@@ -3,7 +3,7 @@
 <mapper namespace="com.yushan.backend.dao.UserMapper">
   <resultMap id="BaseResultMap" type="com.yushan.backend.entity.User">
     <constructor>
-      <idArg column="uuid" javaType="java.lang.String" jdbcType="VARCHAR" />
+      <idArg column="uuid" javaType="java.util.UUID" jdbcType="OTHER" />
       <arg column="email" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="username" javaType="java.lang.String" jdbcType="VARCHAR" />
       <arg column="hash_password" javaType="java.lang.String" jdbcType="VARCHAR" />
@@ -22,40 +22,40 @@
       <arg column="read_book_num" javaType="java.lang.Integer" jdbcType="INTEGER" />
       <arg column="create_date" javaType="java.util.Date" jdbcType="TIMESTAMP" />
       <arg column="update_time" javaType="java.util.Date" jdbcType="TIMESTAMP" />
-      <arg column="last_login " javaType="java.util.Date" jdbcType="TIMESTAMP" />
+      <arg column="last_login" javaType="java.util.Date" jdbcType="TIMESTAMP" />
       <arg column="last_active" javaType="java.util.Date" jdbcType="TIMESTAMP" />
     </constructor>
   </resultMap>
   <sql id="Base_Column_List">
     uuid, email, username, hash_password, email_verified, avatar_url, profile_detail, 
     birthday, gender, status, is_author, author_verified, level, exp, yuan, read_time, 
-    read_book_num, create_date, update_time, "last_login ", last_active
+    read_book_num, create_date, update_time, last_login, last_active
   </sql>
-  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+  <select id="selectByPrimaryKey" parameterType="java.util.UUID" resultMap="BaseResultMap">
     select 
     <include refid="Base_Column_List" />
-    from "user"
-    where uuid = #{uuid,jdbcType=VARCHAR}
+    from user
+    where uuid = #{uuid,jdbcType=OTHER}
   </select>
   <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
-    from "user"
+    from user
     where email = #{email,jdbcType=VARCHAR}
   </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
-    delete from "user"
-    where uuid = #{uuid,jdbcType=VARCHAR}
+  <delete id="deleteByPrimaryKey" parameterType="java.util.UUID">
+    delete from user
+    where uuid = #{uuid,jdbcType=OTHER}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into "user" (uuid, email, username, 
+    insert into user (uuid, email, username, 
       hash_password, email_verified, avatar_url, 
       profile_detail, birthday, gender, 
       status, is_author, author_verified, 
       level, exp, yuan, read_time, 
       read_book_num, create_date, update_time, 
-      "last_login ", last_active)
-    values (#{uuid,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 
+      last_login, last_active)
+    values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 
       #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR}, 
       #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, 
       #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
@@ -64,7 +64,7 @@
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.User">
-    insert into "user"
+    insert into user
     <trim prefix="(" suffix=")" suffixOverrides=",">
       <if test="uuid != null">
         uuid,
@@ -124,7 +124,7 @@
         update_time,
       </if>
       <if test="lastLogin != null">
-        "last_login ",
+        last_login,
       </if>
       <if test="lastActive != null">
         last_active,
@@ -132,7 +132,7 @@
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides=",">
       <if test="uuid != null">
-        #{uuid,jdbcType=VARCHAR},
+        #{uuid,jdbcType=OTHER},
       </if>
       <if test="email != null">
         #{email,jdbcType=VARCHAR},
@@ -254,13 +254,13 @@
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="lastLogin != null">
-        "last_login " = #{lastLogin,jdbcType=TIMESTAMP},
+        last_login = #{lastLogin,jdbcType=TIMESTAMP},
       </if>
       <if test="lastActive != null">
         last_active = #{lastActive,jdbcType=TIMESTAMP},
       </if>
     </set>
-    where uuid = #{uuid,jdbcType=VARCHAR}
+    where uuid = #{uuid,jdbcType=OTHER}
   </update>
   <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.User">
     update user
@@ -282,8 +282,8 @@
       read_book_num = #{readBookNum,jdbcType=INTEGER},
       create_date = #{createDate,jdbcType=TIMESTAMP},
       update_time = #{updateTime,jdbcType=TIMESTAMP},
-      "last_login " = #{lastLogin,jdbcType=TIMESTAMP},
+      last_login = #{lastLogin,jdbcType=TIMESTAMP},
       last_active = #{lastActive,jdbcType=TIMESTAMP}
-    where uuid = #{uuid,jdbcType=VARCHAR}
+    where uuid = #{uuid,jdbcType=OTHER}
   </update>
 </mapper>
