@@ -315,7 +315,6 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>12.1.0</version>
 				<configuration>
-                    <!--suppress UnresolvedMavenProperty -->
                     <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
 					<dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data</dataDirectory>
 					<format>ALL</format>
