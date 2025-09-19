@@ -1,0 +1,285 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yushan.backend.dao.NovelMapper" >
+  <resultMap id="BaseResultMap" type="com.yushan.backend.entity.Novel" >
+    <constructor >
+      <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
+      <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
+      <arg column="author_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="author_name" jdbcType="VARCHAR" javaType="java.lang.String" />
+      <arg column="category_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="synopsis" jdbcType="VARCHAR" javaType="java.lang.String" />
+      <arg column="cover_img_url" jdbcType="VARCHAR" javaType="java.lang.String" />
+      <arg column="status" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="is_completed" jdbcType="BIT" javaType="java.lang.Boolean" />
+      <arg column="is_valid" jdbcType="BIT" javaType="java.lang.Boolean" />
+      <arg column="chapter_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="word_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
+      <arg column="avg_rating" jdbcType="REAL" javaType="java.lang.Float" />
+      <arg column="review_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="view_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
+      <arg column="vote_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="yuan_cnt" jdbcType="REAL" javaType="java.lang.Float" />
+      <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+      <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+      <arg column="publish_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, uuid, title, author_id, author_name, category_id, synopsis, cover_img_url, status, 
+    is_completed, is_valid, chapter_cnt, word_cnt, avg_rating, review_cnt, view_cnt, 
+    vote_cnt, yuan_cnt, create_time, update_time, publish_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from novel
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from novel
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yushan.backend.entity.Novel" >
+    insert into novel (id, uuid, title, 
+      author_id, author_name, category_id, 
+      synopsis, cover_img_url, status, 
+      is_completed, is_valid, chapter_cnt, 
+      word_cnt, avg_rating, review_cnt, 
+      view_cnt, vote_cnt, yuan_cnt, 
+      create_time, update_time, publish_time
+      )
+    values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{title,jdbcType=VARCHAR}, 
+      #{authorId,jdbcType=INTEGER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{synopsis,jdbcType=VARCHAR}, #{coverImgUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
+      #{isCompleted,jdbcType=BIT}, #{isValid,jdbcType=BIT}, #{chapterCnt,jdbcType=INTEGER}, 
+      #{wordCnt,jdbcType=BIGINT}, #{avgRating,jdbcType=REAL}, #{reviewCnt,jdbcType=INTEGER}, 
+      #{viewCnt,jdbcType=BIGINT}, #{voteCnt,jdbcType=INTEGER}, #{yuanCnt,jdbcType=REAL}, 
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Novel" >
+    insert into novel
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="uuid != null" >
+        uuid,
+      </if>
+      <if test="title != null" >
+        title,
+      </if>
+      <if test="authorId != null" >
+        author_id,
+      </if>
+      <if test="authorName != null" >
+        author_name,
+      </if>
+      <if test="categoryId != null" >
+        category_id,
+      </if>
+      <if test="synopsis != null" >
+        synopsis,
+      </if>
+      <if test="coverImgUrl != null" >
+        cover_img_url,
+      </if>
+      <if test="status != null" >
+        status,
+      </if>
+      <if test="isCompleted != null" >
+        is_completed,
+      </if>
+      <if test="isValid != null" >
+        is_valid,
+      </if>
+      <if test="chapterCnt != null" >
+        chapter_cnt,
+      </if>
+      <if test="wordCnt != null" >
+        word_cnt,
+      </if>
+      <if test="avgRating != null" >
+        avg_rating,
+      </if>
+      <if test="reviewCnt != null" >
+        review_cnt,
+      </if>
+      <if test="viewCnt != null" >
+        view_cnt,
+      </if>
+      <if test="voteCnt != null" >
+        vote_cnt,
+      </if>
+      <if test="yuanCnt != null" >
+        yuan_cnt,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+      <if test="publishTime != null" >
+        publish_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="uuid != null" >
+        #{uuid,jdbcType=OTHER},
+      </if>
+      <if test="title != null" >
+        #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="authorId != null" >
+        #{authorId,jdbcType=INTEGER},
+      </if>
+      <if test="authorName != null" >
+        #{authorName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryId != null" >
+        #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="synopsis != null" >
+        #{synopsis,jdbcType=VARCHAR},
+      </if>
+      <if test="coverImgUrl != null" >
+        #{coverImgUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isCompleted != null" >
+        #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isValid != null" >
+        #{isValid,jdbcType=BIT},
+      </if>
+      <if test="chapterCnt != null" >
+        #{chapterCnt,jdbcType=INTEGER},
+      </if>
+      <if test="wordCnt != null" >
+        #{wordCnt,jdbcType=BIGINT},
+      </if>
+      <if test="avgRating != null" >
+        #{avgRating,jdbcType=REAL},
+      </if>
+      <if test="reviewCnt != null" >
+        #{reviewCnt,jdbcType=INTEGER},
+      </if>
+      <if test="viewCnt != null" >
+        #{viewCnt,jdbcType=BIGINT},
+      </if>
+      <if test="voteCnt != null" >
+        #{voteCnt,jdbcType=INTEGER},
+      </if>
+      <if test="yuanCnt != null" >
+        #{yuanCnt,jdbcType=REAL},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishTime != null" >
+        #{publishTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Novel" >
+    update novel
+    <set >
+      <if test="uuid != null" >
+        uuid = #{uuid,jdbcType=OTHER},
+      </if>
+      <if test="title != null" >
+        title = #{title,jdbcType=VARCHAR},
+      </if>
+      <if test="authorId != null" >
+        author_id = #{authorId,jdbcType=INTEGER},
+      </if>
+      <if test="authorName != null" >
+        author_name = #{authorName,jdbcType=VARCHAR},
+      </if>
+      <if test="categoryId != null" >
+        category_id = #{categoryId,jdbcType=INTEGER},
+      </if>
+      <if test="synopsis != null" >
+        synopsis = #{synopsis,jdbcType=VARCHAR},
+      </if>
+      <if test="coverImgUrl != null" >
+        cover_img_url = #{coverImgUrl,jdbcType=VARCHAR},
+      </if>
+      <if test="status != null" >
+        status = #{status,jdbcType=INTEGER},
+      </if>
+      <if test="isCompleted != null" >
+        is_completed = #{isCompleted,jdbcType=BIT},
+      </if>
+      <if test="isValid != null" >
+        is_valid = #{isValid,jdbcType=BIT},
+      </if>
+      <if test="chapterCnt != null" >
+        chapter_cnt = #{chapterCnt,jdbcType=INTEGER},
+      </if>
+      <if test="wordCnt != null" >
+        word_cnt = #{wordCnt,jdbcType=BIGINT},
+      </if>
+      <if test="avgRating != null" >
+        avg_rating = #{avgRating,jdbcType=REAL},
+      </if>
+      <if test="reviewCnt != null" >
+        review_cnt = #{reviewCnt,jdbcType=INTEGER},
+      </if>
+      <if test="viewCnt != null" >
+        view_cnt = #{viewCnt,jdbcType=BIGINT},
+      </if>
+      <if test="voteCnt != null" >
+        vote_cnt = #{voteCnt,jdbcType=INTEGER},
+      </if>
+      <if test="yuanCnt != null" >
+        yuan_cnt = #{yuanCnt,jdbcType=REAL},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="publishTime != null" >
+        publish_time = #{publishTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Novel" >
+    update novel
+    set uuid = #{uuid,jdbcType=OTHER},
+      title = #{title,jdbcType=VARCHAR},
+      author_id = #{authorId,jdbcType=INTEGER},
+      author_name = #{authorName,jdbcType=VARCHAR},
+      category_id = #{categoryId,jdbcType=INTEGER},
+      synopsis = #{synopsis,jdbcType=VARCHAR},
+      cover_img_url = #{coverImgUrl,jdbcType=VARCHAR},
+      status = #{status,jdbcType=INTEGER},
+      is_completed = #{isCompleted,jdbcType=BIT},
+      is_valid = #{isValid,jdbcType=BIT},
+      chapter_cnt = #{chapterCnt,jdbcType=INTEGER},
+      word_cnt = #{wordCnt,jdbcType=BIGINT},
+      avg_rating = #{avgRating,jdbcType=REAL},
+      review_cnt = #{reviewCnt,jdbcType=INTEGER},
+      view_cnt = #{viewCnt,jdbcType=BIGINT},
+      vote_cnt = #{voteCnt,jdbcType=INTEGER},
+      yuan_cnt = #{yuanCnt,jdbcType=REAL},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      publish_time = #{publishTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+</mapper>
