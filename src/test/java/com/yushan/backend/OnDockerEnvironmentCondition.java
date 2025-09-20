@@ -3,11 +3,12 @@ package com.yushan.backend;
 import org.springframework.context.annotation.Condition;
 import org.springframework.context.annotation.ConditionContext;
 import org.springframework.core.type.AnnotatedTypeMetadata;
+import org.springframework.lang.NonNull;
 
 public class OnDockerEnvironmentCondition implements Condition {
 
     @Override
-    public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
+    public boolean matches(@NonNull ConditionContext context, @NonNull AnnotatedTypeMetadata metadata) {
         // 检查是否设置了启用testcontainers的环境变量
         String enableTestcontainers = System.getenv("ENABLE_TESTCONTAINERS");
         if (enableTestcontainers != null) {

@@ -1,0 +1,42 @@
+# Test configuration for JWT tests
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+    # Initialize database schema
+    sql:
+      init:
+        mode: always
+        schema-locations: classpath:schema.sql
+        continue-on-error: false
+  
+  # MyBatis configuration for testing
+  mybatis:
+    mapper-locations: classpath:mapper/*.xml
+    type-aliases-package: com.yushan.backend.entity
+    configuration:
+      map-underscore-to-camel-case: true
+      log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+  
+  h2:
+    console:
+      enabled: true
+
+# JWT Configuration for testing
+jwt:
+  secret: TestJWTSecretKeyForTestingPurposesOnly
+  access-token:
+    expiration: 900000  # 15 minutes
+  refresh-token:
+    expiration: 604800000  # 7 days
+  issuer: yushan-backend-test
+  algorithm: HS256
+
+# Logging configuration for tests
+logging:
+  level:
+    com.yushan.backend: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG

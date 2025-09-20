@@ -58,6 +58,8 @@ jobs:
         
     - name: Run Integration Tests
       run: ./mvnw test -Dspring.profiles.active=integration-test
+      env:
+        CI: true
 
   lint-quality:
     name: Lint & Quality Checks
