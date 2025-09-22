@@ -1,6 +1,7 @@
 package com.yushan.backend.security;
 
 import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
 
@@ -12,18 +13,31 @@ import org.springframework.security.core.Authentication;
  */
 public class SecurityExpressionRoot implements MethodSecurityExpressionOperations {
 
-    private Authentication authentication;
+    private final Authentication authentication;
     private Object filterObject;
     private Object returnObject;
     private Object target;
 
     public SecurityExpressionRoot(Authentication authentication) {
-        this.authentication = authentication;
+        this.authentication = copyAuthentication(authentication);
     }
 
     @Override
     public Authentication getAuthentication() {
-        return authentication;
+        return copyAuthentication(authentication);
+    }
+
+    private static Authentication copyAuthentication(Authentication source) {
+        if (source == null) {
+            return null;
+        }
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
+            source.getPrincipal(),
+            null,
+            source.getAuthorities()
+        );
+        token.setDetails(source.getDetails());
+        return token;
     }
 
     @Override
