@@ -15,12 +15,8 @@ spring:
   datasource:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/postgres?serverTimezone=Asia/Shanghai&characterEncoding=utf8&useSSL=false&allowMultiQueries=true
-    username: postgres
-    password: zhangyan
-  session:
-    store-type: jdbc
-    jdbc:
-      initialize-schema: always
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
   servlet:
     multipart:
       max-file-size: 2MB
@@ -40,6 +36,16 @@ mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
   type-aliases-package: com.yushan.backend.entity
   config-location: classpath:config/mybatis-config.xml
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:YushanBackendJWTSecretKey2024ForSecureTokenGenerationAndValidation}
+  access-token:
+    expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}  # 15 minutes in milliseconds
+  refresh-token:
+    expiration: ${JWT_REFRESH_TOKEN_EXPIRATION:604800000}  # 7 days in milliseconds
+  issuer: ${JWT_ISSUER:yushan-backend}
+  algorithm: ${JWT_ALGORITHM:HS256}
 
 logging:
   level:
