@@ -16,6 +16,13 @@ Edit the `.env` file with your actual values:
 # Database Configuration
 DB_USERNAME=postgres
 DB_PASSWORD=your_secure_password
+DB_NAME=yushan
+DB_HOST=127.0.0.1
+DB_PORT=5432
+
+# Redis Configuration
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 
 # JWT Configuration
 JWT_SECRET=YourSuperSecretKeyHere2024
@@ -43,18 +50,33 @@ JWT_ALGORITHM=HS256
 ```bash
 JWT_SECRET=DevSecretKey2024
 DB_PASSWORD=dev_password
+DB_NAME=yushan
+DB_HOST=127.0.0.1
+DB_PORT=5432
+REDIS_HOST=127.0.0.1
+REDIS_PORT=6379
 ```
 
 #### Staging
 ```bash
 JWT_SECRET=StagingSecretKey2024
 DB_PASSWORD=staging_password
+DB_NAME=yushan
+DB_HOST=<staging-db-host>
+DB_PORT=5432
+REDIS_HOST=<staging-redis-host>
+REDIS_PORT=6379
 ```
 
 #### Production
 ```bash
 JWT_SECRET=ProductionSecretKey2024
 DB_PASSWORD=production_password
+DB_NAME=yushan
+DB_HOST=<prod-db-host>
+DB_PORT=5432
+REDIS_HOST=<prod-redis-host>
+REDIS_PORT=6379
 ```
 
 ### 5. Running the Application
@@ -62,7 +84,7 @@ DB_PASSWORD=production_password
 #### With .env file
 ```bash
 # Load .env file and run
-source .env && mvn spring-boot:run
+source .env && ./mvnw spring-boot:run
 ```
 
 #### With environment variables
@@ -70,7 +92,7 @@ source .env && mvn spring-boot:run
 # Set variables and run
 export JWT_SECRET="YourSecretKey"
 export DB_PASSWORD="your_password"
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 #### With IDE
@@ -140,5 +162,18 @@ data:
 
 1. Copy `env.example` to `.env`
 2. Update values in `.env`
-3. Run `mvn spring-boot:run`
+3. Run `./mvnw spring-boot:run`
 4. Application will use environment variables automatically
+
+### ℹ️ Notes for Local vs Docker
+- Docker stack maps Postgres host port to 5433. From host tools (pgAdmin/psql), connect: Host `127.0.0.1`, Port `5433`.
+- From another container in the compose network, connect to `postgres:5432` (service name, container port).
+- If you run locally without Docker, ensure your local Postgres listens on 127.0.0.1:5432 or adjust `DB_HOST/DB_PORT` accordingly.
+
+### Example: Override DB for local run (no Docker)
+```bash
+export DB_HOST=127.0.0.1
+export DB_PORT=5432
+export DB_NAME=yushan
+./mvnw spring-boot:run
+```
