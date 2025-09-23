@@ -195,6 +195,14 @@
 				<artifactId>commons-lang3</artifactId>
 				<version>${commons-lang3.version}</version>
 			</dependency>
+			<!-- Override Netty 4.1.x to 4.1.125.Final to address CVE-2025-58056/58057 -->
+			<dependency>
+				<groupId>io.netty</groupId>
+				<artifactId>netty-bom</artifactId>
+				<version>4.1.125.Final</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
 		</dependencies>
 	</dependencyManagement>
 
@@ -330,7 +338,8 @@
 				<artifactId>dependency-check-maven</artifactId>
 				<version>12.1.0</version>
 				<configuration>
-                    <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+					<nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+					<ossIndexServerId>ossindex</ossIndexServerId>
 					<dataDirectory>${user.home}/.m2/repository/org/owasp/dependency-check-data</dataDirectory>
 					<format>ALL</format>
 					<failBuildOnCVSS>10</failBuildOnCVSS>
