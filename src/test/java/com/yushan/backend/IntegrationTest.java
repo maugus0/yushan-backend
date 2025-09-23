@@ -18,6 +18,7 @@ import org.springframework.test.context.ActiveProfiles;
 @SpringBootTest
 @ActiveProfiles("integration-test")
 @Import(TestcontainersConfiguration.class)
+@org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class IntegrationTest {
 
     @Test

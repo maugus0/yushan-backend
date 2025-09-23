@@ -48,18 +48,18 @@
     where uuid = #{uuid,jdbcType=OTHER}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into users (uuid, email, username,
-      hash_password, email_verified, avatar_url,
-      profile_detail, birthday, gender,
-      status, is_author, author_verified,
-      level, exp, yuan, read_time,
+    insert into users (uuid, email, username, 
+      hash_password, email_verified, avatar_url, 
+      profile_detail, birthday, gender, 
+      status, is_author, author_verified, 
+      level, exp, yuan, read_time, 
       read_book_num, create_time, update_time,
       last_login, last_active)
-    values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR},
-      #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR},
-      #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER},
-      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT},
-      #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL},
+    values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 
+      #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR}, 
+      #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER}, 
+      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT}, 
+      #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL}, 
       #{readBookNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
   </insert>
