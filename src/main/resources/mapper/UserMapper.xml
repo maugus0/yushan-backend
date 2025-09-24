@@ -48,7 +48,7 @@
     where uuid = #{uuid,jdbcType=OTHER}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into users (uuid, email, username, 
+    insert into users (uuid, email, username,
       hash_password, email_verified, avatar_url, 
       profile_detail, birthday, gender, 
       status, is_author, author_verified, 
