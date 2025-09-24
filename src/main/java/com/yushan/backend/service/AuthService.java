@@ -18,6 +18,8 @@ public class AuthService {
 
     @Autowired
     private UserMapper userMapper;
+    @Autowired
+    private MailUtil mailUtil;
 
     /**
      * register a new user
@@ -59,7 +61,7 @@ public class AuthService {
         throw new RuntimeException("registered failed", e);
     }
     try {
-        MailUtil.sendVerificationEmail(user);
+        mailUtil.sendVerificationEmail(user);
     } catch (MessagingException | UnsupportedEncodingException e) {
         throw new RuntimeException("failed to send verification email", e);
     }

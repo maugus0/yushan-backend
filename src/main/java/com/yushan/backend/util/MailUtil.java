@@ -14,9 +14,7 @@ import java.security.SecureRandom;
 @Component
 public class MailUtil {
     @Autowired
-    private static JavaMailSender javaMailSender;
-
-    private static final SecureRandom secureRandom = new SecureRandom();
+    private JavaMailSender javaMailSender;
 
     /**
      * send verification code email
@@ -24,14 +22,14 @@ public class MailUtil {
      * @throws MessagingException
      * @throws UnsupportedEncodingException
      */
-    public static void sendVerificationEmail(User user) throws MessagingException, UnsupportedEncodingException {
+    public void sendVerificationEmail(User user) throws MessagingException, UnsupportedEncodingException {
+        SecureRandom secureRandom = new SecureRandom();
+
         MimeMessage message = javaMailSender.createMimeMessage();
         String code = String.format("%06d", secureRandom.nextInt(1000000));
-        MimeMessageHelper helper = null;
+        MimeMessageHelper helper = new MimeMessageHelper(message, false);
 
-        helper = new MimeMessageHelper(message, false);
-
-        helper.setFrom("17843049095@qq.com", "Yushan");
+        helper.setFrom("1784304095@qq.com", "Yushan");
         helper.setTo(user.getEmail());
         // title
         helper.setSubject("Code");
@@ -43,6 +41,6 @@ public class MailUtil {
     }
 
     //todo verify email
-    public static void verifyEmail() {
+    public void verifyEmail() {
     }
 }
