@@ -238,6 +238,7 @@ docker run -p 8080:8080 \
 | **File** | **Profile** | **Purpose** | **Environment** | **Database** | **Redis** |
 |---|---|---|---|---|---|
 | `application.yml` | `default` | Default config | Local development | PostgreSQL | Disabled |
+| `application-local-redis.properties` | `local-redis` | Local dev with Redis | Local machine | PostgreSQL | Enabled |
 | `application-docker.properties` | `docker` | Docker environment | Docker containers | PostgreSQL | Enabled |
 | `application-test.properties` | `test` | Unit tests | Testing | H2 in-memory | Disabled |
 | `application-integration-test.properties` | `integration-test` | Integration tests | Testing | PostgreSQL (Testcontainers) | Redis (Testcontainers) |
@@ -449,6 +450,7 @@ data:
 1. **Local Development**: `./mvnw spring-boot:run` (default profile)
 2. **Docker Development**: `./mvnw spring-boot:run -Dspring-boot.run.profiles=docker`
 3. **Staging Testing**: `./mvnw spring-boot:run -Dspring-boot.run.profiles=staging`
+4. **Local with Redis**: `./mvnw spring-boot:run -Dspring-boot.run.profiles=local-redis`
 
 ## 📋 Environment Summary
 
