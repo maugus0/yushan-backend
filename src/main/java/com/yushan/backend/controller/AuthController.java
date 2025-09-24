@@ -40,6 +40,11 @@ public class AuthController {
         return "test";
     }
 
+    /**
+     * Register a new user
+     * @param registrationDTO
+     * @return
+     */
     @PostMapping("/register")
     public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterationDTO registrationDTO) {
         Map<String, Object> response = new HashMap<>();
@@ -77,6 +82,11 @@ public class AuthController {
         }
     }
 
+    /**
+     * Login a user
+     * @param loginRequest
+     * @return
+     */
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> login(@RequestBody Map<String, String> loginRequest) {
         Map<String, Object> response = new HashMap<>();
@@ -121,6 +131,11 @@ public class AuthController {
         }
     }
 
+    /**
+     * Logout a user
+     * @param request
+     * @return
+     */
     @PostMapping("/logout")
     public ResponseEntity<Map<String, Object>> logout(HttpServletRequest request) {
         Map<String, Object> response = new HashMap<>();
@@ -140,6 +155,11 @@ public class AuthController {
         }
     }
 
+    /**
+     * Refresh a user's access token
+     * @param refreshRequest
+     * @return
+     */
     @PostMapping("/refresh")
     public ResponseEntity<Map<String, Object>> refresh(@RequestBody Map<String, String> refreshRequest) {
         Map<String, Object> response = new HashMap<>();
