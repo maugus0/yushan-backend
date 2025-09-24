@@ -109,6 +109,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/example/public").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
+                // Swagger/OpenAPI endpoints
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/error").permitAll()
                 
                 // Protected endpoints - require authentication
