@@ -31,6 +31,20 @@ spring:
           max-idle: 10
           min-idle: 0
       timeout: 1000
+  mail:
+    host: smtp.qq.com
+    username: 1784304095@qq.com
+    password: fmgjizhjdbbabiib
+    port: 465
+    default-encoding: UTF-8
+    protocol: smtps
+    properties:
+      "mail.smtp.connectiontimeout": 5000
+      "mail.smtp.timeout": 3000
+      "mail.smtp.writetimeout": 5000
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.smtp.starttls.required": true
 
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml

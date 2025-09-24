@@ -3,10 +3,13 @@ package com.yushan.backend.service;
 import com.yushan.backend.dto.UserRegisterationDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.util.MailUtil;
+import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -16,6 +19,11 @@ public class AuthService {
     @Autowired
     private UserMapper userMapper;
 
+    /**
+     * register a new user
+     * @param registrationDTO
+     * @return
+     */
     public User register(UserRegisterationDTO registrationDTO) {
     // check if email existed
     if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
@@ -50,11 +58,20 @@ public class AuthService {
         userMapper.deleteByPrimaryKey(user.getUuid());
         throw new RuntimeException("registered failed", e);
     }
-    verifyEmail(user.getEmail());
+    try {
+        MailUtil.sendVerificationEmail(user);
+    } catch (MessagingException | UnsupportedEncodingException e) {
+        throw new RuntimeException("failed to send verification email", e);
+    }
     return user;
 }
 
-
+    /**
+    * login a user
+    * @param email
+    * @param password
+    * @return
+    */
     public User login(String email, String password) {
         // verify input
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
@@ -72,10 +89,12 @@ public class AuthService {
         }
     }
 
+    /**
+     * hash password
+     * @param password
+     * @return
+     */
     private String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
-    }
-
-    private void verifyEmail(String email) {
     }
 }
