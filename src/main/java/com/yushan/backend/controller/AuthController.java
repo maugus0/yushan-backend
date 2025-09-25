@@ -27,13 +27,13 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
-    
+
     @Autowired
     private JwtUtil jwtUtil;
-    
+
     @Autowired
     private UserMapper userMapper;
-    
+
     @Value("${jwt.access-token.expiration}")
     private long accessTokenExpiration;
 
@@ -54,14 +54,14 @@ public class AuthController {
 
         try {
             User user = authService.register(registrationDTO);
-            
+
             // Generate JWT tokens for auto-login after registration
             String accessToken = jwtUtil.generateAccessToken(user);
             String refreshToken = jwtUtil.generateRefreshToken(user);
-            
+
             // Prepare user info (without sensitive data)
             Map<String, Object> userInfo = createUserResponse(user);
-            
+
             response.put("success", true);
             response.put("message", "register successful");
             response.put("user", userInfo);
@@ -69,7 +69,7 @@ public class AuthController {
             response.put("refreshToken", refreshToken);
             response.put("tokenType", "Bearer");
             response.put("expiresIn", accessTokenExpiration);
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -95,10 +95,10 @@ public class AuthController {
                 // Generate JWT tokens
                 String accessToken = jwtUtil.generateAccessToken(user);
                 String refreshToken = jwtUtil.generateRefreshToken(user);
-                
+
                 // Prepare user info (without sensitive data)
                 Map<String, Object> userInfo = createUserResponse(user);
-                
+
                 response.put("success", true);
                 response.put("message", "login successful");
                 response.put("user", userInfo);
@@ -106,7 +106,7 @@ public class AuthController {
                 response.put("refreshToken", refreshToken);
                 response.put("tokenType", "Bearer");
                 response.put("expiresIn", accessTokenExpiration);
-                
+
                 return ResponseEntity.ok(response);
             } else {
                 response.put("success", false);
@@ -131,11 +131,11 @@ public class AuthController {
         try {
             // Clear SecurityContext
             SecurityContextHolder.clearContext();
-            
+
             response.put("success", true);
             response.put("message", "logout successful");
             response.put("note", "JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens.");
-            
+
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             response.put("success", false);
@@ -154,50 +154,50 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
         try {
             String refreshToken = refreshRequest.get("refreshToken");
-            
+
             if (refreshToken == null || refreshToken.isEmpty()) {
                 response.put("success", false);
                 response.put("message", "Refresh token is required");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // Validate refresh token
             if (!jwtUtil.validateToken(refreshToken)) {
                 response.put("success", false);
                 response.put("message", "Invalid refresh token");
                 return ResponseEntity.status(401).body(response);
             }
-            
+
             // Check if it's actually a refresh token
             if (!jwtUtil.isRefreshToken(refreshToken)) {
                 response.put("success", false);
                 response.put("message", "Token is not a refresh token");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // Extract user info from refresh token
             String email = jwtUtil.extractEmail(refreshToken);
             String userId = jwtUtil.extractUserId(refreshToken);
-            
+
             // Load user from database
             User user = userMapper.selectByEmail(email);
-            
+
             if (user == null || !user.getUuid().toString().equals(userId)) {
                 response.put("success", false);
                 response.put("message", "User not found or token mismatch");
                 return ResponseEntity.badRequest().body(response);
             }
-            
+
             // Generate new access token
             String newAccessToken = jwtUtil.generateAccessToken(user);
-            
+
             // Optionally generate new refresh token (token rotation)
             String newRefreshToken = jwtUtil.generateRefreshToken(user);
-            
+
             // Prepare user info
             Map<String, Object> userInfo = createUserResponse(user);
 
-            
+
             response.put("success", true);
             response.put("message", "Token refreshed successfully");
             response.put("user", userInfo);
@@ -205,9 +205,9 @@ public class AuthController {
             response.put("refreshToken", newRefreshToken);
             response.put("tokenType", "Bearer");
             response.put("expiresIn", accessTokenExpiration);
-            
+
             return ResponseEntity.ok(response);
-            
+
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Refresh failed: " + e.getMessage());
