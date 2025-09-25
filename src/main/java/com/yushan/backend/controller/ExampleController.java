@@ -44,7 +44,7 @@ public class ExampleController {
         
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            response.put("user", userDetails.getUser().getUsername());
+            response.put("user", userDetails.getProfileUsername());
             response.put("isAuthor", userDetails.isAuthor());
         }
         
@@ -62,7 +62,7 @@ public class ExampleController {
         response.put("access", "Author role required");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("isAuthor", userDetails.isAuthor());
         response.put("isVerifiedAuthor", userDetails.isVerifiedAuthor());
         
@@ -80,7 +80,7 @@ public class ExampleController {
         response.put("access", "Verified author role required");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("isAuthor", userDetails.isAuthor());
         response.put("isVerifiedAuthor", userDetails.isVerifiedAuthor());
         
@@ -98,7 +98,7 @@ public class ExampleController {
         response.put("access", "Admin role required");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("isAdmin", userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
         
@@ -116,7 +116,7 @@ public class ExampleController {
         response.put("access", "Author or admin role required");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("isAuthor", userDetails.isAuthor());
         response.put("isAdmin", userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
@@ -138,7 +138,7 @@ public class ExampleController {
         response.put("access", "Resource owner, author, or admin required");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("userId", userDetails.getUserId());
         response.put("isOwner", userDetails.getUserId().equals(resourceId));
         response.put("isAuthor", userDetails.isAuthor());
@@ -162,7 +162,7 @@ public class ExampleController {
         response.put("access", "Authenticated user who is author, admin, or owner");
         
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getUser().getUsername());
+        response.put("user", userDetails.getProfileUsername());
         response.put("currentUserId", userDetails.getUserId());
         response.put("isOwner", userDetails.getUserId().equals(userId));
         response.put("isAuthor", userDetails.isAuthor());

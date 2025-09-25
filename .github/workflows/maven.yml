@@ -132,6 +132,24 @@ jobs:
         path: ~/.m2/repository/org/owasp/dependency-check-data
         key: ${{ runner.os }}-dc-${{ hashFiles('**/pom.xml') }}
         restore-keys: ${{ runner.os }}-dc-
+    
+    - name: Configure Maven settings for OSS Index
+      run: |
+        mkdir -p ~/.m2
+        cat > ~/.m2/settings.xml <<XML
+        <settings>
+          <servers>
+            <server>
+              <id>ossindex</id>
+              <username>${OSSINDEX_USER}</username>
+              <password>${OSSINDEX_TOKEN}</password>
+            </server>
+          </servers>
+        </settings>
+        XML
+      env:
+        OSSINDEX_USER: ${{ secrets.OSSINDEX_USER }}
+        OSSINDEX_TOKEN: ${{ secrets.OSSINDEX_TOKEN }}
         
     - name: Run OWASP Dependency Check
       env:

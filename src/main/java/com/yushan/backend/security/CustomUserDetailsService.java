@@ -79,10 +79,24 @@ public class CustomUserDetailsService implements UserDetailsService {
      * for Spring Security integration
      */
     public static class CustomUserDetails implements UserDetails {
-        private final User user;
+        private static final long serialVersionUID = 1L;
+
+        private final String userId;
+        private final String email;
+        private final String displayUsername;
+        private final String hashPassword;
+        private final Boolean isAuthor;
+        private final Boolean authorVerified;
+        private final Integer status;
 
         public CustomUserDetails(User user) {
-            this.user = user;
+            this.userId = user.getUuid() != null ? user.getUuid().toString() : null;
+            this.email = user.getEmail();
+            this.displayUsername = user.getUsername();
+            this.hashPassword = user.getHashPassword();
+            this.isAuthor = user.getIsAuthor();
+            this.authorVerified = user.getAuthorVerified();
+            this.status = user.getStatus();
         }
 
         @Override
@@ -93,7 +107,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
             
             // Add author authority if user is an author
-            if (user.getIsAuthor() != null && user.getIsAuthor()) {
+            if (isAuthor != null && isAuthor) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_AUTHOR"));
             }
             
@@ -107,12 +121,19 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public String getPassword() {
-            return user.getHashPassword();
+            return hashPassword;
         }
 
         @Override
         public String getUsername() {
-            return user.getEmail();
+            return email;
+        }
+
+        /**
+         * Display username (profile name), not used for authentication
+         */
+        public String getProfileUsername() {
+            return displayUsername;
         }
 
         @Override
@@ -133,16 +154,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         @Override
         public boolean isEnabled() {
             // Check if user status is active (1 = active, 0 = inactive)
-            return user.getStatus() != null && user.getStatus() == 1;
-        }
-
-        /**
-         * Get the underlying User entity
-         * 
-         * @return User entity
-         */
-        public User getUser() {
-            return user;
+            return status != null && status == 1;
         }
 
         /**
@@ -151,7 +163,7 @@ public class CustomUserDetailsService implements UserDetailsService {
          * @return User UUID
          */
         public String getUserId() {
-            return user.getUuid().toString();
+            return userId;
         }
 
         /**
@@ -160,7 +172,7 @@ public class CustomUserDetailsService implements UserDetailsService {
          * @return true if user is author, false otherwise
          */
         public boolean isAuthor() {
-            return user.getIsAuthor() != null && user.getIsAuthor();
+            return isAuthor != null && isAuthor;
         }
 
         /**
@@ -169,7 +181,7 @@ public class CustomUserDetailsService implements UserDetailsService {
          * @return true if user is verified author, false otherwise
          */
         public boolean isVerifiedAuthor() {
-            return user.getAuthorVerified() != null && user.getAuthorVerified();
+            return authorVerified != null && authorVerified;
         }
     }
 }
