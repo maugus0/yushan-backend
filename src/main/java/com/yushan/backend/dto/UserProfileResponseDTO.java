@@ -7,7 +7,7 @@ import java.util.Date;
 /**
  * DTO for exposing user profile via API (read model)
  */
-public class UserProfileDTO {
+public class UserProfileResponseDTO {
     private String uuid;
     private String email;
     private String username;
