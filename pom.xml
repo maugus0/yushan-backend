@@ -67,6 +67,12 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
+		<!-- Swagger UI via springdoc-openapi -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.6.0</version>
+		</dependency>
 		<dependency>
 			<groupId>org.springframework.session</groupId>
 			<artifactId>spring-session-data-redis</artifactId>
@@ -240,6 +246,32 @@
                     <configurationFile>${basedir}/src/main/resources/generatorConfig.xml</configurationFile>
                     <verbose>true</verbose>
                     <overwrite>true</overwrite>
+                    <properties>
+                        <property>
+                            <name>GENERATOR_DB_HOST</name>
+                            <value>${GENERATOR_DB_HOST:localhost}</value>
+                        </property>
+                        <property>
+                            <name>GENERATOR_DB_PORT</name>
+                            <value>${GENERATOR_DB_PORT:5432}</value>
+                        </property>
+                        <property>
+                            <name>GENERATOR_DB_NAME</name>
+                            <value>${GENERATOR_DB_NAME:yushan}</value>
+                        </property>
+                        <property>
+                            <name>GENERATOR_DB_USERNAME</name>
+                            <value>${GENERATOR_DB_USERNAME:postgres}</value>
+                        </property>
+                        <property>
+                            <name>GENERATOR_DB_PASSWORD</name>
+                            <value>${GENERATOR_DB_PASSWORD:postgres}</value>
+                        </property>
+                        <property>
+                            <name>GENERATOR_DRIVER_LOCATION</name>
+                            <value>${GENERATOR_DRIVER_LOCATION:${settings.localRepository}/org/postgresql/postgresql/42.6.0/postgresql-42.6.0.jar}</value>
+                        </property>
+                    </properties>
                 </configuration>
                 <dependencies>
                     <dependency>
