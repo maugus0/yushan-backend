@@ -4,12 +4,10 @@ import com.yushan.backend.dto.UserRegisterationDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.util.MailUtil;
-import jakarta.mail.MessagingException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
-import java.io.UnsupportedEncodingException;
 import java.util.Date;
 import java.util.UUID;
 
@@ -96,28 +94,6 @@ public class AuthService {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    /**
-     * send verification email
-     * @param email
-     */
-    public void sendVerificationEmail(String email) {
-        try {
-            mailUtil.sendVerificationEmail(email);
-        } catch (MessagingException | UnsupportedEncodingException e) {
-            throw new RuntimeException("failed to send verification email", e);
-        }
-    }
-
-    /**
-     * verify email
-     * @param email
-     * @param code
-     * @return if verified successfully
-     */
-    public boolean verifyEmail(String email, String code) {
-        return mailUtil.verifyEmail(email, code);
     }
 
     /**

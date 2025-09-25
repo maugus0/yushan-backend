@@ -4,6 +4,7 @@ import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.UserRegisterationDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.service.AuthService;
+import com.yushan.backend.service.MailService;
 import com.yushan.backend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
@@ -27,6 +28,9 @@ public class AuthController {
 
     @Autowired
     private AuthService authService;
+
+    @Autowired
+    private MailService mailService;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -222,14 +226,14 @@ public class AuthController {
      */
     @PostMapping("/sendEmail")
     public ResponseEntity<Map<String, Object>> sendEmail(@RequestBody Map<String, String> emailRequest) {
-        //todo check rate limit
         Map<String, Object> response = new HashMap<>();
         try {
             String email = emailRequest.get("email");
 
-            if (email == null || email.isEmpty()) {
+            // check here instead of dto since only one field
+            if (email == null || email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
                 response.put("success", false);
-                response.put("message", "Email are required");
+                response.put("message", "wrong email");
                 return ResponseEntity.badRequest().body(response);
             }
 
@@ -241,7 +245,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            authService.sendVerificationEmail(email);
+            mailService.sendVerificationCode(email);
 
             response.put("success", true);
             response.put("message", "Verification code sent successfully");
@@ -272,7 +276,7 @@ public class AuthController {
                 return ResponseEntity.badRequest().body(response);
             }
 
-            boolean isValid = authService.verifyEmail(email, code);
+            boolean isValid = mailService.verifyEmail(email, code);
 
             if (isValid) {
                 response.put("success", true);

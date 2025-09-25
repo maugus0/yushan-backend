@@ -43,6 +43,9 @@ spring:
       "mail.smtp.auth": true
       "mail.smtp.starttls.enable": true
       "mail.smtp.starttls.required": true
+  devtools:
+    restart:
+      enabled: false
 
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
