@@ -103,11 +103,11 @@
 			<artifactId>lombok</artifactId>
 			<optional>true</optional>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-		</dependency>
+        </dependency>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-testcontainers</artifactId>
@@ -118,16 +118,20 @@
 			<artifactId>spring-security-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>junit-jupiter</artifactId>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.testcontainers</groupId>
-			<artifactId>postgresql</artifactId>
-			<scope>test</scope>
-		</dependency>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
 
 		<!-- Override vulnerable dependencies -->
 		<dependency>
@@ -170,7 +174,39 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
-	</dependencies>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-testcontainers</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>postgresql</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-test-autoconfigure</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+    </dependencies>
 
 	<dependencyManagement>
 		<dependencies>
@@ -201,15 +237,15 @@
 				<artifactId>commons-lang3</artifactId>
 				<version>${commons-lang3.version}</version>
 			</dependency>
-			<!-- Override Netty 4.1.x to 4.1.125.Final to address CVE-2025-58056/58057 -->
-			<dependency>
-				<groupId>io.netty</groupId>
-				<artifactId>netty-bom</artifactId>
-				<version>4.1.125.Final</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
+            <!-- Override Netty 4.1.x to 4.1.125.Final to address CVE-2025-58056/58057 -->
+            <dependency>
+                <groupId>io.netty</groupId>
+                <artifactId>netty-bom</artifactId>
+                <version>4.1.125.Final</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
 	</dependencyManagement>
 
 	<build>
@@ -246,32 +282,6 @@
                     <configurationFile>${basedir}/src/main/resources/generatorConfig.xml</configurationFile>
                     <verbose>true</verbose>
                     <overwrite>true</overwrite>
-                    <properties>
-                        <property>
-                            <name>GENERATOR_DB_HOST</name>
-                            <value>${GENERATOR_DB_HOST:localhost}</value>
-                        </property>
-                        <property>
-                            <name>GENERATOR_DB_PORT</name>
-                            <value>${GENERATOR_DB_PORT:5432}</value>
-                        </property>
-                        <property>
-                            <name>GENERATOR_DB_NAME</name>
-                            <value>${GENERATOR_DB_NAME:yushan}</value>
-                        </property>
-                        <property>
-                            <name>GENERATOR_DB_USERNAME</name>
-                            <value>${GENERATOR_DB_USERNAME:postgres}</value>
-                        </property>
-                        <property>
-                            <name>GENERATOR_DB_PASSWORD</name>
-                            <value>${GENERATOR_DB_PASSWORD:postgres}</value>
-                        </property>
-                        <property>
-                            <name>GENERATOR_DRIVER_LOCATION</name>
-                            <value>${GENERATOR_DRIVER_LOCATION:${settings.localRepository}/org/postgresql/postgresql/42.6.0/postgresql-42.6.0.jar}</value>
-                        </property>
-                    </properties>
                 </configuration>
                 <dependencies>
                     <dependency>

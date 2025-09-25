@@ -6,10 +6,6 @@ server:
 spring:
   application:
     name: Yushan Backend
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   transaction:
     rollback-on-commit-failure: true
   datasource:
@@ -23,14 +19,30 @@ spring:
       max-request-size: 20MB
   data:
     redis:
-      port: 6379
-      jedis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      lettuce:
         pool:
           max-active: 20
-          max-wait: -1
+          max-wait: -1ms
           max-idle: 10
           min-idle: 0
       timeout: 1000
+  mail:
+    host: ${MAIL_HOST:smtp.qq.com}
+    username: ${MAIL_USERNAME:1784304095@qq.com}
+    password: ${MAIL_PASSWORD:fmgjizhjdbbabiib}
+    port: ${MAIL_PORT:465}
+    default-encoding: UTF-8
+    protocol: smtps
+    properties:
+      "mail.smtp.connectiontimeout": 5000
+      "mail.smtp.timeout": 3000
+      "mail.smtp.writetimeout": 5000
+      "mail.smtp.auth": true
+      "mail.smtp.starttls.enable": true
+      "mail.smtp.starttls.required": true
 
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
