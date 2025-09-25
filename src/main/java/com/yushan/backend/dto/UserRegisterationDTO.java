@@ -34,8 +34,8 @@ public class UserRegisterationDTO {
 
     @Getter
     @Setter
-    @Min(value = 1, message = "gender must be 1 or 2")
-    @Max(value = 2, message = "gender must be 1 or 2")
+    @Min(value = 0, message = "gender must be 1 or 2 or 3")
+    @Max(value = 2, message = "gender must be 1 or 2 or 3")
     private Integer gender = 0;
 
     // Getters and Setters
