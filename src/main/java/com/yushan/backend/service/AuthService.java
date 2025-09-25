@@ -17,43 +17,42 @@ public class AuthService {
     private UserMapper userMapper;
 
     public User register(UserRegisterationDTO registrationDTO) {
-    // check if email existed
-    if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
-        throw new RuntimeException("email was registered");
+        // check if email existed
+        if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
+            throw new RuntimeException("email was registered");
+        }
+
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setEmail(registrationDTO.getEmail());
+        user.setUsername(registrationDTO.getUsername());
+        user.setHashPassword(hashPassword(registrationDTO.getPassword()));
+        user.setEmailVerified(false);
+        user.setAvatarUrl(""); // Set default empty string
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        user.setStatus(1); // 1 for normal user
+
+        // set default user profile
+        user.setIsAuthor(false);
+        user.setAuthorVerified(false);
+        user.setLevel(1);
+        user.setExp(0f);
+        user.setYuan(0f);
+        user.setReadTime(0f);
+        user.setReadBookNum(0);
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
+
+        try {
+            userMapper.insert(user);
+        } catch (Exception e) {
+            userMapper.deleteByPrimaryKey(user.getUuid());
+            throw new RuntimeException("registered failed", e);
+        }
+        verifyEmail(user.getEmail());
+        return user;
     }
-
-    User user = new User();
-    user.setUuid(UUID.randomUUID());
-    user.setEmail(registrationDTO.getEmail());
-    user.setUsername(registrationDTO.getUsername());
-    user.setHashPassword(hashPassword(registrationDTO.getPassword()));
-    user.setEmailVerified(false);
-    user.setAvatarUrl(""); // Set default empty string
-    user.setCreateTime(new Date());
-    user.setUpdateTime(new Date());
-    user.setStatus(1); // 1 for normal user
-
-    // set default user profile
-    user.setIsAuthor(false);
-    user.setAuthorVerified(false);
-    user.setLevel(1);
-    user.setExp(0f);
-    user.setYuan(0f);
-    user.setReadTime(0f);
-    user.setReadBookNum(0);
-    user.setLastLogin(new Date());
-    user.setLastActive(new Date());
-
-    try {
-        userMapper.insert(user);
-    } catch (Exception e) {
-        userMapper.deleteByPrimaryKey(user.getUuid());
-        throw new RuntimeException("registered failed", e);
-    }
-    verifyEmail(user.getEmail());
-    return user;
-}
-
 
     public User login(String email, String password) {
         // verify input
@@ -62,10 +61,10 @@ public class AuthService {
         }
 
         try {
-             User user = userMapper.selectByEmail(email);
-             if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
-                 return user;
-             }
+            User user = userMapper.selectByEmail(email);
+            if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
+                return user;
+            }
             return null;
         } catch (Exception e) {
             return null;
