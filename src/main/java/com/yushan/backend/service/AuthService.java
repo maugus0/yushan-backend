@@ -27,41 +27,54 @@ public class AuthService {
      * @return
      */
     public User register(UserRegisterationDTO registrationDTO) {
-    // check if email existed
-    if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
-        throw new RuntimeException("email was registered");
+        //check if email existed
+        User existingUser = userMapper.selectByEmail(registrationDTO.getEmail());
+        if (existingUser != null) {
+            throw new RuntimeException("email was registered");
+        }
+
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setEmail(registrationDTO.getEmail());
+        user.setUsername(registrationDTO.getUsername());
+        user.setHashPassword(hashPassword(registrationDTO.getPassword()));
+        user.setEmailVerified(true);
+
+        if (registrationDTO.getGender() != null) {
+            user.setGender(registrationDTO.getGender());
+        } else {
+            user.setGender(0); // default for unknown gender
+        }
+        if (registrationDTO.getBirthday() != null) {
+            user.setBirthday(registrationDTO.getBirthday());
+        } else {
+            user.setBirthday(null);
+        }
+
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
+
+        // set default user profile
+        user.setAvatarUrl("123"); //todo: set default avatar URL
+        user.setStatus(1); // 1 for normal
+        user.setIsAuthor(false);
+        user.setAuthorVerified(false);
+        user.setLevel(1);
+        user.setExp(0f);
+        user.setYuan(0f);
+        user.setReadTime(0f);
+        user.setReadBookNum(0);
+
+        try {
+            userMapper.insert(user);
+        } catch (Exception e) {
+            userMapper.deleteByPrimaryKey(user.getUuid());
+            throw new RuntimeException("registered failed", e);
+        }
+        return user;
     }
-
-    User user = new User();
-    user.setUuid(UUID.randomUUID());
-    user.setEmail(registrationDTO.getEmail());
-    user.setUsername(registrationDTO.getUsername());
-    user.setHashPassword(hashPassword(registrationDTO.getPassword()));
-    user.setEmailVerified(false);
-    user.setAvatarUrl(""); // Set default empty string
-    user.setCreateTime(new Date());
-    user.setUpdateTime(new Date());
-    user.setStatus(1); // 1 for normal user
-
-    // set default user profile
-    user.setIsAuthor(false);
-    user.setAuthorVerified(false);
-    user.setLevel(1);
-    user.setExp(0f);
-    user.setYuan(0f);
-    user.setReadTime(0f);
-    user.setReadBookNum(0);
-    user.setLastLogin(new Date());
-    user.setLastActive(new Date());
-
-    try {
-        userMapper.insert(user);
-    } catch (Exception e) {
-        userMapper.deleteByPrimaryKey(user.getUuid());
-        throw new RuntimeException("registered failed", e);
-    }
-    return user;
-}
     /**
     * login a user
     * @param email

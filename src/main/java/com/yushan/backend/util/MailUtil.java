@@ -3,6 +3,7 @@ package com.yushan.backend.util;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Component;
@@ -25,6 +26,9 @@ public class MailUtil {
     private static final int CODE_LENGTH = 6;
     private static final int CODE_EXPIRE_MINUTES = 5;
 
+    @Value("${MAIL_USERNAME:1784304095@qq.com}")
+    private String EMAIL_FROM;
+
     /**
      * send verification code email
      * @param email
@@ -32,19 +36,21 @@ public class MailUtil {
      * @throws UnsupportedEncodingException
      */
     public void sendVerificationEmail(String email) throws MessagingException, UnsupportedEncodingException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        String code = generateSecureCode();
-        MimeMessageHelper helper = new MimeMessageHelper(message, false);
+        try {
+            MimeMessage message = javaMailSender.createMimeMessage();
+            String code = generateSecureCode();
+            MimeMessageHelper helper = new MimeMessageHelper(message, false);
 
-        helper.setFrom("1784304095@qq.com", "Yushan");
-        helper.setTo(email);
-        // title
-        helper.setSubject("Yushan code");
-        helper.setText("Dear user, your code is: " + code, false);
+            helper.setFrom(EMAIL_FROM, "Yushan");
+            helper.setTo(email);
+            helper.setSubject("Yushan Verification Code");
+            helper.setText("Dear user, your verification code is: " + code, false);
 
-        redisUtil.set(email, code, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
-
-        javaMailSender.send(message);
+            redisUtil.set(email, code, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
+            javaMailSender.send(message);
+        } catch (MessagingException | RuntimeException e) {
+            throw new MessagingException("Failed to send verification email: " + e.getMessage(), e);
+        }
     }
 
     /**
@@ -71,7 +77,6 @@ public class MailUtil {
             return false;
         }
     }
-
 
     /**
      * Generate a secure verification code

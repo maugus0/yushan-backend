@@ -6,10 +6,6 @@ server:
 spring:
   application:
     name: Yushan Backend
-  autoconfigure:
-    exclude:
-      - org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration
-      - org.springframework.boot.autoconfigure.data.redis.RedisRepositoriesAutoConfiguration
   transaction:
     rollback-on-commit-failure: true
   datasource:
@@ -23,8 +19,9 @@ spring:
       max-request-size: 20MB
   data:
     redis:
-      host: localhost
-      port: 6379
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
       lettuce:
         pool:
           max-active: 20
@@ -33,10 +30,10 @@ spring:
           min-idle: 0
       timeout: 1000
   mail:
-    host: smtp.qq.com
-    username: 1784304095@qq.com
-    password: fmgjizhjdbbabiib
-    port: 465
+    host: ${MAIL_HOST:smtp.qq.com}
+    username: ${MAIL_USERNAME:1784304095@qq.com}
+    password: ${MAIL_PASSWORD:fmgjizhjdbbabiib}
+    port: ${MAIL_PORT:465}
     default-encoding: UTF-8
     protocol: smtps
     properties:

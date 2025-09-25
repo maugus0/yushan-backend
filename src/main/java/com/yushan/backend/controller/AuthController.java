@@ -6,11 +6,13 @@ import com.yushan.backend.entity.User;
 import com.yushan.backend.service.AuthService;
 import com.yushan.backend.util.JwtUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -20,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(origins = "*")
+@Validated
 public class AuthController {
 
     @Autowired
@@ -46,7 +49,7 @@ public class AuthController {
      * @return
      */
     @PostMapping("/register")
-    public ResponseEntity<Map<String, Object>> register(@RequestBody UserRegisterationDTO registrationDTO) {
+    public ResponseEntity<Map<String, Object>> register(@Valid @RequestBody UserRegisterationDTO registrationDTO) {
         Map<String, Object> response = new HashMap<>();
 
         try {
@@ -57,14 +60,7 @@ public class AuthController {
             String refreshToken = jwtUtil.generateRefreshToken(user);
             
             // Prepare user info (without sensitive data)
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("uuid", user.getUuid().toString());
-            userInfo.put("email", user.getEmail());
-            userInfo.put("username", user.getUsername());
-            userInfo.put("isAuthor", user.getIsAuthor());
-            userInfo.put("authorVerified", user.getAuthorVerified());
-            userInfo.put("level", user.getLevel());
-            userInfo.put("exp", user.getExp());
+            Map<String, Object> userInfo = createUserResponse(user);
             
             response.put("success", true);
             response.put("message", "register successful");
@@ -101,14 +97,7 @@ public class AuthController {
                 String refreshToken = jwtUtil.generateRefreshToken(user);
                 
                 // Prepare user info (without sensitive data)
-                Map<String, Object> userInfo = new HashMap<>();
-                userInfo.put("uuid", user.getUuid().toString());
-                userInfo.put("email", user.getEmail());
-                userInfo.put("username", user.getUsername());
-                userInfo.put("isAuthor", user.getIsAuthor());
-                userInfo.put("authorVerified", user.getAuthorVerified());
-                userInfo.put("level", user.getLevel());
-                userInfo.put("exp", user.getExp());
+                Map<String, Object> userInfo = createUserResponse(user);
                 
                 response.put("success", true);
                 response.put("message", "login successful");
@@ -206,14 +195,8 @@ public class AuthController {
             String newRefreshToken = jwtUtil.generateRefreshToken(user);
             
             // Prepare user info
-            Map<String, Object> userInfo = new HashMap<>();
-            userInfo.put("uuid", user.getUuid().toString());
-            userInfo.put("email", user.getEmail());
-            userInfo.put("username", user.getUsername());
-            userInfo.put("isAuthor", user.getIsAuthor());
-            userInfo.put("authorVerified", user.getAuthorVerified());
-            userInfo.put("level", user.getLevel());
-            userInfo.put("exp", user.getExp());
+            Map<String, Object> userInfo = createUserResponse(user);
+
             
             response.put("success", true);
             response.put("message", "Token refreshed successfully");
@@ -306,6 +289,18 @@ public class AuthController {
             response.put("message", "Verification failed: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
+    }
+
+    private Map<String, Object> createUserResponse(User user) {
+        Map<String, Object> userInfo = new HashMap<>();
+        userInfo.put("uuid", user.getUuid().toString());
+        userInfo.put("email", user.getEmail());
+        userInfo.put("username", user.getUsername());
+        userInfo.put("isAuthor", user.getIsAuthor());
+        userInfo.put("authorVerified", user.getAuthorVerified());
+        userInfo.put("level", user.getLevel());
+        userInfo.put("exp", user.getExp());
+        return userInfo;
     }
 
 }

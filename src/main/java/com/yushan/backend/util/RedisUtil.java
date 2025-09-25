@@ -1,10 +1,10 @@
 package com.yushan.backend.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -14,85 +14,85 @@ import java.util.concurrent.TimeUnit;
 @Component
 @RequiredArgsConstructor
 public class RedisUtil {
-    @Resource
-    private final StringRedisTemplate redisTemplate;
+    @Autowired
+    private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
 
     /**
-     * 设置字符串值 + 过期时间
+     * set string & timeout
      */
     public void set(String key, String value, long timeout, TimeUnit unit) {
-        redisTemplate.opsForValue().set(key, value, timeout, unit);
+        stringRedisTemplate.opsForValue().set(key, value, timeout, unit);
     }
 
     /**
-     * 设置字符串值（永不过期）
+     * set string &　never timeout
      */
     public void set(String key, String value) {
-        redisTemplate.opsForValue().set(key, value);
+        stringRedisTemplate.opsForValue().set(key, value);
     }
 
     /**
-     * 获取字符串值
+     * get string
      */
     public String get(String key) {
-        return redisTemplate.opsForValue().get(key);
+        return stringRedisTemplate.opsForValue().get(key);
     }
 
     /**
-     * 判断 key 是否存在
+     * if key exists
      */
     public boolean hasKey(String key) {
-        return redisTemplate != null && redisTemplate.hasKey(key);
+        return stringRedisTemplate != null && stringRedisTemplate.hasKey(key);
     }
 
     /**
-     * 设置过期时间
+     * set timeout
      */
     public void expire(String key, long timeout, TimeUnit unit) {
-        redisTemplate.expire(key, timeout, unit);
+        stringRedisTemplate.expire(key, timeout, unit);
     }
 
     /**
-     * 获取剩余过期时间（秒）
-     * @return 秒数，-1 表示永不过期，-2 表示不存在
+     * get timeout(second)
+     * @return -1 never timeout, -2 dont exist
      */
     public Long getExpire(String key, TimeUnit unit) {
-        return redisTemplate.getExpire(key, unit);
+        return stringRedisTemplate.getExpire(key, unit);
     }
 
     /**
-     * 删除 key
+     * delete key
      */
     public void delete(String key) {
-        redisTemplate.delete(key);
+        stringRedisTemplate.delete(key);
     }
 
     /**
-     * 自增（适用于计数器）
+     * self-increase(for countdown)
      */
     public Long incr(String key) {
-        return redisTemplate.opsForValue().increment(key);
+        return stringRedisTemplate.opsForValue().increment(key);
     }
 
     /**
-     * 自减
+     * self-decrease
      */
     public Long decr(String key) {
-        return redisTemplate.opsForValue().decrement(key);
+        return stringRedisTemplate.opsForValue().decrement(key);
     }
 
     public <T> void setJson(String key, T value, long timeout, TimeUnit unit) {
         try {
             String json = objectMapper.writeValueAsString(value);
-            redisTemplate.opsForValue().set(key, json, timeout, unit);
+            stringRedisTemplate.opsForValue().set(key, json, timeout, unit);
         } catch (Exception e) {
             log.info("JSON序列化失败: {}",ExceptionUtils.getStackTrace(e));
         }
     }
 
     public <T> T getJson(String key, Class<T> clazz) {
-        String json = redisTemplate.opsForValue().get(key);
+        String json = stringRedisTemplate.opsForValue().get(key);
         if (json == null) return null;
         try {
             return objectMapper.readValue(json, clazz);
