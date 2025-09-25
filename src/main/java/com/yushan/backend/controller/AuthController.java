@@ -231,4 +231,81 @@ public class AuthController {
             return ResponseEntity.badRequest().body(response);
         }
     }
+
+    /**
+     * (re)Send verification email to a user
+     * @param emailRequest
+     * @return
+     */
+    @PostMapping("/sendEmail")
+    public ResponseEntity<Map<String, Object>> sendEmail(@RequestBody Map<String, String> emailRequest) {
+        //todo check rate limit
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String email = emailRequest.get("email");
+
+            if (email == null || email.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Email are required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            //query email if exists
+            User user = userMapper.selectByEmail(email);
+            if (user != null) {
+                response.put("success", false);
+                response.put("message", "email exists");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            authService.sendVerificationEmail(email);
+
+            response.put("success", true);
+            response.put("message", "Verification code sent successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to send email: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    /**
+     * Verify user's email
+     * @param verificationRequest
+     * @return
+     */
+    @PostMapping("/verifyEmail")
+    public ResponseEntity<Map<String, Object>> verifyEmail(@RequestBody Map<String, String> verificationRequest) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            String email = verificationRequest.get("email");
+            String code = verificationRequest.get("code");
+
+            if (email == null || email.isEmpty() || code == null || code.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Email, code and UUID are required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            boolean isValid = authService.verifyEmail(email, code);
+
+            if (isValid) {
+                response.put("success", true);
+                response.put("message", "Email verification successful");
+            } else {
+                response.put("success", false);
+                response.put("message", "Invalid verification code or code expired");
+            }
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Verification failed: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
 }

@@ -60,14 +60,8 @@ public class AuthService {
         userMapper.deleteByPrimaryKey(user.getUuid());
         throw new RuntimeException("registered failed", e);
     }
-    try {
-        mailUtil.sendVerificationEmail(user);
-    } catch (MessagingException | UnsupportedEncodingException e) {
-        throw new RuntimeException("failed to send verification email", e);
-    }
     return user;
 }
-
     /**
     * login a user
     * @param email
@@ -89,6 +83,28 @@ public class AuthService {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    /**
+     * send verification email
+     * @param email
+     */
+    public void sendVerificationEmail(String email) {
+        try {
+            mailUtil.sendVerificationEmail(email);
+        } catch (MessagingException | UnsupportedEncodingException e) {
+            throw new RuntimeException("failed to send verification email", e);
+        }
+    }
+
+    /**
+     * verify email
+     * @param email
+     * @param code
+     * @return if verified successfully
+     */
+    public boolean verifyEmail(String email, String code) {
+        return mailUtil.verifyEmail(email, code);
     }
 
     /**

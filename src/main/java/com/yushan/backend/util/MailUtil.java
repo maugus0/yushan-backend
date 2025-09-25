@@ -1,6 +1,5 @@
 package com.yushan.backend.util;
 
-import com.yushan.backend.entity.User;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,37 +9,77 @@ import org.springframework.stereotype.Component;
 
 import java.io.UnsupportedEncodingException;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class MailUtil {
     @Autowired
     private JavaMailSender javaMailSender;
+    @Autowired
+    private RedisUtil redisUtil;
+
+    private final SecureRandom secureRandom = new SecureRandom();
+    private static final int CODE_LENGTH = 6;
+    private static final int CODE_EXPIRE_MINUTES = 5;
 
     /**
      * send verification code email
-     * @param user
+     * @param email
      * @throws MessagingException
      * @throws UnsupportedEncodingException
      */
-    public void sendVerificationEmail(User user) throws MessagingException, UnsupportedEncodingException {
-        SecureRandom secureRandom = new SecureRandom();
-
+    public void sendVerificationEmail(String email) throws MessagingException, UnsupportedEncodingException {
         MimeMessage message = javaMailSender.createMimeMessage();
-        String code = String.format("%06d", secureRandom.nextInt(1000000));
+        String code = generateSecureCode();
         MimeMessageHelper helper = new MimeMessageHelper(message, false);
 
         helper.setFrom("1784304095@qq.com", "Yushan");
-        helper.setTo(user.getEmail());
+        helper.setTo(email);
         // title
-        helper.setSubject("Code");
-        helper.setText("dear " + user.getUsername() + ", your code is: " + code, false);
+        helper.setSubject("Yushan code");
+        helper.setText("Dear user, your code is: " + code, false);
+
+        redisUtil.set(email, code, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
 
         javaMailSender.send(message);
-
-        //todo: code should save in redis
     }
 
-    //todo verify email
-    public void verifyEmail() {
+    /**
+     * verify email
+     * @param email, code
+     * @param code
+     * @return if right return true, else return false
+     */
+    public boolean verifyEmail(String email, String code) {
+        try {
+            if (redisUtil.hasKey(email)) {
+                String storedCode = redisUtil.get(email);
+                boolean isValid = code.equals(storedCode);
+                // delete code
+                if (isValid) {
+                    redisUtil.delete(email);
+                }
+                return isValid;
+            }
+            else {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+
+    /**
+     * Generate a secure verification code
+     * @return a string representation of the verification code
+     */
+    private String generateSecureCode() {
+        int bound = (int) Math.pow(10, CODE_LENGTH);
+        int codeNum = secureRandom.nextInt(bound);
+        return String.format("%0" + CODE_LENGTH + "d", codeNum);
     }
 }
