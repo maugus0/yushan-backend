@@ -192,6 +192,7 @@ public class JwtIntegrationTest {
         registerRequest.put("email", "newuser@example.com");
         registerRequest.put("username", "newuser");
         registerRequest.put("password", "password123");
+        registerRequest.put("code", "123456");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -242,6 +243,19 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("logout successful"))
                 .andExpect(jsonPath("$.note").value("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens."));
+    }
+
+    @Test
+    void testSendEmail() throws Exception {
+        Map<String, String> sendEmailRequest = new HashMap<>();
+        sendEmailRequest.put("email", "testuser@example.com");
+
+        mockMvc.perform(post("/api/auth/sendEmail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(sendEmailRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Email sent successfully"));
     }
 
     // ==================== PROTECTED ENDPOINT TESTS ====================
