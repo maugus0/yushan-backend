@@ -39,7 +39,7 @@ public class GlobalExceptionHandler {
         }
 
         response.put("success", false);
-        response.put("message", "参数验证失败");
+        response.put("message", "failed to verify argument");
         response.put("errors", errors);
         response.put("code", "VALIDATION_ERROR");
         return ResponseEntity.badRequest().body(response);
@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         }
 
         response.put("success", false);
-        response.put("message", "数据绑定失败");
+        response.put("message", "failed to bind data");
         response.put("errors", errors);
         response.put("code", "BIND_ERROR");
         return ResponseEntity.badRequest().body(response);
@@ -71,7 +71,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, Object>> handleException(Exception e) {
         Map<String, Object> response = new HashMap<>();
         response.put("success", false);
-        response.put("message", "系统内部错误: " + e.getMessage());
+        response.put("message", "system error: " + e.getMessage());
         response.put("code", "SYSTEM_ERROR");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
     }

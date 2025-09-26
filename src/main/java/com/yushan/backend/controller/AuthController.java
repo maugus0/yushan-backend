@@ -48,7 +48,7 @@ public class AuthController {
     }
 
     /**
-     * Register a new user
+     * verifyEmail & Register a new user
      * @param registrationDTO
      * @return
      */
@@ -57,6 +57,15 @@ public class AuthController {
         Map<String, Object> response = new HashMap<>();
 
         try {
+            // no need to check if email exists here since we check it in register()
+            boolean isValid = mailService.verifyEmail(registrationDTO.getEmail(), registrationDTO.getCode());
+
+            if (!isValid) {
+                response.put("success", false);
+                response.put("message", "Invalid verification code or code expired");
+                return ResponseEntity.ok(response);
+            }
+
             User user = authService.register(registrationDTO);
 
             // Generate JWT tokens for auto-login after registration
@@ -259,42 +268,10 @@ public class AuthController {
     }
 
     /**
-     * Verify user's email
-     * @param verificationRequest
+     *
+     * @param user
      * @return
      */
-    @PostMapping("/verifyEmail")
-    public ResponseEntity<Map<String, Object>> verifyEmail(@RequestBody Map<String, String> verificationRequest) {
-        Map<String, Object> response = new HashMap<>();
-        try {
-            String email = verificationRequest.get("email");
-            String code = verificationRequest.get("code");
-
-            if (email == null || email.isEmpty() || code == null || code.isEmpty()) {
-                response.put("success", false);
-                response.put("message", "Email, code and UUID are required");
-                return ResponseEntity.badRequest().body(response);
-            }
-
-            boolean isValid = mailService.verifyEmail(email, code);
-
-            if (isValid) {
-                response.put("success", true);
-                response.put("message", "Email verification successful");
-            } else {
-                response.put("success", false);
-                response.put("message", "Invalid verification code or code expired");
-            }
-
-            return ResponseEntity.ok(response);
-
-        } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Verification failed: " + e.getMessage());
-            return ResponseEntity.badRequest().body(response);
-        }
-    }
-
     private Map<String, Object> createUserResponse(User user) {
         Map<String, Object> userInfo = new HashMap<>();
         userInfo.put("uuid", user.getUuid().toString());
