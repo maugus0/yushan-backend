@@ -288,20 +288,31 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y jq
 
-    # Link to Railway project/service (skip environment for now)
-    - name: Link once (project/service)
+    # Auth to Railway (non-interactive)
+    - name: Auth to Railway (non-interactive)
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        # Fallback in case CLI only reads RAILWAY_API_TOKEN in your version:
+        RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        railway login --token "$RAILWAY_TOKEN"
+        railway whoami
+
+    # Link project/service (skip environment for now)
+    - name: Link project/service
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
         railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} \
                      --service yushan-backend-staging
 
-    # Redeploy image-backed service
-    - name: Redeploy image-backed service
+    # Redeploy staging
+    - name: Redeploy staging
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      run: |
-        railway redeploy --service yushan-backend-staging --yes
+        RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: railway redeploy --service yushan-backend-staging --yes
 
     # Wait 60s for warm-up (depends on app cold start)
     - name: Wait for deployment
