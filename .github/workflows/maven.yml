@@ -264,9 +264,10 @@ jobs:
   staging-deploy:
     name: Deploy to Staging
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
     environment: yushan-staging
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' || github.event_name == 'pull_request'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: read
@@ -278,76 +279,81 @@ jobs:
       
     # Install official Railway CLI (non-interactive, reads token from env)
     - name: Install Railway CLI
-      run: curl -fsSL https://railway.app/install.sh | sh
+      run: |
+        curl -fsSL https://railway.app/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
-    # Set environment variables for staging service on each deploy
+    - name: Install tools for smoke tests (jq, curl already present)
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y jq
+
+    # Set environment variables for staging service (idempotent)
     - name: Set staging variables on Railway
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
         railway variables set \
           SPRING_PROFILES_ACTIVE=staging \
-          SPRING_DATASOURCE_URL='${{ secrets.STAGING_DATABASE_URL }}' \
-          SPRING_DATA_REDIS_URL='${{ secrets.STAGING_REDIS_URL }}' \
-          JWT_SECRET='${{ secrets.JWT_SECRET }}' \
+          SPRING_DATASOURCE_URL=${{ secrets.STAGING_DATABASE_URL }} \
+          SPRING_DATA_REDIS_URL=${{ secrets.STAGING_REDIS_URL }} \
+          JWT_SECRET=${{ secrets.JWT_SECRET }} \
           --project ${{ secrets.RAILWAY_PROJECT_ID }} \
           --service yushan-be-staging
 
-    # Deploy image built/pushed in previous job
+    # Deploy image by SHA (already pushed in build job)
     - name: Deploy image to Railway
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
+        IMAGE="ghcr.io/${{ github.repository }}:${{ github.sha }}"
+        echo "Deploying image: $IMAGE"
         railway deploy --image "$IMAGE" \
           --project ${{ secrets.RAILWAY_PROJECT_ID }} \
           --service yushan-be-staging
 
-    # Wait for deployment to be ready
+    # Wait 60s for warm-up (depends on app cold start)
     - name: Wait for deployment
       run: sleep 60
 
-    # Smoke test: poll /actuator/health until UP
+    # Health check /actuator/health
     - name: Health Check
       env:
         STAGING_URL: ${{ secrets.STAGING_URL }}
       run: |
         echo "Smoke test $STAGING_URL/actuator/health"
         for i in {1..30}; do
-          if curl -fsS "$STAGING_URL/actuator/health" | grep -q '"status":"UP"'; then
-            echo "Health OK"; exit 0
+          RESP=$(curl -fsS -H "Accept: application/json" "$STAGING_URL/actuator/health" || true)
+          echo "Attempt $i/30: $RESP"
+          if echo "$RESP" | grep -q '"status":"UP"'; then
+            echo "Health OK"
+            exit 0
           fi
-          echo "Attempt $i/30: Health check failed, retrying in 5s..."
           sleep 5
         done
-        echo "Health check FAILED after 30 attempts"; exit 1
+        echo "Health check FAILED after 30 attempts"
+        exit 1
 
-    # Additional smoke tests for critical endpoints
+    # Additional smoke tests (jq already installed above)
     - name: Smoke Tests
       env:
         STAGING_URL: ${{ secrets.STAGING_URL }}
       run: |
-        echo "Running comprehensive smoke tests..."
-        
-        # Test public endpoints
+        set -e
+        echo "Running smoke tests..."
         curl -fsS "$STAGING_URL/api/example/public" | jq .
-        
-        # Test auth endpoints
         curl -fsS "$STAGING_URL/api/auth/test" | grep -q "test"
-        
-        # Test actuator endpoints
         curl -fsS "$STAGING_URL/actuator/info" | jq .
         curl -fsS "$STAGING_URL/actuator/metrics" | jq .
-        
         echo "All smoke tests passed!"
         
-    # ZAP baseline scan against fixed staging URL
+    # ZAP baseline
     - name: OWASP ZAP Baseline (staging)
       if: always()
       env:
         STAGING_URL: ${{ secrets.STAGING_URL }}
       run: |
-        docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
+        docker run --rm -v "$(pwd):/zap/wrk" -t ghcr.io/zaproxy/zaproxy:stable \
           zap-baseline.py -t "$STAGING_URL" \
           -J zap.json -w zap.md -r zap.html -a
 

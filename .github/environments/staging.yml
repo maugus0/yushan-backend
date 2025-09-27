@@ -22,7 +22,7 @@ protection_rules:
     custom_branch_policies: true
     custom_branches:
       - main
-      - YW-137--Set-up-Backend-deployment
+      - ci-cd-testing
 
 # Environment variables (will be set in GitHub UI)
 # These should be configured in GitHub repository settings
