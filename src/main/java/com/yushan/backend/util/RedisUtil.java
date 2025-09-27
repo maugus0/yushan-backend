@@ -1,10 +1,9 @@
 package com.yushan.backend.util;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -12,11 +11,15 @@ import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class RedisUtil {
-    @Autowired
     private final StringRedisTemplate stringRedisTemplate;
     private final ObjectMapper objectMapper;
+
+    @SuppressFBWarnings({"EI_EXPOSE_REP2"})
+    public RedisUtil(StringRedisTemplate stringRedisTemplate, ObjectMapper objectMapper) {
+        this.stringRedisTemplate = stringRedisTemplate;
+        this.objectMapper = objectMapper;
+    }
 
     /**
      * set string & timeout
@@ -43,7 +46,11 @@ public class RedisUtil {
      * if key exists
      */
     public boolean hasKey(String key) {
-        return stringRedisTemplate != null && stringRedisTemplate.hasKey(key);
+        if (stringRedisTemplate == null) {
+            return false;
+        }
+        Boolean result = stringRedisTemplate.hasKey(key);
+        return result != null && result;
     }
 
     /**

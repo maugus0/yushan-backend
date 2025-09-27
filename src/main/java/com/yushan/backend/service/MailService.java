@@ -84,20 +84,16 @@ public class MailService {
      * @return if right return true, else return false
      */
     public boolean verifyEmail(String email, String code) {
-        try {
-            if (redisUtil.hasKey(email)) {
-                String storedCode = redisUtil.get(email);
-                boolean isValid = code.equals(storedCode);
-                // delete code
-                if (isValid) {
-                    redisUtil.delete(email);
-                }
-                return isValid;
+        if (redisUtil.hasKey(email)) {
+            String storedCode = redisUtil.get(email);
+            boolean isValid = code.equals(storedCode);
+            // delete code
+            if (isValid) {
+                redisUtil.delete(email);
             }
-            else {
-                return false;
-            }
-        } catch (Exception e) {
+            return isValid;
+        }
+        else {
             return false;
         }
     }

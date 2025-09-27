@@ -26,11 +26,17 @@ public class UserRegisterationDTO {
     @Size(min = 6, message = "password must have 6 char at least")
     private String password;
 
-    @Getter
-    @Setter
     @Past(message = "birthday must be a past date")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private Date birthday;
+
+    public Date getBirthday() {
+        return birthday != null ? new Date(birthday.getTime()) : null;
+    }
+
+    public void setBirthday(Date birthday) {
+        this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
+    }
 
     @Getter
     @Setter
@@ -46,10 +52,10 @@ public class UserRegisterationDTO {
 
     // Getters and Setters
     public String getEmail() {
-        return email != null ? email.trim().toLowerCase() : null;
+        return email != null ? email.trim().toLowerCase(java.util.Locale.ROOT) : null;
     }
 
     public void setEmail(String email) {
-        this.email = email != null ? email.trim().toLowerCase() : null;
+        this.email = email != null ? email.trim().toLowerCase(java.util.Locale.ROOT) : null;
     }
 }
