@@ -94,7 +94,7 @@ public class RedisUtil {
             String json = objectMapper.writeValueAsString(value);
             stringRedisTemplate.opsForValue().set(key, json, timeout, unit);
         } catch (Exception e) {
-            log.info("JSON序列化失败: {}",ExceptionUtils.getStackTrace(e));
+            log.info("JSON deserialization failed: {}",ExceptionUtils.getStackTrace(e));
         }
     }
 
@@ -104,7 +104,7 @@ public class RedisUtil {
         try {
             return objectMapper.readValue(json, clazz);
         } catch (Exception e) {
-            log.info("JSON反序列化失败: {}",ExceptionUtils.getStackTrace(e));
+            log.info("JSON deserialization failed: {}",ExceptionUtils.getStackTrace(e));
             return null;
         }
     }
