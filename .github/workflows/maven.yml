@@ -293,8 +293,8 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        # Set variables using Railway CLI
-        railway variables --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging \
+        # Set variables using Railway CLI with correct syntax
+        railway --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging variables \
           SPRING_PROFILES_ACTIVE=staging \
           SPRING_DATASOURCE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
           SPRING_DATA_REDIS_URL="${{ secrets.STAGING_REDIS_URL }}" \
