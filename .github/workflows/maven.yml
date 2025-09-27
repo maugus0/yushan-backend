@@ -288,17 +288,11 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y jq
 
-    # Set environment variables for staging service (idempotent)
-    - name: Set staging variables on Railway
-      env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    # Skip setting variables - already configured in Railway UI
+    - name: Skip setting variables (already configured in Railway UI)
       run: |
-        # Set variables using Railway CLI with correct syntax
-        railway --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging variables \
-          SPRING_PROFILES_ACTIVE=staging \
-          SPRING_DATASOURCE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
-          SPRING_DATA_REDIS_URL="${{ secrets.STAGING_REDIS_URL }}" \
-          JWT_SECRET="${{ secrets.JWT_SECRET }}"
+        echo "Skipping variable setup - variables already configured in Railway UI"
+        echo "Variables should be set directly in Railway dashboard"
 
     # Deploy image by SHA (already pushed in build job)
     - name: Deploy image to Railway
