@@ -301,9 +301,7 @@ jobs:
       run: |
         IMAGE="ghcr.io/${{ github.repository }}:${{ github.sha }}"
         echo "Deploying image: $IMAGE"
-        railway deploy --image "$IMAGE" \
-          --project ${{ secrets.RAILWAY_PROJECT_ID }} \
-          --service yushan-be-staging
+        railway --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging deploy "$IMAGE"
 
     # Wait 60s for warm-up (depends on app cold start)
     - name: Wait for deployment
