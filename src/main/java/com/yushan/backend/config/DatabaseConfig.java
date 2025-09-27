@@ -26,6 +26,9 @@ public class DatabaseConfig {
             new PathMatchingResourcePatternResolver().getResources("classpath:/mapper/**Mapper.xml")
         );
         factoryBean.setTypeAliasesPackage("com.yushan.backend.entity");
+        factoryBean.setConfigLocation(
+            new PathMatchingResourcePatternResolver().getResource("classpath:config/mybatis-config.xml")
+        );
         return factoryBean.getObject();
     }
 
