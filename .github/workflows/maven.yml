@@ -293,13 +293,12 @@ jobs:
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        railway variables set \
+        # Set variables using Railway CLI
+        railway variables --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging \
           SPRING_PROFILES_ACTIVE=staging \
-          SPRING_DATASOURCE_URL=${{ secrets.STAGING_DATABASE_URL }} \
-          SPRING_DATA_REDIS_URL=${{ secrets.STAGING_REDIS_URL }} \
-          JWT_SECRET=${{ secrets.JWT_SECRET }} \
-          --project ${{ secrets.RAILWAY_PROJECT_ID }} \
-          --service yushan-be-staging
+          SPRING_DATASOURCE_URL="${{ secrets.STAGING_DATABASE_URL }}" \
+          SPRING_DATA_REDIS_URL="${{ secrets.STAGING_REDIS_URL }}" \
+          JWT_SECRET="${{ secrets.JWT_SECRET }}"
 
     # Deploy image by SHA (already pushed in build job)
     - name: Deploy image to Railway
