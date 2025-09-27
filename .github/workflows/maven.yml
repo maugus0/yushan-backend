@@ -277,10 +277,10 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    # Install official Railway CLI (non-interactive, reads token from env)
+    # Install Railway CLI v2
     - name: Install Railway CLI
       run: |
-        curl -fsSL https://railway.app/install.sh | sh
+        bash <(curl -fsSL cli.new)
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
 
     - name: Install tools for smoke tests (jq, curl already present)
@@ -288,20 +288,20 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y jq
 
-    # Skip setting variables - already configured in Railway UI
-    - name: Skip setting variables (already configured in Railway UI)
-      run: |
-        echo "Skipping variable setup - variables already configured in Railway UI"
-        echo "Variables should be set directly in Railway dashboard"
-
-    # Deploy image by SHA (already pushed in build job)
-    - name: Deploy image to Railway
+    # Link to Railway project/service (skip environment for now)
+    - name: Link once (project/service)
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       run: |
-        IMAGE="ghcr.io/${{ github.repository }}:${{ github.sha }}"
-        echo "Deploying image: $IMAGE"
-        railway --project ${{ secrets.RAILWAY_PROJECT_ID }} --service yushan-be-staging deploy "$IMAGE"
+        railway link --project ${{ secrets.RAILWAY_PROJECT_ID }} \
+                     --service yushan-backend-staging
+
+    # Redeploy image-backed service
+    - name: Redeploy image-backed service
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      run: |
+        railway redeploy --service yushan-backend-staging --yes
 
     # Wait 60s for warm-up (depends on app cold start)
     - name: Wait for deployment
