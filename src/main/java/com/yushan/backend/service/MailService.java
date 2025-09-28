@@ -102,7 +102,7 @@ public class MailService {
      * Generate a secure verification code
      * @return a string representation of the verification code
      */
-    private String generateSecureCode() {
+   protected String generateSecureCode() {
         int bound = (int) Math.pow(10, CODE_LENGTH);
         int codeNum = secureRandom.nextInt(bound);
         return String.format("%0" + CODE_LENGTH + "d", codeNum);
