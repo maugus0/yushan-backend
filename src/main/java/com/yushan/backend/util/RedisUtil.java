@@ -94,7 +94,7 @@ public class RedisUtil {
             String json = objectMapper.writeValueAsString(value);
             stringRedisTemplate.opsForValue().set(key, json, timeout, unit);
         } catch (Exception e) {
-            log.info("JSON deserialization failed: {}",ExceptionUtils.getStackTrace(e));
+            log.info("JSON serialization failed: {}",ExceptionUtils.getStackTrace(e));
         }
     }
 
