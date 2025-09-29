@@ -2,6 +2,8 @@ package com.yushan.backend.controller;
 
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.UserProfileResponseDTO;
+import com.yushan.backend.dto.EmailChangeVerificationRequestDTO;
+import com.yushan.backend.dto.EmailChangeVerificationResponseDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
 import com.yushan.backend.service.UserService;
@@ -109,45 +111,45 @@ public class UserController {
      */
     @PostMapping("/send-email-change-verification")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<Map<String, Object>> sendEmailChangeVerification(
-            @RequestBody Map<String, String> emailRequest,
+    public ResponseEntity<EmailChangeVerificationResponseDTO> sendEmailChangeVerification(
+            @RequestBody EmailChangeVerificationRequestDTO emailRequest,
             Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
+        EmailChangeVerificationResponseDTO response = new EmailChangeVerificationResponseDTO();
         
         try {
             if (authentication == null || !authentication.isAuthenticated()) {
-                response.put("success", false);
-                response.put("message", "Authentication required");
+                response.setSuccess(false);
+                response.setMessage("Authentication required");
                 return ResponseEntity.status(401).body(response);
             }
 
-            String newEmail = emailRequest.get("email");
+            String newEmail = emailRequest.getEmail();
             if (newEmail == null || newEmail.trim().isEmpty()) {
-                response.put("success", false);
-                response.put("message", "Email is required");
+                response.setSuccess(false);
+                response.setMessage("Email is required");
                 return ResponseEntity.badRequest().body(response);
             }
 
             // Basic email format validation
             if (!newEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                response.put("success", false);
-                response.put("message", "Invalid email format");
+                response.setSuccess(false);
+                response.setMessage("Invalid email format");
                 return ResponseEntity.badRequest().body(response);
             }
 
             userService.sendEmailChangeVerification(newEmail.trim().toLowerCase(java.util.Locale.ROOT));
 
-            response.put("success", true);
-            response.put("message", "Verification code sent successfully");
+            response.setSuccess(true);
+            response.setMessage("Verification code sent successfully");
             return ResponseEntity.ok(response);
 
         } catch (IllegalArgumentException e) {
-            response.put("success", false);
-            response.put("message", e.getMessage());
+            response.setSuccess(false);
+            response.setMessage(e.getMessage());
             return ResponseEntity.badRequest().body(response);
         } catch (Exception e) {
-            response.put("success", false);
-            response.put("message", "Failed to send verification email: " + e.getMessage());
+            response.setSuccess(false);
+            response.setMessage("Failed to send verification email: " + e.getMessage());
             return ResponseEntity.badRequest().body(response);
         }
     }
