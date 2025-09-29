@@ -18,11 +18,13 @@ import static org.mockito.Mockito.*;
 public class UserServiceTest {
 
     private UserMapper userMapper;
+    private MailService mailService;
     private UserService userService;
 
     @BeforeEach
     void setUp() {
         userMapper = Mockito.mock(UserMapper.class);
+        mailService = Mockito.mock(MailService.class);
         userService = new UserService();
 
         // Inject mock mapper via reflection (simple without Spring context)
@@ -30,6 +32,10 @@ public class UserServiceTest {
             java.lang.reflect.Field f = UserService.class.getDeclaredField("userMapper");
             f.setAccessible(true);
             f.set(userService, userMapper);
+
+            java.lang.reflect.Field f2 = UserService.class.getDeclaredField("mailService");
+            f2.setAccessible(true);
+            f2.set(userService, mailService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -77,7 +83,7 @@ public class UserServiceTest {
         req.setUsername("newname");
         req.setAvatarUrl("new.png");
         req.setProfileDetail("new profile");
-        req.setGender("2");
+        req.setGender(2);
 
         UserProfileResponseDTO dto = userService.updateUserProfileSelective(id, req);
 
@@ -101,6 +107,82 @@ public class UserServiceTest {
         assertEquals(2, dto.getGender());
         assertEquals(10.5f, dto.getReadTime());
         assertEquals(5, dto.getReadBookNum());
+    }
+
+    @Test
+    void updateUserProfileSelective_changeEmail_withoutCode_throws() {
+        UUID id = UUID.randomUUID();
+        User existing = new User();
+        existing.setUuid(id);
+        existing.setEmail("old@example.com");
+        when(userMapper.selectByPrimaryKey(id)).thenReturn(existing);
+
+        UserProfileUpdateRequestDTO req = new UserProfileUpdateRequestDTO();
+        req.setEmail("new@example.com"); // no code provided
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.updateUserProfileSelective(id, req));
+    }
+
+    @Test
+    void updateUserProfileSelective_changeEmail_withInvalidCode_throws() {
+        UUID id = UUID.randomUUID();
+        User existing = new User();
+        existing.setUuid(id);
+        existing.setEmail("old@example.com");
+        when(userMapper.selectByPrimaryKey(id)).thenReturn(existing);
+
+        when(mailService.verifyEmail("new@example.com", "000000")).thenReturn(false);
+
+        UserProfileUpdateRequestDTO req = new UserProfileUpdateRequestDTO();
+        req.setEmail("new@example.com");
+        req.setVerificationCode("000000");
+
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.updateUserProfileSelective(id, req));
+    }
+
+    @Test
+    void updateUserProfileSelective_changeEmail_success_updatesEmail() {
+        UUID id = UUID.randomUUID();
+        User existing = new User();
+        existing.setUuid(id);
+        existing.setEmail("old@example.com");
+
+        User after = new User();
+        after.setUuid(id);
+        after.setEmail("new@example.com");
+        after.setUsername("same");
+
+        when(userMapper.selectByPrimaryKey(id)).thenReturn(existing, after);
+        when(userMapper.selectByEmail("new@example.com")).thenReturn(null);
+        when(mailService.verifyEmail("new@example.com", "123456")).thenReturn(true);
+
+        UserProfileUpdateRequestDTO req = new UserProfileUpdateRequestDTO();
+        req.setEmail("new@example.com");
+        req.setVerificationCode("123456");
+
+        UserProfileResponseDTO dto = userService.updateUserProfileSelective(id, req);
+
+        ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
+        verify(userMapper).updateByPrimaryKeySelective(captor.capture());
+        assertEquals("new@example.com", captor.getValue().getEmail());
+        assertEquals("new@example.com", dto.getEmail());
+    }
+
+    @Test
+    void sendEmailChangeVerification_emailExists_throws() {
+        when(userMapper.selectByEmail("dup@example.com")).thenReturn(new User());
+        assertThrows(IllegalArgumentException.class,
+                () -> userService.sendEmailChangeVerification("dup@example.com"));
+        verify(mailService, never()).sendVerificationCode(anyString());
+    }
+
+    @Test
+    void sendEmailChangeVerification_success_callsMailService() {
+        when(userMapper.selectByEmail("free@example.com")).thenReturn(null);
+        userService.sendEmailChangeVerification("free@example.com");
+        verify(mailService).sendVerificationCode("free@example.com");
     }
 }
 

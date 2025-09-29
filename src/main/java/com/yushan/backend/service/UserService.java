@@ -16,6 +16,9 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+    @Autowired
+    private MailService mailService;
+
     /**
      * Load a user's profile by UUID and map to response DTO
      */
@@ -36,28 +39,44 @@ public class UserService {
             return null;
         }
 
+        // Handle email change with verification
+        if (req.getEmail() != null && !req.getEmail().trim().isEmpty() && !req.getEmail().equals(existing.getEmail())) {
+            // Check if verification code is provided
+            if (req.getVerificationCode() == null || req.getVerificationCode().trim().isEmpty()) {
+                throw new IllegalArgumentException("Verification code is required for email change");
+            }
+            
+            // Verify the email code
+            boolean isValid = mailService.verifyEmail(req.getEmail(), req.getVerificationCode());
+            if (!isValid) {
+                throw new IllegalArgumentException("Invalid verification code or code expired");
+            }
+            
+            // Check if new email already exists
+            User userWithNewEmail = userMapper.selectByEmail(req.getEmail());
+            if (userWithNewEmail != null) {
+                throw new IllegalArgumentException("Email already exists");
+            }
+        }
+
         User toUpdate = new User();
         toUpdate.setUuid(userId);
 
-        // Optional fields: update only if provided (non-null)
-        if (req.getUsername() != null) {
+        // Optional fields: update only if provided (non-null and non-empty)
+        if (req.getUsername() != null && !req.getUsername().trim().isEmpty()) {
             toUpdate.setUsername(req.getUsername().trim());
         }
-        if (req.getAvatarUrl() != null) {
+        if (req.getEmail() != null && !req.getEmail().trim().isEmpty() && !req.getEmail().equals(existing.getEmail())) {
+            toUpdate.setEmail(req.getEmail().trim());
+        }
+        if (req.getAvatarUrl() != null && !req.getAvatarUrl().trim().isEmpty()) {
             toUpdate.setAvatarUrl(req.getAvatarUrl().trim());
         }
-        if (req.getProfileDetail() != null) {
+        if (req.getProfileDetail() != null && !req.getProfileDetail().trim().isEmpty()) {
             toUpdate.setProfileDetail(req.getProfileDetail().trim());
         }
-        if (req.getBirthday() != null) {
-            toUpdate.setBirthday(req.getBirthday());
-        }
         if (req.getGender() != null) {
-            try {
-                toUpdate.setGender(Integer.parseInt(req.getGender()));
-            } catch (NumberFormatException ignored) {
-                // validation layer should prevent this; ignore to keep method safe
-            }
+            toUpdate.setGender(req.getGender());
         }
 
         // update timestamp
@@ -89,6 +108,20 @@ public class UserService {
         dto.setUpdateTime(user.getUpdateTime());
         dto.setLastActive(user.getLastActive());
         return dto;
+    }
+
+    /**
+     * Send verification email for email change
+     */
+    public void sendEmailChangeVerification(String newEmail) {
+        // Check if new email already exists
+        User existingUser = userMapper.selectByEmail(newEmail);
+        if (existingUser != null) {
+            throw new IllegalArgumentException("Email already exists");
+        }
+        
+        // Send verification code to new email
+        mailService.sendVerificationCode(newEmail);
     }
 }
 

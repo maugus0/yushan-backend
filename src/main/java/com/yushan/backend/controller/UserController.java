@@ -13,6 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -69,7 +71,7 @@ public class UserController {
      */
     @PutMapping("/{id}/profile")
     @PreAuthorize("isOwner(#id.toString())")
-    public ResponseEntity<UserProfileResponseDTO> updateProfile(
+    public ResponseEntity<?> updateProfile(
             @PathVariable("id") UUID id,
             @Valid @RequestBody UserProfileUpdateRequestDTO body,
             Authentication authentication) {
@@ -88,10 +90,65 @@ public class UserController {
             return ResponseEntity.status(401).build();
         }
 
-        UserProfileResponseDTO updated = userService.updateUserProfileSelective(id, body);
-        if (updated == null) {
-            return ResponseEntity.notFound().build();
+        try {
+            UserProfileResponseDTO updated = userService.updateUserProfileSelective(id, body);
+            if (updated == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(updated);
+        } catch (IllegalArgumentException e) {
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(errorResponse);
         }
-        return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Send verification email for email change
+     */
+    @PostMapping("/send-email-change-verification")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Map<String, Object>> sendEmailChangeVerification(
+            @RequestBody Map<String, String> emailRequest,
+            Authentication authentication) {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            if (authentication == null || !authentication.isAuthenticated()) {
+                response.put("success", false);
+                response.put("message", "Authentication required");
+                return ResponseEntity.status(401).body(response);
+            }
+
+            String newEmail = emailRequest.get("email");
+            if (newEmail == null || newEmail.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Email is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Basic email format validation
+            if (!newEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                response.put("success", false);
+                response.put("message", "Invalid email format");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            userService.sendEmailChangeVerification(newEmail.trim().toLowerCase(java.util.Locale.ROOT));
+
+            response.put("success", true);
+            response.put("message", "Verification code sent successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (IllegalArgumentException e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Failed to send verification email: " + e.getMessage());
+            return ResponseEntity.badRequest().body(response);
+        }
     }
 }
