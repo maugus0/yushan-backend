@@ -54,11 +54,11 @@ public class UserProfileUpdateRequestDTO {
     }
 
     public Date getBirthday() {
-        return birthday;
+        return birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public void setBirthday(Date birthday) {
-        this.birthday = birthday;
+        this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public String getGender() {

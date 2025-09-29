@@ -73,11 +73,11 @@ public class UserProfileResponseDTO {
     }
 
     public Date getBirthday() {
-        return birthday;
+        return birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public void setBirthday(Date birthday) {
-        this.birthday = birthday;
+        this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public Integer getGender() {
@@ -121,27 +121,27 @@ public class UserProfileResponseDTO {
     }
 
     public Date getCreateTime() {
-        return createTime;
+        return createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
     }
 
     public Date getUpdateTime() {
-        return updateTime;
+        return updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
     }
 
     public Date getLastActive() {
-        return lastActive;
+        return lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 
     public void setLastActive(Date lastActive) {
-        this.lastActive = lastActive;
+        this.lastActive = lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 }
 
