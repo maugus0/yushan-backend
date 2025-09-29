@@ -83,6 +83,8 @@ public class UserService {
         dto.setAuthorVerified(user.getAuthorVerified());
         dto.setLevel(user.getLevel());
         dto.setExp(user.getExp());
+        dto.setReadTime(user.getReadTime());
+        dto.setReadBookNum(user.getReadBookNum());
         dto.setCreateTime(user.getCreateTime());
         dto.setUpdateTime(user.getUpdateTime());
         dto.setLastActive(user.getLastActive());

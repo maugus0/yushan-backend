@@ -55,6 +55,8 @@ public class UserServiceTest {
         existing.setAvatarUrl("old.png");
         existing.setProfileDetail("old profile");
         existing.setGender(1);
+        existing.setReadTime(10.5f);
+        existing.setReadBookNum(5);
 
         when(userMapper.selectByPrimaryKey(id)).thenReturn(existing);
 
@@ -65,6 +67,8 @@ public class UserServiceTest {
         after.setAvatarUrl("new.png");
         after.setProfileDetail("new profile");
         after.setGender(2);
+        after.setReadTime(10.5f);
+        after.setReadBookNum(5);
         after.setUpdateTime(new Date());
 
         when(userMapper.selectByPrimaryKey(id)).thenReturn(existing, after);
@@ -95,6 +99,8 @@ public class UserServiceTest {
         assertEquals("new.png", dto.getAvatarUrl());
         assertEquals("new profile", dto.getProfileDetail());
         assertEquals(2, dto.getGender());
+        assertEquals(10.5f, dto.getReadTime());
+        assertEquals(5, dto.getReadBookNum());
     }
 }
 

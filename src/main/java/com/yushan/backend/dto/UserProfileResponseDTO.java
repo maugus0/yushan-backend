@@ -22,6 +22,8 @@ public class UserProfileResponseDTO {
     private Boolean authorVerified;
     private Integer level;
     private Float exp;
+    private Float readTime;
+    private Integer readBookNum;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC")
     private Date createTime;
@@ -118,6 +120,22 @@ public class UserProfileResponseDTO {
 
     public void setExp(Float exp) {
         this.exp = exp;
+    }
+
+    public Float getReadTime() {
+        return readTime;
+    }
+
+    public void setReadTime(Float readTime) {
+        this.readTime = readTime;
+    }
+
+    public Integer getReadBookNum() {
+        return readBookNum;
+    }
+
+    public void setReadBookNum(Integer readBookNum) {
+        this.readBookNum = readBookNum;
     }
 
     public Date getCreateTime() {
