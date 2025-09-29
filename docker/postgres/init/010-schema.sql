@@ -2,7 +2,7 @@
 -- NOTE: These scripts run ONLY when the Postgres data directory is empty
 
 CREATE TABLE IF NOT EXISTS users (
-    uuid VARCHAR(36) PRIMARY KEY,
+    uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(100) NOT NULL,
     hash_password VARCHAR(255) NOT NULL,

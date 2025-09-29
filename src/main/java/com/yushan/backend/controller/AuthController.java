@@ -233,7 +233,7 @@ public class AuthController {
      * @param emailRequest
      * @return
      */
-    @PostMapping("/sendEmail")
+    @PostMapping("/send-email")
     public ResponseEntity<Map<String, Object>> sendEmail(@RequestBody Map<String, String> emailRequest) {
         Map<String, Object> response = new HashMap<>();
         try {
