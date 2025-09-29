@@ -12,30 +12,50 @@ import java.sql.SQLException;
 import java.util.UUID;
 
 @MappedTypes(UUID.class)
-@MappedJdbcTypes(JdbcType.VARCHAR)
+@MappedJdbcTypes(JdbcType.OTHER)
 public class UUIDTypeHandler extends BaseTypeHandler<UUID> {
 
     @Override
     public void setNonNullParameter(PreparedStatement ps, int i, UUID parameter, JdbcType jdbcType) throws SQLException {
-        // Store UUID as string to match VARCHAR(36) column
-        ps.setString(i, parameter.toString());
+        ps.setObject(i, parameter);
     }
 
     @Override
     public UUID getNullableResult(ResultSet rs, String columnName) throws SQLException {
-        String value = rs.getString(columnName);
-        return value != null ? UUID.fromString(value) : null;
+        Object value = rs.getObject(columnName);
+        if (value == null) {
+            return null;
+        } else if (value instanceof UUID) {
+            return (UUID) value;
+        } else if (value instanceof String) {
+            return UUID.fromString((String) value);
+        }
+        return null;
     }
 
     @Override
     public UUID getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
-        String value = rs.getString(columnIndex);
-        return value != null ? UUID.fromString(value) : null;
+        Object value = rs.getObject(columnIndex);
+        if (value == null) {
+            return null;
+        } else if (value instanceof UUID) {
+            return (UUID) value;
+        } else if (value instanceof String) {
+            return UUID.fromString((String) value);
+        }
+        return null;
     }
 
     @Override
     public UUID getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
-        String value = cs.getString(columnIndex);
-        return value != null ? UUID.fromString(value) : null;
+        Object value = cs.getObject(columnIndex);
+        if (value == null) {
+            return null;
+        } else if (value instanceof UUID) {
+            return (UUID) value;
+        } else if (value instanceof String) {
+            return UUID.fromString((String) value);
+        }
+        return null;
     }
 }
