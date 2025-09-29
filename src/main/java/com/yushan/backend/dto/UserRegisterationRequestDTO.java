@@ -7,7 +7,7 @@ import lombok.Setter;
 
 import java.util.Date;
 
-public class UserRegisterationDTO {
+public class UserRegisterationRequestDTO {
     @NotBlank(message = "email cannot be empty")
     @Email(message = "email format is incorrect")
     @Size(max = 254, message = "email length pasts limitation")

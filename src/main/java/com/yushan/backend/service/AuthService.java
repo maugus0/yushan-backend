@@ -1,10 +1,12 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dto.UserRegisterationDTO;
+import com.yushan.backend.dto.UserRegisterationRequestDTO;
+import com.yushan.backend.dto.UserRegisterationResponseDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
-import com.yushan.backend.util.MailUtil;
+import com.yushan.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
@@ -16,15 +18,19 @@ public class AuthService {
 
     @Autowired
     private UserMapper userMapper;
+
     @Autowired
-    private MailUtil mailUtil;
+    private JwtUtil jwtUtil;
+
+    @Value("${jwt.access-token.expiration}")
+    private long accessTokenExpiration;
 
     /**
      * register a new user
      * @param registrationDTO
      * @return
      */
-    public User register(UserRegisterationDTO registrationDTO) {
+    public User register(UserRegisterationRequestDTO registrationDTO) {
         // check if email existed
         if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
             throw new RuntimeException("email was registered");
@@ -74,6 +80,28 @@ public class AuthService {
     }
 
     /**
+     * register a new user and create response
+     * @param registrationDTO
+     * @return
+     */
+    public UserRegisterationResponseDTO registerAndCreateResponse(UserRegisterationRequestDTO registrationDTO) {
+
+        User user = register(registrationDTO);
+
+        // Generate JWT tokens for auto-login after registration
+        String accessToken = jwtUtil.generateAccessToken(user);
+        String refreshToken = jwtUtil.generateRefreshToken(user);
+
+        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
+        responseDTO.setUser(createUserResponse(user));
+        responseDTO.setAccessToken(accessToken);
+        responseDTO.setRefreshToken(refreshToken);
+        responseDTO.setTokenType("Bearer");
+        responseDTO.setExpiresIn(accessTokenExpiration);
+        return responseDTO;
+    }
+
+    /**
      * login a user
      * @param email
      * @param password
@@ -97,11 +125,102 @@ public class AuthService {
     }
 
     /**
+     * login a user and create response
+     * @param email
+     * @param password
+     * @return
+     */
+    public UserRegisterationResponseDTO loginAndCreateResponse(String email, String password) {
+        User user = login(email, password);
+        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
+
+        if (user != null) {
+            // Generate JWT tokens
+            String accessToken = jwtUtil.generateAccessToken(user);
+            String refreshToken = jwtUtil.generateRefreshToken(user);
+
+            // Prepare user info (without sensitive data)
+            responseDTO.setUser(createUserResponse(user));
+            responseDTO.setAccessToken(accessToken);
+            responseDTO.setRefreshToken(refreshToken);
+            responseDTO.setTokenType("Bearer");
+            responseDTO.setExpiresIn(accessTokenExpiration);
+            return responseDTO;
+        }
+        return null;
+    }
+
+    /**
+     * refresh token and create response
+     * @param refreshToken
+     * @return
+     */
+    public UserRegisterationResponseDTO refreshToken(String refreshToken) {
+        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
+        // Validate refresh token
+        if (!jwtUtil.validateToken(refreshToken)) {
+            throw new IllegalArgumentException("Invalid refresh token");
+        }
+
+        // Check if it's actually a refresh token
+        if (!jwtUtil.isRefreshToken(refreshToken)) {
+            throw new IllegalArgumentException("Token is not a refresh token");
+        }
+
+        // Extract user info from refresh token
+        String email = jwtUtil.extractEmail(refreshToken);
+        String userId = jwtUtil.extractUserId(refreshToken);
+
+        // Load user from database
+        User user = userMapper.selectByEmail(email);
+
+        if (user == null || !user.getUuid().toString().equals(userId)) {
+            throw new IllegalArgumentException("User not found or token mismatch");
+        }
+
+        // Generate new access token
+        String newAccessToken = jwtUtil.generateAccessToken(user);
+
+        // Optionally generate new refresh token (token rotation)
+        String newRefreshToken = jwtUtil.generateRefreshToken(user);
+
+        responseDTO.setUser(createUserResponse(user));
+        responseDTO.setAccessToken(newAccessToken);
+        responseDTO.setRefreshToken(newRefreshToken);
+        responseDTO.setTokenType("Bearer");
+        responseDTO.setExpiresIn(accessTokenExpiration);
+        return responseDTO;
+    }
+
+    /**
      * hash password
      * @param password
      * @return
      */
     private String hashPassword(String password) {
         return BCrypt.hashpw(password, BCrypt.gensalt());
+    }
+
+    /**
+     * create user response (without sensitive data)
+     * @param user
+     * @return
+     */
+    private User createUserResponse(User user) {
+        User userInfo = new User();
+        userInfo.setUuid(user.getUuid());
+        userInfo.setEmail(user.getEmail());
+        userInfo.setUsername(user.getUsername());
+        userInfo.setIsAuthor(user.getIsAuthor());
+        userInfo.setAuthorVerified(user.getAuthorVerified());
+        userInfo.setLevel(user.getLevel());
+        userInfo.setExp(user.getExp());
+        userInfo.setAvatarUrl(user.getAvatarUrl());
+        userInfo.setStatus(user.getStatus());
+        userInfo.setCreateTime(user.getCreateTime());
+        userInfo.setUpdateTime(user.getUpdateTime());
+        userInfo.setLastActive(user.getLastActive());
+        userInfo.setLastLogin(user.getLastLogin());
+        return userInfo;
     }
 }

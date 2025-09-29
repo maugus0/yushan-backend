@@ -1,5 +1,6 @@
 package com.yushan.backend.exception;
 
+import com.yushan.backend.common.Result;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authorization.AuthorizationDeniedException;
@@ -14,17 +15,12 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
     /**
      * handle authorization denied exception
      */
     @ExceptionHandler(AuthorizationDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAuthorizationDeniedException(AuthorizationDeniedException e) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", "Access Denied");
-        response.put("code", "ACCESS_DENIED");
-        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(response);
+    public Result<?> handleAuthorizationDeniedException() {
+        return Result.noAuth();
     }
 
     /**
@@ -43,19 +39,15 @@ public class GlobalExceptionHandler {
      * handle method argument not valid exception
      */
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidationException(MethodArgumentNotValidException e) {
-        Map<String, Object> response = new HashMap<>();
-        Map<String, String> errors = new HashMap<>();
-
-        for (FieldError error : e.getBindingResult().getFieldErrors()) {
-            errors.put(error.getField(), error.getDefaultMessage());
-        }
-
-        response.put("success", false);
-        response.put("message", "failed to verify argument");
-        response.put("errors", errors);
-        response.put("code", "VALIDATION_ERROR");
-        return ResponseEntity.badRequest().body(response);
+    public Result<?> handleValidationException(MethodArgumentNotValidException e) {
+        StringBuilder errorMessage = new StringBuilder();
+        e.getBindingResult().getFieldErrors().forEach(error -> {
+            if (errorMessage.length() > 0) {
+                errorMessage.append("; ");
+            }
+            errorMessage.append(error.getDefaultMessage());
+        });
+        return Result.error(errorMessage.toString());
     }
 
     /**
@@ -90,6 +82,5 @@ public class GlobalExceptionHandler {
     }
 
     //todo: handle business exception
-    //todo: use this class
 }
 
