@@ -25,9 +25,8 @@ public class AuthService {
      * @return
      */
     public User register(UserRegisterationDTO registrationDTO) {
-        //check if email existed
-        User existingUser = userMapper.selectByEmail(registrationDTO.getEmail());
-        if (existingUser != null) {
+        // check if email existed
+        if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
             throw new RuntimeException("email was registered");
         }
 
@@ -73,12 +72,13 @@ public class AuthService {
         }
         return user;
     }
+
     /**
-    * login a user
-    * @param email
-    * @param password
-    * @return
-    */
+     * login a user
+     * @param email
+     * @param password
+     * @return
+     */
     public User login(String email, String password) {
         // verify input
         if (email == null || email.isEmpty() || password == null || password.isEmpty()) {
@@ -86,10 +86,10 @@ public class AuthService {
         }
 
         try {
-             User user = userMapper.selectByEmail(email);
-             if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
-                 return user;
-             }
+            User user = userMapper.selectByEmail(email);
+            if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
+                return user;
+            }
             return null;
         } catch (Exception e) {
             return null;

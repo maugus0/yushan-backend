@@ -281,7 +281,7 @@ public class JwtIntegrationTest {
         Map<String, String> sendEmailRequest = new HashMap<>();
         sendEmailRequest.put("email", "newuser@example.com");
 
-        mockMvc.perform(post("/api/auth/sendEmail")
+        mockMvc.perform(post("/api/auth/send-email")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(sendEmailRequest)))
                 .andExpect(status().isOk())
