@@ -48,11 +48,11 @@
     where uuid = #{uuid,jdbcType=VARCHAR,typeHandler=com.yushan.backend.config.UUIDTypeHandler}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.User">
-    insert into users (uuid, email, username, 
-      hash_password, email_verified, avatar_url, 
-      profile_detail, birthday, gender, 
-      status, is_author, author_verified, 
-      level, exp, yuan, read_time, 
+    insert into users (uuid, email, username,
+      hash_password, email_verified, avatar_url,
+      profile_detail, birthday, gender,
+      status, is_author, author_verified,
+      level, exp, yuan, read_time,
       read_book_num, create_time, update_time,
       last_login, last_active)
     values (#{uuid,jdbcType=VARCHAR,typeHandler=com.yushan.backend.config.UUIDTypeHandler}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR}, 

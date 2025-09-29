@@ -3,12 +3,14 @@ package com.yushan.backend.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.service.MailService;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.context.ActiveProfiles;
@@ -21,9 +23,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
+import org.mockito.junit.jupiter.MockitoSettings;
+import org.mockito.quality.Strictness;
 
 /**
  * Integration tests for JWT authentication and authorization
@@ -39,6 +48,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureWebMvc
 @ActiveProfiles("test")
 @Transactional
+@MockitoSettings(strictness = Strictness.LENIENT)
 public class JwtIntegrationTest {
 
     @Autowired
@@ -56,6 +66,9 @@ public class JwtIntegrationTest {
     @Autowired
     private ObjectMapper objectMapper;
 
+    @MockBean
+    private MailService mailService;
+
     private MockMvc mockMvc;
 
     private User testUser;
@@ -72,6 +85,21 @@ public class JwtIntegrationTest {
 
         // Create test users
         createTestUsers();
+        
+        // Setup mock MailService after creating users
+        setupMockMailService();
+    }
+
+    /**
+     * Setup mock MailService behavior
+     */
+    private void setupMockMailService() {
+        // Mock sendVerificationCode to do nothing
+        doNothing().when(mailService).sendVerificationCode(anyString());
+        
+        // Mock verifyEmail to return true for test code "123456"
+        when(mailService.verifyEmail(anyString(), eq("123456"))).thenReturn(true);
+        when(mailService.verifyEmail(anyString(), anyString())).thenReturn(false);
     }
 
     /**
@@ -188,10 +216,14 @@ public class JwtIntegrationTest {
 
     @Test
     void testRegisterSuccess() throws Exception {
+        // Setup mock directly in the test
+        when(mailService.verifyEmail(eq("newuser@example.com"), eq("123456"))).thenReturn(true);
+        
         Map<String, String> registerRequest = new HashMap<>();
         registerRequest.put("email", "newuser@example.com");
         registerRequest.put("username", "newuser");
         registerRequest.put("password", "password123");
+        registerRequest.put("code", "123456");
 
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -242,6 +274,19 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.success").value(true))
                 .andExpect(jsonPath("$.message").value("logout successful"))
                 .andExpect(jsonPath("$.note").value("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens."));
+    }
+
+    @Test
+    void testSendEmail() throws Exception {
+        Map<String, String> sendEmailRequest = new HashMap<>();
+        sendEmailRequest.put("email", "newuser@example.com");
+
+        mockMvc.perform(post("/api/auth/sendEmail")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(sendEmailRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("Verification code sent successfully"));
     }
 
     // ==================== PROTECTED ENDPOINT TESTS ====================
