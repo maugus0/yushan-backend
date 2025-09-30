@@ -196,8 +196,8 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.data.user.email").value("testuser@example.com"))
-                .andExpect(jsonPath("$.data.user.username").value("testuser"));
+                .andExpect(jsonPath("$.data.email").value("testuser@example.com"))
+                .andExpect(jsonPath("$.data.username").value("testuser"));
     }
 
     @Test
@@ -234,7 +234,7 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
-                .andExpect(jsonPath("$.data.user.email").value("newuser@example.com"));
+                .andExpect(jsonPath("$.data.email").value("newuser@example.com"));
     }
 
     @Test
