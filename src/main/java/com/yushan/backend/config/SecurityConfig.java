@@ -120,10 +120,13 @@ public class SecurityConfig {
                 .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
                 .requestMatchers("/api/reviews/**").authenticated()
-                
-                // Admin endpoints - require admin role (to be implemented)
-                // .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                
+
+                // Admin endpoints - require admin role
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
+
+                // Author endpoints - require author role
+                .requestMatchers("/api/author/**").hasRole("AUTHOR")
+
                 // All other requests require authentication
                 .anyRequest().authenticated()
             )

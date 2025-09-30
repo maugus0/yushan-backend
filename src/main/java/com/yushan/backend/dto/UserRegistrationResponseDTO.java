@@ -5,11 +5,8 @@ import lombok.Data;
 
 import java.util.Date;
 
-/**
- * DTO for exposing user profile via API (read model)
- */
 @Data
-public class UserProfileResponseDTO {
+public class UserRegistrationResponseDTO {
     private String uuid;
     private String email;
     private String username;
@@ -35,6 +32,11 @@ public class UserProfileResponseDTO {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC")
     private Date lastActive;
+
+    private String accessToken;
+    private String refreshToken;
+    private String tokenType;
+    private long expiresIn;
 
     public Date getBirthday() {
         return birthday != null ? new Date(birthday.getTime()) : null;
@@ -68,5 +70,3 @@ public class UserProfileResponseDTO {
         this.lastActive = lastActive != null ? new Date(lastActive.getTime()) : null;
     }
 }
-
-

@@ -110,11 +110,11 @@ public class CustomUserDetailsService implements UserDetailsService {
             if (isAuthor != null && isAuthor) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_AUTHOR"));
             }
-            
+
             // Add admin authority if user is admin (you can add this logic later)
-            // if (user.getRole() != null && user.getRole().equals("ADMIN")) {
-            //     authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-            // }
+            if (email != null && "admin@example.com".equals(email)) {
+                authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
+            }
             
             return authorities;
         }
