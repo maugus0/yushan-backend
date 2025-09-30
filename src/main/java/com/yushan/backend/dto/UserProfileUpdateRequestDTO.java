@@ -1,10 +1,12 @@
 package com.yushan.backend.dto;
 
 import jakarta.validation.constraints.*;
+import lombok.Data;
 
 /**
  * DTO for user profile update requests (write model)
  */
+@Data
 public class UserProfileUpdateRequestDTO {
 
     @Size(max = 20, message = "username must be at most 20 char")
@@ -27,10 +29,6 @@ public class UserProfileUpdateRequestDTO {
     // Verification code for email change
     @Size(max = 6, message = "code must be at most 6 char")
     private String verificationCode;
-
-    public String getUsername() {
-        return username;
-    }
 
     public void setUsername(String username) {
         // Only validate username format if username is provided and not empty
@@ -60,26 +58,6 @@ public class UserProfileUpdateRequestDTO {
         this.email = email != null ? email.trim().toLowerCase(java.util.Locale.ROOT) : null;
     }
 
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public String getProfileDetail() {
-        return profileDetail;
-    }
-
-    public void setProfileDetail(String profileDetail) {
-        this.profileDetail = profileDetail;
-    }
-
-    public Integer getGender() {
-        return gender;
-    }
-
     public void setGender(Integer gender) {
         // Only validate gender if gender is provided
         if (gender != null) {
@@ -88,14 +66,6 @@ public class UserProfileUpdateRequestDTO {
             }
         }
         this.gender = gender;
-    }
-
-    public String getVerificationCode() {
-        return verificationCode;
-    }
-
-    public void setVerificationCode(String verificationCode) {
-        this.verificationCode = verificationCode;
     }
 }
 

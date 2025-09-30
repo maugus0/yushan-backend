@@ -1,7 +1,7 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dto.UserRegisterationRequestDTO;
-import com.yushan.backend.dto.UserRegisterationResponseDTO;
+import com.yushan.backend.dto.UserRegistrationRequestDTO;
+import com.yushan.backend.dto.UserRegistrationResponseDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.util.JwtUtil;
@@ -30,7 +30,7 @@ public class AuthService {
      * @param registrationDTO
      * @return
      */
-    public User register(UserRegisterationRequestDTO registrationDTO) {
+    public User register(UserRegistrationRequestDTO registrationDTO) {
         // check if email existed
         if (userMapper.selectByEmail(registrationDTO.getEmail()) != null) {
             throw new RuntimeException("email was registered");
@@ -84,7 +84,7 @@ public class AuthService {
      * @param registrationDTO
      * @return
      */
-    public UserRegisterationResponseDTO registerAndCreateResponse(UserRegisterationRequestDTO registrationDTO) {
+    public UserRegistrationResponseDTO registerAndCreateResponse(UserRegistrationRequestDTO registrationDTO) {
 
         User user = register(registrationDTO);
 
@@ -92,7 +92,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        UserRegisterationResponseDTO responseDTO = createUserResponse(user);
+        UserRegistrationResponseDTO responseDTO = createUserResponse(user);
         responseDTO.setAccessToken(accessToken);
         responseDTO.setRefreshToken(refreshToken);
         responseDTO.setTokenType("Bearer");
@@ -129,7 +129,7 @@ public class AuthService {
      * @param password
      * @return
      */
-    public UserRegisterationResponseDTO loginAndCreateResponse(String email, String password) {
+    public UserRegistrationResponseDTO loginAndCreateResponse(String email, String password) {
         User user = login(email, password);
 
         if (user != null) {
@@ -138,7 +138,7 @@ public class AuthService {
             String refreshToken = jwtUtil.generateRefreshToken(user);
 
             // Prepare user info (without sensitive data)
-            UserRegisterationResponseDTO responseDTO = createUserResponse(user);
+            UserRegistrationResponseDTO responseDTO = createUserResponse(user);
             responseDTO.setAccessToken(accessToken);
             responseDTO.setRefreshToken(refreshToken);
             responseDTO.setTokenType("Bearer");
@@ -153,7 +153,7 @@ public class AuthService {
      * @param refreshToken
      * @return
      */
-    public UserRegisterationResponseDTO refreshToken(String refreshToken) {
+    public UserRegistrationResponseDTO refreshToken(String refreshToken) {
         // Validate refresh token
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid refresh token");
@@ -181,7 +181,7 @@ public class AuthService {
         // Optionally generate new refresh token (token rotation)
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
-        UserRegisterationResponseDTO responseDTO = createUserResponse(user);
+        UserRegistrationResponseDTO responseDTO = createUserResponse(user);
         responseDTO.setAccessToken(newAccessToken);
         responseDTO.setRefreshToken(newRefreshToken);
         responseDTO.setTokenType("Bearer");
@@ -203,8 +203,8 @@ public class AuthService {
      * @param user
      * @return
      */
-    private UserRegisterationResponseDTO createUserResponse(User user) {
-        UserRegisterationResponseDTO dto = new UserRegisterationResponseDTO();
+    private UserRegistrationResponseDTO createUserResponse(User user) {
+        UserRegistrationResponseDTO dto = new UserRegistrationResponseDTO();
         dto.setUuid(user.getUuid() != null ? user.getUuid().toString() : null);
         dto.setEmail(user.getEmail());
         dto.setUsername(user.getUsername());

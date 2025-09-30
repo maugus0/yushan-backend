@@ -1,12 +1,14 @@
 package com.yushan.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import lombok.Data;
 
 import java.util.Date;
 
 /**
  * DTO for exposing user profile via API (read model)
  */
+@Data
 public class UserProfileResponseDTO {
     private String uuid;
     private String email;
@@ -34,108 +36,12 @@ public class UserProfileResponseDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ssXXX", timezone = "UTC")
     private Date lastActive;
 
-    public String getUuid() {
-        return uuid;
-    }
-
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
-    }
-
-    public void setAvatarUrl(String avatarUrl) {
-        this.avatarUrl = avatarUrl;
-    }
-
-    public String getProfileDetail() {
-        return profileDetail;
-    }
-
-    public void setProfileDetail(String profileDetail) {
-        this.profileDetail = profileDetail;
-    }
-
     public Date getBirthday() {
         return birthday != null ? new Date(birthday.getTime()) : null;
     }
 
     public void setBirthday(Date birthday) {
         this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
-    }
-
-    public Integer getGender() {
-        return gender;
-    }
-
-    public void setGender(Integer gender) {
-        this.gender = gender;
-    }
-
-    public Boolean getIsAuthor() {
-        return isAuthor;
-    }
-
-    public void setIsAuthor(Boolean isAuthor) {
-        this.isAuthor = isAuthor;
-    }
-
-    public Boolean getAuthorVerified() {
-        return authorVerified;
-    }
-
-    public void setAuthorVerified(Boolean authorVerified) {
-        this.authorVerified = authorVerified;
-    }
-
-    public Integer getLevel() {
-        return level;
-    }
-
-    public void setLevel(Integer level) {
-        this.level = level;
-    }
-
-    public Float getExp() {
-        return exp;
-    }
-
-    public void setExp(Float exp) {
-        this.exp = exp;
-    }
-
-    public Float getReadTime() {
-        return readTime;
-    }
-
-    public void setReadTime(Float readTime) {
-        this.readTime = readTime;
-    }
-
-    public Integer getReadBookNum() {
-        return readBookNum;
-    }
-
-    public void setReadBookNum(Integer readBookNum) {
-        this.readBookNum = readBookNum;
     }
 
     public Date getCreateTime() {

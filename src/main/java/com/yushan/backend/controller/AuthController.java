@@ -13,8 +13,6 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Slf4j
 @RestController
 @RequestMapping("/api/auth")
@@ -44,7 +42,7 @@ public class AuthController {
      * @return
      */
     @PostMapping("/register")
-    public Result<UserRegisterationResponseDTO> register(@Valid @RequestBody UserRegisterationRequestDTO registrationDTO) {
+    public Result<UserRegistrationResponseDTO> register(@Valid @RequestBody UserRegistrationRequestDTO registrationDTO) {
         // no need to check if email exists here since we check it in register()
         boolean isValid = mailService.verifyEmail(registrationDTO.getEmail(), registrationDTO.getCode());
 
@@ -53,7 +51,7 @@ public class AuthController {
         }
 
         // Prepare user info & token (without sensitive data)
-        UserRegisterationResponseDTO responseDTO = authService.registerAndCreateResponse(registrationDTO);
+        UserRegistrationResponseDTO responseDTO = authService.registerAndCreateResponse(registrationDTO);
 
         return Result.success(responseDTO);
     }
@@ -64,10 +62,10 @@ public class AuthController {
      * @return
      */
     @PostMapping("/login")
-    public Result<UserRegisterationResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO loginRequest) {
+    public Result<UserRegistrationResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
-        UserRegisterationResponseDTO responseDTO = authService.loginAndCreateResponse(email, password);
+        UserRegistrationResponseDTO responseDTO = authService.loginAndCreateResponse(email, password);
         if(responseDTO == null) {
             return Result.error("Invalid email or password");
         } else {
@@ -93,10 +91,10 @@ public class AuthController {
      * @return
      */
     @PostMapping("/refresh")
-    public Result<UserRegisterationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
+    public Result<UserRegistrationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        UserRegisterationResponseDTO responseDTO = authService.refreshToken(refreshToken);
+        UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
         return Result.success(responseDTO);
     }
 

@@ -6,7 +6,7 @@ import lombok.Data;
 import java.util.Date;
 
 @Data
-public class UserRegisterationResponseDTO {
+public class UserRegistrationResponseDTO {
     private String uuid;
     private String email;
     private String username;
