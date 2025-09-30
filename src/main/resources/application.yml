@@ -54,7 +54,7 @@ mybatis:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:YushanBackendJWTSecretKey2024ForSecureTokenGenerationAndValidation}
+  secret: ${JWT_SECRET:YushanBackendJWTSecretKey2025ForSecureTokenGenerationAndValidation}
   access-token:
     expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}  # 15 minutes in milliseconds
   refresh-token:
