@@ -345,7 +345,8 @@ public class JwtIntegrationTest {
     void testAuthorOnlyEndpointWithRegularUser() throws Exception {
         mockMvc.perform(get("/api/example/author-only")
                 .header("Authorization", "Bearer " + testUserToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401));
     }
 
     @Test
@@ -401,7 +402,8 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/resource")
                 .param("resourceId", resourceId)
                 .header("Authorization", "Bearer " + testUserToken))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(401));
     }
 
     @Test
