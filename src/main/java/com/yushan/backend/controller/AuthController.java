@@ -109,10 +109,6 @@ public class AuthController {
         try {
             String refreshToken = refreshRequest.getRefreshToken();
 
-//            if (refreshToken == null || refreshToken.isEmpty()) {
-//                return Result.error("Refresh token is required");
-//            }
-
             UserRegisterationResponseDTO responseDTO = authService.refreshToken(refreshToken);
             return Result.success(responseDTO);
         } catch (IllegalArgumentException e) {
