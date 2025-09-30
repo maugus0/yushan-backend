@@ -12,7 +12,7 @@ package com.yushan.backend.exception;
  * - Complies with static analysis rules (e.g., SpotBugs) that prefer
  *   meaningful, specific exception types over generic ones.
  */
-public class NovelNotFoundException extends Exception {
+public class NovelNotFoundException extends RuntimeException {
     /**
      * Creates a new exception with a human-readable message describing which
      * novel could not be found (e.g., by ID or slug).

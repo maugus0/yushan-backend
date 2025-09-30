@@ -49,4 +49,12 @@ public class Result<T> {
     public static <T> Result<T> forbidden() {
         return new Result<>(ResultStatus.FORBIDDEN);
     }
+
+    public static <T> Result<T> notFound(String message) {
+        return new Result<>(ResultStatus.NOT_FOUND.getCode(), message);
+    }
+
+    public static <T> Result<T> badRequest(String message) {
+        return new Result<>(ResultStatus.BAD_REQUEST.getCode(), message);
+    }
 }

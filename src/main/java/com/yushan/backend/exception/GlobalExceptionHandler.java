@@ -7,9 +7,6 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
-import java.util.Map;
-
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     /**
@@ -26,6 +23,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(RuntimeException.class)
     public Result<?> handleRuntimeException(RuntimeException e) {
         return Result.error(e.getMessage());
+    }
+
+    @ExceptionHandler(NovelNotFoundException.class)
+    public Result<?> handleNovelNotFound(NovelNotFoundException e) {
+        return Result.notFound(e.getMessage());
     }
 
     /**

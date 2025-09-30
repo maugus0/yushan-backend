@@ -24,3 +24,41 @@ CREATE TABLE IF NOT EXISTS users (
     last_login TIMESTAMP,
     last_active TIMESTAMP
 );
+
+-- Category table (required by novel.category_id FK)
+CREATE TABLE IF NOT EXISTS category (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(255),
+    slug VARCHAR(100),
+    is_active BOOLEAN DEFAULT TRUE,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Novel table
+CREATE TABLE IF NOT EXISTS novel (
+    id SERIAL PRIMARY KEY,
+    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    title VARCHAR(255) NOT NULL,
+    author_id UUID NOT NULL,
+    author_name VARCHAR(100),
+    category_id INTEGER NOT NULL,
+    synopsis TEXT,
+    cover_img_url VARCHAR(500),
+    status INTEGER NOT NULL DEFAULT 0,
+    is_completed BOOLEAN DEFAULT FALSE,
+    is_valid BOOLEAN DEFAULT TRUE,
+    chapter_cnt INTEGER DEFAULT 0,
+    word_cnt BIGINT DEFAULT 0,
+    avg_rating REAL DEFAULT 0.0,
+    review_cnt INTEGER DEFAULT 0,
+    view_cnt BIGINT DEFAULT 0,
+    vote_cnt INTEGER DEFAULT 0,
+    yuan_cnt REAL DEFAULT 0.0,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    publish_time TIMESTAMP,
+    CONSTRAINT fk_novel_author FOREIGN KEY (author_id) REFERENCES users(uuid),
+    CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
+);

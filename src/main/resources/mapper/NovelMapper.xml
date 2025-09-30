@@ -6,7 +6,7 @@
       <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
       <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
-      <arg column="author_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="author_id" jdbcType="OTHER" javaType="java.util.UUID" />
       <arg column="author_name" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="category_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="synopsis" jdbcType="VARCHAR" javaType="java.lang.String" />
@@ -41,7 +41,7 @@
     delete from novel
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.yushan.backend.entity.Novel" >
+  <insert id="insert" parameterType="com.yushan.backend.entity.Novel" useGeneratedKeys="true" keyProperty="id">
     insert into novel (id, uuid, title, 
       author_id, author_name, category_id, 
       synopsis, cover_img_url, status, 
@@ -51,7 +51,7 @@
       create_time, update_time, publish_time
       )
     values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{title,jdbcType=VARCHAR}, 
-      #{authorId,jdbcType=INTEGER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{authorId,jdbcType=OTHER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
       #{synopsis,jdbcType=VARCHAR}, #{coverImgUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
       #{isCompleted,jdbcType=BIT}, #{isValid,jdbcType=BIT}, #{chapterCnt,jdbcType=INTEGER}, 
       #{wordCnt,jdbcType=BIGINT}, #{avgRating,jdbcType=REAL}, #{reviewCnt,jdbcType=INTEGER}, 
@@ -59,7 +59,7 @@
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Novel" >
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Novel" useGeneratedKeys="true" keyProperty="id">
     insert into novel
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -137,7 +137,7 @@
         #{title,jdbcType=VARCHAR},
       </if>
       <if test="authorId != null" >
-        #{authorId,jdbcType=INTEGER},
+        #{authorId,jdbcType=OTHER},
       </if>
       <if test="authorName != null" >
         #{authorName,jdbcType=VARCHAR},
@@ -202,7 +202,7 @@
         title = #{title,jdbcType=VARCHAR},
       </if>
       <if test="authorId != null" >
-        author_id = #{authorId,jdbcType=INTEGER},
+        author_id = #{authorId,jdbcType=OTHER},
       </if>
       <if test="authorName != null" >
         author_name = #{authorName,jdbcType=VARCHAR},
@@ -262,7 +262,7 @@
     update novel
     set uuid = #{uuid,jdbcType=OTHER},
       title = #{title,jdbcType=VARCHAR},
-      author_id = #{authorId,jdbcType=INTEGER},
+      author_id = #{authorId,jdbcType=OTHER},
       author_name = #{authorName,jdbcType=VARCHAR},
       category_id = #{categoryId,jdbcType=INTEGER},
       synopsis = #{synopsis,jdbcType=VARCHAR},

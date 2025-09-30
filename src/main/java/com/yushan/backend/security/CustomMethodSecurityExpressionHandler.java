@@ -1,11 +1,14 @@
 package com.yushan.backend.security;
 
-import org.springframework.expression.Expression;
+import org.aopalliance.intercept.MethodInvocation;
+import org.springframework.beans.factory.BeanFactory;
+import org.springframework.beans.factory.BeanFactoryAware;
 import org.springframework.expression.EvaluationContext;
+import org.springframework.expression.Expression;
+import org.springframework.context.expression.BeanFactoryResolver;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
 import org.springframework.security.access.expression.method.MethodSecurityExpressionOperations;
 import org.springframework.security.core.Authentication;
-import org.aopalliance.intercept.MethodInvocation;
 
 /**
  * Custom Method Security Expression Handler
@@ -13,7 +16,9 @@ import org.aopalliance.intercept.MethodInvocation;
  * This class provides custom expression evaluation for method-level security
  * by using our custom SecurityExpressionRoot
  */
-public class CustomMethodSecurityExpressionHandler implements MethodSecurityExpressionHandler {
+public class CustomMethodSecurityExpressionHandler implements MethodSecurityExpressionHandler, BeanFactoryAware {
+
+    private BeanFactory beanFactory;
 
     @Override
     public EvaluationContext createEvaluationContext(Authentication authentication, MethodInvocation mi) {
@@ -21,8 +26,13 @@ public class CustomMethodSecurityExpressionHandler implements MethodSecurityExpr
         root.setThis(mi.getThis());
         
         // Create evaluation context with our custom root
-        org.springframework.expression.spel.support.StandardEvaluationContext context = 
+        org.springframework.expression.spel.support.StandardEvaluationContext context =
             new org.springframework.expression.spel.support.StandardEvaluationContext(root);
+
+        // Enable @bean references in SpEL (e.g., @novelGuard)
+        if (beanFactory != null) {
+            context.setBeanResolver(new BeanFactoryResolver(beanFactory));
+        }
         
         // Set method arguments for SpEL parameter resolution
         Object[] args = mi.getArguments();
@@ -76,5 +86,10 @@ public class CustomMethodSecurityExpressionHandler implements MethodSecurityExpr
     @Override
     public org.springframework.expression.ExpressionParser getExpressionParser() {
         return new org.springframework.expression.spel.standard.SpelExpressionParser();
+    }
+
+    @Override
+    public void setBeanFactory(BeanFactory beanFactory) {
+        this.beanFactory = beanFactory;
     }
 }

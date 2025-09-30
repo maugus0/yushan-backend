@@ -38,7 +38,7 @@ public class MailService {
         String subject = "Verify Your Code in Yushan";
 
         // HTML content
-        String htmlContent = """
+        String htmlContentTemplate = """
             <html>
             <head>
                 <meta charset="UTF-8">
@@ -60,7 +60,9 @@ public class MailService {
                 <p>If you did not request this, you may disregard this email. Accounts cannot be created without verification.</p >
             </body>
             </html>
-            """.formatted(verificationCode);
+            """;
+
+        String htmlContent = htmlContentTemplate.replace("%s", verificationCode);
 
         redisUtil.set(email, verificationCode, CODE_EXPIRE_MINUTES, TimeUnit.MINUTES);
         try {
