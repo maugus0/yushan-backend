@@ -92,8 +92,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
-        responseDTO.setUser(createUserResponse(user));
+        UserRegisterationResponseDTO responseDTO = createUserResponse(user);
         responseDTO.setAccessToken(accessToken);
         responseDTO.setRefreshToken(refreshToken);
         responseDTO.setTokenType("Bearer");
@@ -132,7 +131,6 @@ public class AuthService {
      */
     public UserRegisterationResponseDTO loginAndCreateResponse(String email, String password) {
         User user = login(email, password);
-        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
 
         if (user != null) {
             // Generate JWT tokens
@@ -140,7 +138,7 @@ public class AuthService {
             String refreshToken = jwtUtil.generateRefreshToken(user);
 
             // Prepare user info (without sensitive data)
-            responseDTO.setUser(createUserResponse(user));
+            UserRegisterationResponseDTO responseDTO = createUserResponse(user);
             responseDTO.setAccessToken(accessToken);
             responseDTO.setRefreshToken(refreshToken);
             responseDTO.setTokenType("Bearer");
@@ -156,7 +154,6 @@ public class AuthService {
      * @return
      */
     public UserRegisterationResponseDTO refreshToken(String refreshToken) {
-        UserRegisterationResponseDTO responseDTO = new UserRegisterationResponseDTO();
         // Validate refresh token
         if (!jwtUtil.validateToken(refreshToken)) {
             throw new IllegalArgumentException("Invalid refresh token");
@@ -184,7 +181,7 @@ public class AuthService {
         // Optionally generate new refresh token (token rotation)
         String newRefreshToken = jwtUtil.generateRefreshToken(user);
 
-        responseDTO.setUser(createUserResponse(user));
+        UserRegisterationResponseDTO responseDTO = createUserResponse(user);
         responseDTO.setAccessToken(newAccessToken);
         responseDTO.setRefreshToken(newRefreshToken);
         responseDTO.setTokenType("Bearer");
@@ -206,21 +203,24 @@ public class AuthService {
      * @param user
      * @return
      */
-    private User createUserResponse(User user) {
-        User userInfo = new User();
-        userInfo.setUuid(user.getUuid());
-        userInfo.setEmail(user.getEmail());
-        userInfo.setUsername(user.getUsername());
-        userInfo.setIsAuthor(user.getIsAuthor());
-        userInfo.setAuthorVerified(user.getAuthorVerified());
-        userInfo.setLevel(user.getLevel());
-        userInfo.setExp(user.getExp());
-        userInfo.setAvatarUrl(user.getAvatarUrl());
-        userInfo.setStatus(user.getStatus());
-        userInfo.setCreateTime(user.getCreateTime());
-        userInfo.setUpdateTime(user.getUpdateTime());
-        userInfo.setLastActive(user.getLastActive());
-        userInfo.setLastLogin(user.getLastLogin());
-        return userInfo;
+    private UserRegisterationResponseDTO createUserResponse(User user) {
+        UserRegisterationResponseDTO dto = new UserRegisterationResponseDTO();
+        dto.setUuid(user.getUuid() != null ? user.getUuid().toString() : null);
+        dto.setEmail(user.getEmail());
+        dto.setUsername(user.getUsername());
+        dto.setAvatarUrl(user.getAvatarUrl());
+        dto.setProfileDetail(user.getProfileDetail());
+        dto.setBirthday(user.getBirthday());
+        dto.setGender(user.getGender());
+        dto.setIsAuthor(user.getIsAuthor());
+        dto.setAuthorVerified(user.getAuthorVerified());
+        dto.setLevel(user.getLevel());
+        dto.setExp(user.getExp());
+        dto.setReadTime(user.getReadTime());
+        dto.setReadBookNum(user.getReadBookNum());
+        dto.setCreateTime(user.getCreateTime());
+        dto.setUpdateTime(user.getUpdateTime());
+        dto.setLastActive(user.getLastActive());
+        return dto;
     }
 }
