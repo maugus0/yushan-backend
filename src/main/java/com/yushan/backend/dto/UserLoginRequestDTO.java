@@ -9,4 +9,12 @@ public class UserLoginRequestDTO {
     private String email;
     @NotBlank(message = "password cannot be empty")
     private String password;
+
+    public String getEmail() {
+        return email != null ? email.trim().toLowerCase(java.util.Locale.ROOT) : null;
+    }
+
+    public void setEmail(String email) {
+        this.email = email != null ? email.trim().toLowerCase(java.util.Locale.ROOT) : null;
+    }
 }
