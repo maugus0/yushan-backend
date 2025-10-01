@@ -1,12 +1,17 @@
 package com.yushan.backend.controller;
 
-import com.yushan.backend.common.Result;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.UserProfileResponseDTO;
+import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.dto.EmailVerificationRequestDTO;
+import com.yushan.backend.dto.ApiResponse;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
 import com.yushan.backend.service.UserService;
+import com.yushan.backend.util.JwtUtil;
+import com.yushan.backend.exception.UnauthorizedException;
+import com.yushan.backend.exception.ForbiddenException;
+import com.yushan.backend.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -26,15 +31,18 @@ public class UserController {
 
     @Autowired
     private UserMapper userMapper;
+    
+    @Autowired
+    private JwtUtil jwtUtil;
 
     /**
      * Return current authenticated user's profile
      */
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    public Result<UserProfileResponseDTO> getCurrentUserProfile(Authentication authentication) {
+    public ApiResponse<UserProfileResponseDTO> getCurrentUserProfile(Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return Result.noAuth();
+            throw new UnauthorizedException("Authentication required");
         }
 
         UUID userId = null;
@@ -55,14 +63,14 @@ public class UserController {
         }
 
         if (userId == null) {
-            return Result.error("userId is null");
+            throw new ValidationException("User ID not found");
         }
 
         UserProfileResponseDTO dto = userService.getUserProfile(userId);
         if (dto == null) {
-            return Result.error("User not found");
+            throw new ValidationException("User not found");
         }
-        return Result.success(dto);
+        return ApiResponse.success("User profile retrieved successfully", dto);
     }
 
     /**
@@ -70,12 +78,12 @@ public class UserController {
      */
     @PutMapping("/{id}/profile")
     @PreAuthorize("isOwner(#id.toString())")
-    public Result<UserProfileResponseDTO> updateProfile(
+    public ApiResponse<UserProfileUpdateResponseDTO> updateProfile(
             @PathVariable("id") UUID id,
             @Valid @RequestBody UserProfileUpdateRequestDTO body,
             Authentication authentication) {
         if (authentication == null || !authentication.isAuthenticated()) {
-            return Result.noAuth();
+            throw new UnauthorizedException("Authentication required");
         }
 
         // Ownership check: only the owner can update their profile (admin bypass can be added later)
@@ -83,20 +91,38 @@ public class UserController {
         if (principal instanceof CustomUserDetails) {
             String currentId = ((CustomUserDetails) principal).getUserId();
             if (currentId == null || !id.toString().equals(currentId)) {
-                return Result.forbidden();
+                throw new ForbiddenException("Access denied");
             }
         } else {
-            return Result.noAuth();
+            throw new UnauthorizedException("Authentication required");
         }
 
         try {
-            UserProfileResponseDTO updated = userService.updateUserProfileSelective(id, body);
-            if (updated == null) {
-                return Result.error("User is null");
+            UserProfileUpdateResponseDTO updateResponse = userService.updateUserProfileSelective(id, body);
+            if (updateResponse == null) {
+                throw new ValidationException("User not found");
             }
-            return Result.success(updated);
+            
+            // If email was changed, generate new tokens
+            if (updateResponse.isEmailChanged()) {
+                // Get updated user from database
+                User updatedUser = userMapper.selectByPrimaryKey(id);
+                if (updatedUser != null) {
+                    // Generate new tokens with updated email
+                    String newAccessToken = jwtUtil.generateAccessToken(updatedUser);
+                    String newRefreshToken = jwtUtil.generateRefreshToken(updatedUser);
+                    
+                    // Set new tokens in response
+                    updateResponse.setAccessToken(newAccessToken);
+                    updateResponse.setRefreshToken(newRefreshToken);
+                    updateResponse.setTokenType("Bearer");
+                    updateResponse.setExpiresIn(jwtUtil.getAccessTokenExpiration());
+                }
+            }
+            
+            return ApiResponse.success("Profile updated successfully", updateResponse);
         } catch (IllegalArgumentException e) {
-            return Result.error(e.getMessage());
+            throw new ValidationException(e.getMessage());
         }
     }
 
@@ -105,33 +131,32 @@ public class UserController {
      */
     @PostMapping("/send-email-change-verification")
     @PreAuthorize("isAuthenticated()")
-    public Result<String> sendEmailChangeVerification(
+    public ApiResponse<String> sendEmailChangeVerification(
             @RequestBody EmailVerificationRequestDTO emailRequest,
             Authentication authentication) {
         
         try {
             if (authentication == null || !authentication.isAuthenticated()) {
-                return Result.noAuth();
+                throw new UnauthorizedException("Authentication required");
             }
 
             String newEmail = emailRequest.getEmail();
             if (newEmail == null || newEmail.trim().isEmpty()) {
-                return Result.error("Email is required");
+                throw new ValidationException("Email is required");
             }
 
             // Basic email format validation
             if (!newEmail.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-                return Result.error("Invalid email format");
+                throw new ValidationException("Invalid email format");
             }
 
             userService.sendEmailChangeVerification(newEmail.trim().toLowerCase(java.util.Locale.ROOT));
 
-            return Result.success("Verification code sent successfully");
-
+            return ApiResponse.success("Verification code sent successfully");
         } catch (IllegalArgumentException e) {
-            return Result.error(e.getMessage());
+            throw new ValidationException(e.getMessage());
         } catch (Exception e) {
-            return Result.error("Failed to send verification email: " + e.getMessage());
+            throw new ValidationException("Failed to send verification email: " + e.getMessage());
         }
     }
 }

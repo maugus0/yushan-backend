@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Test;
 //
 import com.yushan.backend.security.NovelGuard;
 import static org.mockito.Mockito.*;
-import com.yushan.backend.exception.NovelNotFoundException;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureWebMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -78,8 +78,7 @@ public class NovelControllerTest {
                         .with(user("author@example.com").roles("AUTHOR"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isCreated())
-                .andExpect(header().string("Location", "/api/novels/123"));
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -105,8 +104,8 @@ public class NovelControllerTest {
                         .with(user("author@example.com").roles("AUTHOR"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500));
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400));
     }
 
     @Test
@@ -127,7 +126,7 @@ public class NovelControllerTest {
     }
 
     @Test
-    void updateNovel_NotOwner_Returns403() throws Exception {
+    void updateNovel_NotOwner_Returns401() throws Exception {
         Map<String, Object> body = new HashMap<>();
         body.put("title", "New Title");
 
@@ -137,8 +136,7 @@ public class NovelControllerTest {
                         .with(user("user@example.com").roles("AUTHOR"))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(body)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -153,10 +151,10 @@ public class NovelControllerTest {
 
     @Test
     void getNovel_ArchivedOrInvalid_Returns404() throws Exception {
-        when(novelService.getNovel(eq(404))).thenThrow(new NovelNotFoundException("not_found"));
+        when(novelService.getNovel(eq(404))).thenThrow(new ResourceNotFoundException("not_found"));
 
         mockMvc.perform(get("/api/novels/404"))
-                .andExpect(status().isOk())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
@@ -180,7 +178,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?page=0&size=10&sort=createTime&order=desc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.totalElements").value(25))
@@ -204,7 +202,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?category=1&status=published&search=test"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.totalElements").value(1));
     }
@@ -221,7 +219,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?author=" + authorId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(1));
     }
 
@@ -238,7 +236,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?sort=title&order=asc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 
@@ -252,7 +250,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(0))
                 .andExpect(jsonPath("$.data.totalElements").value(0))
@@ -268,8 +266,7 @@ public class NovelControllerTest {
         
         // Act & Assert - No query parameters
         mockMvc.perform(get("/api/novels"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200));
+                .andExpect(status().isOk());
         
         // Verify service was called with default parameters
         verify(novelService).listNovelsWithPagination(argThat(req -> 

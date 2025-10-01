@@ -6,7 +6,7 @@ import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.enums.NovelStatus;
-import com.yushan.backend.exception.NovelNotFoundException;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -61,7 +61,7 @@ public class NovelService {
     public NovelDetailResponseDTO updateNovel(Integer id, NovelUpdateRequestDTO req) {
         Novel existing = novelMapper.selectByPrimaryKey(id);
         if (existing == null) {
-            throw new NovelNotFoundException("novel not found");
+            throw new ResourceNotFoundException("novel not found");
         }
 
         if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) existing.setTitle(req.getTitle());
@@ -87,10 +87,10 @@ public class NovelService {
     public NovelDetailResponseDTO getNovel(Integer id) {
         Novel n = novelMapper.selectByPrimaryKey(id);
         if (n == null) {
-            throw new NovelNotFoundException("novel not found");
+            throw new ResourceNotFoundException("novel not found");
         }
         if (Boolean.FALSE.equals(n.getIsValid()) || Integer.valueOf(mapStatus(NovelStatus.ARCHIVED)).equals(n.getStatus())) {
-            throw new NovelNotFoundException("novel not found");
+            throw new ResourceNotFoundException("novel not found");
         }
         return toResponse(n);
     }

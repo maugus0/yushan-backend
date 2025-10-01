@@ -10,19 +10,19 @@ public class NovelSearchRequestDTO extends NovelPaginationRequestDTO {
     private Integer categoryId;
     private String status;
     private String search;
-    private String authorId;
+    private String authorName;
     
     public NovelSearchRequestDTO() {
         super();
     }
     
     public NovelSearchRequestDTO(Integer page, Integer size, String sort, String order, 
-                               Integer categoryId, String status, String search, String authorId) {
+                               Integer categoryId, String status, String search, String authorName) {
         super(page, size, sort, order);
         this.categoryId = categoryId;
         this.status = status;
         this.search = search;
-        this.authorId = authorId;
+        this.authorName = authorName;
     }
     
     public boolean hasCategoryFilter() {
@@ -38,6 +38,6 @@ public class NovelSearchRequestDTO extends NovelPaginationRequestDTO {
     }
     
     public boolean hasAuthorFilter() {
-        return authorId != null && !authorId.trim().isEmpty();
+        return authorName != null && !authorName.trim().isEmpty();
     }
 }

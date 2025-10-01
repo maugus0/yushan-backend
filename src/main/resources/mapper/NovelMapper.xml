@@ -307,8 +307,8 @@
         <bind name="searchPattern" value="'%' + req.search + '%'" />
         and (title ILIKE #{searchPattern} or synopsis ILIKE #{searchPattern})
       </if>
-      <if test="req.authorId != null and req.authorId != ''">
-        and author_id = #{req.authorId,jdbcType=OTHER}::uuid
+      <if test="req.authorName != null and req.authorName != ''">
+        and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
       </if>
     </where>
   </sql>
