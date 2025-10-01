@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.UUID;
 
 @Data
-public class NovelResponseDTO {
+public class NovelDetailResponseDTO {
     // Primary key ID
     private Integer id;
     // UUID identifier

@@ -2,16 +2,16 @@ package com.yushan.backend.service;
 
 import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dao.NovelMapper;
-import com.yushan.backend.dto.NovelCreateRequestDTO;
-import com.yushan.backend.dto.NovelResponseDTO;
-import com.yushan.backend.dto.NovelUpdateRequestDTO;
+import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -61,7 +61,7 @@ public class NovelServiceTest {
         when(novelMapper.insertSelective(any(Novel.class))).thenReturn(1);
 
         // Act
-        NovelResponseDTO response = novelService.createNovel(userId, authorName, req);
+        NovelDetailResponseDTO response = novelService.createNovel(userId, authorName, req);
 
         // Assert interactions
         verify(novelMapper, times(1)).insertSelective(argThat(n -> {
@@ -119,7 +119,7 @@ public class NovelServiceTest {
         req.setTitle("New Title");
         req.setCategoryId(20);
 
-        NovelResponseDTO response = novelService.updateNovel(novelId, req);
+        NovelDetailResponseDTO response = novelService.updateNovel(novelId, req);
 
         verify(novelMapper, times(1)).updateByPrimaryKeySelective(argThat(n -> {
             assertEquals(novelId, n.getId());
@@ -177,9 +177,137 @@ public class NovelServiceTest {
         ok.setTitle("OK");
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(ok);
 
-        NovelResponseDTO response = novelService.getNovel(novelId);
+        NovelDetailResponseDTO response = novelService.getNovel(novelId);
         assertNotNull(response);
         assertEquals("OK", response.getTitle());
+    }
+
+    @Test
+    void listNovelsWithPagination_ShouldReturnPaginatedResults() {
+        // Arrange
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        
+        Novel novel1 = createTestNovel(1, "Novel 1", UUID.randomUUID(), "Author 1", 1);
+        Novel novel2 = createTestNovel(2, "Novel 2", UUID.randomUUID(), "Author 2", 1);
+        List<Novel> novels = Arrays.asList(novel1, novel2);
+        
+        when(novelMapper.selectNovelsWithPagination(request)).thenReturn(novels);
+        when(novelMapper.countNovels(request)).thenReturn(25L);
+        
+        // Act
+        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        
+        // Assert
+        assertNotNull(response);
+        assertEquals(2, response.getContent().size());
+        assertEquals(25L, response.getTotalElements());
+        assertEquals(3, response.getTotalPages()); // 25/10 = 3 pages
+        assertEquals(0, response.getCurrentPage());
+        assertEquals(10, response.getSize());
+        assertTrue(response.isFirst());
+        assertFalse(response.isLast());
+        assertTrue(response.isHasNext());
+        assertFalse(response.isHasPrevious());
+    }
+
+    @Test
+    void listNovelsWithPagination_ShouldHandleEmptyResults() {
+        // Arrange
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        
+        when(novelMapper.selectNovelsWithPagination(request)).thenReturn(Arrays.asList());
+        when(novelMapper.countNovels(request)).thenReturn(0L);
+        
+        // Act
+        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        
+        // Assert
+        assertNotNull(response);
+        assertEquals(0, response.getContent().size());
+        assertEquals(0L, response.getTotalElements());
+        assertEquals(0, response.getTotalPages());
+        assertEquals(0, response.getCurrentPage());
+        assertEquals(10, response.getSize());
+        assertTrue(response.isFirst());
+        assertTrue(response.isLast());
+        assertFalse(response.isHasNext());
+        assertFalse(response.isHasPrevious());
+    }
+
+    @Test
+    void listNovelsWithPagination_ShouldValidateAndSetDefaults() {
+        // Arrange - Test with null values
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(null, null, null, null, null, null, null, null);
+        
+        when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
+        when(novelMapper.countNovels(any())).thenReturn(0L);
+        
+        // Act
+        novelService.listNovelsWithPagination(request);
+        
+        // Assert - Verify defaults were set
+        verify(novelMapper).selectNovelsWithPagination(argThat(req -> 
+            req.getPage() == 0 && 
+            req.getSize() == 10 && 
+            "createTime".equals(req.getSort()) && 
+            "desc".equals(req.getOrder())
+        ));
+    }
+
+    @Test
+    void listNovelsWithPagination_ShouldLimitMaxSize() {
+        // Arrange
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 200, "createTime", "desc", null, null, null, null);
+        
+        when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
+        when(novelMapper.countNovels(any())).thenReturn(0L);
+        
+        // Act
+        novelService.listNovelsWithPagination(request);
+        
+        // Assert - Verify size was limited to 100
+        verify(novelMapper).selectNovelsWithPagination(argThat(req -> req.getSize() == 100));
+    }
+
+    @Test
+    void listNovelsWithPagination_ShouldHandleNegativePage() {
+        // Arrange
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(-1, 10, "createTime", "desc", null, null, null, null);
+        
+        when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
+        when(novelMapper.countNovels(any())).thenReturn(0L);
+        
+        // Act
+        novelService.listNovelsWithPagination(request);
+        
+        // Assert - Verify page was set to 0
+        verify(novelMapper).selectNovelsWithPagination(argThat(req -> req.getPage() == 0));
+    }
+
+    private Novel createTestNovel(Integer id, String title, UUID authorId, String authorName, Integer categoryId) {
+        Novel novel = new Novel();
+        novel.setId(id);
+        novel.setUuid(UUID.randomUUID());
+        novel.setTitle(title);
+        novel.setAuthorId(authorId);
+        novel.setAuthorName(authorName);
+        novel.setCategoryId(categoryId);
+        novel.setSynopsis("Test synopsis");
+        novel.setCoverImgUrl("test-cover.jpg");
+        novel.setStatus(1); // PUBLISHED
+        novel.setIsCompleted(false);
+        novel.setIsValid(true);
+        novel.setChapterCnt(5);
+        novel.setWordCnt(10000L);
+        novel.setAvgRating(4.5f);
+        novel.setReviewCnt(10);
+        novel.setViewCnt(1000L);
+        novel.setVoteCnt(50);
+        novel.setYuanCnt(0.0f);
+        novel.setCreateTime(new Date());
+        novel.setUpdateTime(new Date());
+        novel.setPublishTime(new Date());
+        return novel;
     }
 }
 

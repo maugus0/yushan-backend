@@ -1,9 +1,7 @@
 package com.yushan.backend.controller;
 
 import com.yushan.backend.common.Result;
-import com.yushan.backend.dto.NovelCreateRequestDTO;
-import com.yushan.backend.dto.NovelResponseDTO;
-import com.yushan.backend.dto.NovelUpdateRequestDTO;
+import com.yushan.backend.dto.*;
 import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
 import com.yushan.backend.service.NovelService;
 import jakarta.validation.Valid;
@@ -14,8 +12,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,7 +23,7 @@ public class NovelController {
 
     @PostMapping
     @PreAuthorize("hasAnyRole('AUTHOR','ADMIN')")
-    public ResponseEntity<Result<NovelResponseDTO>> createNovel(@Valid @RequestBody NovelCreateRequestDTO req,
+    public ResponseEntity<Result<NovelDetailResponseDTO>> createNovel(@Valid @RequestBody NovelCreateRequestDTO req,
                                                                 Authentication authentication) {
         Object principal = authentication != null ? authentication.getPrincipal() : null;
         UUID userId = null;
@@ -40,27 +36,40 @@ public class NovelController {
             authorName = authentication.getName();
         }
 
-        NovelResponseDTO dto = novelService.createNovel(userId, authorName, req);
+        NovelDetailResponseDTO dto = novelService.createNovel(userId, authorName, req);
         return ResponseEntity.created(URI.create("/api/novels/" + dto.getId())).body(Result.success(dto));
     }
 
     @PutMapping("/{id}")
     @PreAuthorize("@novelGuard.canEdit(#id, authentication)")
-    public Result<NovelResponseDTO> updateNovel(@PathVariable Integer id,
+    public Result<NovelDetailResponseDTO> updateNovel(@PathVariable Integer id,
                                                 @Valid @RequestBody NovelUpdateRequestDTO req) {
-        NovelResponseDTO dto = novelService.updateNovel(id, req);
+        NovelDetailResponseDTO dto = novelService.updateNovel(id, req);
         return Result.success(dto);
     }
 
     @GetMapping("/{id}")
-    public Result<NovelResponseDTO> getNovel(@PathVariable Integer id) {
-        NovelResponseDTO dto = novelService.getNovel(id);
+    public Result<NovelDetailResponseDTO> getNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.getNovel(id);
         return Result.success(dto);
     }
 
     @GetMapping
-    public Result<List<NovelResponseDTO>> listNovels() {
-        // Placeholder for future implementation (filters/pagination)
-        return Result.success(Collections.emptyList());
+    public Result<NovelSearchResponseDTO> listNovels(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "sort", defaultValue = "createTime") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order,
+            @RequestParam(value = "category", required = false) Integer categoryId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "author", required = false) String authorId) {
+        
+        // Create request DTO from query parameters
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
+                                                              categoryId, status, search, authorId);
+        
+        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        return Result.success(response);
     }
 }

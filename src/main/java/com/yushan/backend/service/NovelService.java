@@ -2,9 +2,7 @@ package com.yushan.backend.service;
 
 import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dao.NovelMapper;
-import com.yushan.backend.dto.NovelCreateRequestDTO;
-import com.yushan.backend.dto.NovelResponseDTO;
-import com.yushan.backend.dto.NovelUpdateRequestDTO;
+import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.enums.NovelStatus;
@@ -13,7 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class NovelService {
@@ -24,7 +24,7 @@ public class NovelService {
     @Autowired
     private CategoryMapper categoryMapper;
 
-    public NovelResponseDTO createNovel(UUID userId, String authorName, NovelCreateRequestDTO req) {
+    public NovelDetailResponseDTO createNovel(UUID userId, String authorName, NovelCreateRequestDTO req) {
         if (req.getCategoryId() == null || categoryMapper.selectByPrimaryKey(req.getCategoryId()) == null) {
             throw new IllegalArgumentException("category not found");
         }
@@ -58,7 +58,7 @@ public class NovelService {
         return toResponse(novel);
     }
 
-    public NovelResponseDTO updateNovel(Integer id, NovelUpdateRequestDTO req) {
+    public NovelDetailResponseDTO updateNovel(Integer id, NovelUpdateRequestDTO req) {
         Novel existing = novelMapper.selectByPrimaryKey(id);
         if (existing == null) {
             throw new NovelNotFoundException("novel not found");
@@ -84,7 +84,7 @@ public class NovelService {
         return toResponse(existing);
     }
 
-    public NovelResponseDTO getNovel(Integer id) {
+    public NovelDetailResponseDTO getNovel(Integer id) {
         Novel n = novelMapper.selectByPrimaryKey(id);
         if (n == null) {
             throw new NovelNotFoundException("novel not found");
@@ -108,8 +108,8 @@ public class NovelService {
         }
     }
 
-    private NovelResponseDTO toResponse(Novel n) {
-        NovelResponseDTO dto = new NovelResponseDTO();
+    private NovelDetailResponseDTO toResponse(Novel n) {
+        NovelDetailResponseDTO dto = new NovelDetailResponseDTO();
         dto.setId(n.getId());
         dto.setUuid(n.getUuid());
         dto.setTitle(n.getTitle());
@@ -147,5 +147,37 @@ public class NovelService {
             case 2: return NovelStatus.ARCHIVED.name();
             default: return NovelStatus.DRAFT.name();
         }
+    }
+
+    public NovelSearchResponseDTO listNovelsWithPagination(NovelSearchRequestDTO request) {
+        // Validate and set defaults
+        if (request.getPage() == null || request.getPage() < 0) {
+            request.setPage(0);
+        }
+        if (request.getSize() == null || request.getSize() <= 0) {
+            request.setSize(10);
+        }
+        if (request.getSize() > 100) {
+            request.setSize(100);
+        }
+        if (request.getSort() == null || request.getSort().trim().isEmpty()) {
+            request.setSort("createTime");
+        }
+        if (request.getOrder() == null || (!request.getOrder().equalsIgnoreCase("asc") && !request.getOrder().equalsIgnoreCase("desc"))) {
+            request.setOrder("desc");
+        }
+
+        // Get novels with pagination
+        List<Novel> novels = novelMapper.selectNovelsWithPagination(request);
+        
+        // Get total count
+        long totalElements = novelMapper.countNovels(request);
+        
+        // Convert to DTOs
+        List<NovelDetailResponseDTO> novelDTOs = novels.stream()
+                .map(this::toResponse)
+                .collect(Collectors.toList());
+        
+        return NovelSearchResponseDTO.of(novelDTOs, totalElements, request.getPage(), request.getSize());
     }
 }
