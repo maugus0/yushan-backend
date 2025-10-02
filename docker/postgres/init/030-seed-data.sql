@@ -20,6 +20,4 @@ INSERT INTO category (name, description, slug, is_active) VALUES
 ('Slice of Life', 'Everyday life and realistic situations', 'slice-of-life', true),
 ('School Life', 'School and campus stories', 'school-life', true),
 ('Comedy', 'Humorous and lighthearted tales', 'comedy', true)
-('Inactive One', 'Testing Ahan Jaiswal', 'inactive-one', true)
-('Inactive Two', 'Testing Ahan Jaiswal', 'inactive-two', true)
 ON CONFLICT (slug) DO NOTHING;
