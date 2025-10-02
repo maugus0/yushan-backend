@@ -64,6 +64,7 @@ public class AuthService {
         user.setStatus(1); // 1 for normal
         user.setIsAuthor(false);
         user.setAuthorVerified(false);
+        user.setIsAdmin(false);
         user.setLevel(1);
         user.setExp(0f);
         user.setYuan(0f);

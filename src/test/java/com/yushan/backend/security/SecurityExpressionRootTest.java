@@ -64,6 +64,7 @@ public class SecurityExpressionRootTest {
         adminUser.setUsername("admin");
         adminUser.setIsAuthor(false);
         adminUser.setAuthorVerified(false);
+        adminUser.setIsAdmin(true);
     }
 
     private Authentication createAuthentication(User user, String... roles) {
