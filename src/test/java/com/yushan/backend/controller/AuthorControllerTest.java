@@ -35,6 +35,7 @@ import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.hamcrest.Matchers.containsString;
 
 @WebMvcTest(AuthorController.class)
 @EnableMethodSecurity
@@ -295,7 +296,8 @@ class AuthorControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("Verification code is required; Verification code must be exactly 6 characters"));
+                .andExpect(jsonPath("$.message").value(containsString("Verification code is required")))
+                .andExpect(jsonPath("$.message").value(containsString("Verification code must be exactly 6 characters")));
     }
 
     @Test
