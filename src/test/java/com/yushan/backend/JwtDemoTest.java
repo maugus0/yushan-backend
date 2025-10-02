@@ -118,4 +118,84 @@ public class JwtDemoTest {
         assertEquals("user1@example.com", jwtUtil.extractEmail(token1), "Token1 should contain user1's email");
         assertEquals("user2@example.com", jwtUtil.extractEmail(token2), "Token2 should contain user2's email");
     }
+
+    @Test
+    void testIsAdminFieldInJwtTokens() {
+        // Create admin user
+        User adminUser = new User();
+        adminUser.setUuid(UUID.randomUUID());
+        adminUser.setEmail("admin@example.com");
+        adminUser.setUsername("AdminUser");
+        adminUser.setHashPassword("hashedpassword");
+        adminUser.setEmailVerified(true);
+        adminUser.setStatus(1);
+        adminUser.setIsAuthor(true);
+        adminUser.setAuthorVerified(true);
+        adminUser.setIsAdmin(true);  // Admin user
+        adminUser.setLevel(5);
+        adminUser.setExp(100.0f);
+        adminUser.setReadTime(50.0f);
+        adminUser.setReadBookNum(10);
+
+        // Create normal user
+        User normalUser = new User();
+        normalUser.setUuid(UUID.randomUUID());
+        normalUser.setEmail("normal@example.com");
+        normalUser.setUsername("NormalUser");
+        normalUser.setHashPassword("hashedpassword");
+        normalUser.setEmailVerified(true);
+        normalUser.setStatus(1);
+        normalUser.setIsAuthor(false);
+        normalUser.setAuthorVerified(false);
+        normalUser.setIsAdmin(false);  // Normal user
+        normalUser.setLevel(1);
+        normalUser.setExp(0.0f);
+        normalUser.setReadTime(0.0f);
+        normalUser.setReadBookNum(0);
+
+        // Generate tokens
+        String adminAccessToken = jwtUtil.generateAccessToken(adminUser);
+        String adminRefreshToken = jwtUtil.generateRefreshToken(adminUser);
+        String normalAccessToken = jwtUtil.generateAccessToken(normalUser);
+        String normalRefreshToken = jwtUtil.generateRefreshToken(normalUser);
+
+        // Test admin tokens
+        assertTrue(jwtUtil.validateToken(adminAccessToken), "Admin access token should be valid");
+        assertTrue(jwtUtil.validateToken(adminRefreshToken), "Admin refresh token should be valid");
+        assertTrue(jwtUtil.isAccessToken(adminAccessToken), "Admin access token should be access token");
+        assertTrue(jwtUtil.isRefreshToken(adminRefreshToken), "Admin refresh token should be refresh token");
+
+        // Test normal user tokens
+        assertTrue(jwtUtil.validateToken(normalAccessToken), "Normal access token should be valid");
+        assertTrue(jwtUtil.validateToken(normalRefreshToken), "Normal refresh token should be valid");
+        assertTrue(jwtUtil.isAccessToken(normalAccessToken), "Normal access token should be access token");
+        assertTrue(jwtUtil.isRefreshToken(normalRefreshToken), "Normal refresh token should be refresh token");
+
+        // Test token validation with users
+        assertTrue(jwtUtil.validateToken(adminAccessToken, adminUser), "Admin access token should be valid for admin user");
+        assertTrue(jwtUtil.validateToken(adminRefreshToken, adminUser), "Admin refresh token should be valid for admin user");
+        assertTrue(jwtUtil.validateToken(normalAccessToken, normalUser), "Normal access token should be valid for normal user");
+        assertTrue(jwtUtil.validateToken(normalRefreshToken, normalUser), "Normal refresh token should be valid for normal user");
+
+        // Test cross-validation (should fail)
+        assertFalse(jwtUtil.validateToken(adminAccessToken, normalUser), "Admin token should not be valid for normal user");
+        assertFalse(jwtUtil.validateToken(normalAccessToken, adminUser), "Normal token should not be valid for admin user");
+
+        // Extract and verify email claims
+        assertEquals("admin@example.com", jwtUtil.extractEmail(adminAccessToken), "Admin access token should contain admin email");
+        assertEquals("admin@example.com", jwtUtil.extractEmail(adminRefreshToken), "Admin refresh token should contain admin email");
+        assertEquals("normal@example.com", jwtUtil.extractEmail(normalAccessToken), "Normal access token should contain normal email");
+        assertEquals("normal@example.com", jwtUtil.extractEmail(normalRefreshToken), "Normal refresh token should contain normal email");
+
+        // Extract and verify user ID claims
+        assertEquals(adminUser.getUuid().toString(), jwtUtil.extractUserId(adminAccessToken), "Admin access token should contain admin user ID");
+        assertEquals(adminUser.getUuid().toString(), jwtUtil.extractUserId(adminRefreshToken), "Admin refresh token should contain admin user ID");
+        assertEquals(normalUser.getUuid().toString(), jwtUtil.extractUserId(normalAccessToken), "Normal access token should contain normal user ID");
+        assertEquals(normalUser.getUuid().toString(), jwtUtil.extractUserId(normalRefreshToken), "Normal refresh token should contain normal user ID");
+
+        System.out.println("✅ Admin user tokens generated successfully");
+        System.out.println("✅ Normal user tokens generated successfully");
+        System.out.println("✅ All token validations passed");
+        System.out.println("✅ isAdmin field integration test completed");
+    }
 }

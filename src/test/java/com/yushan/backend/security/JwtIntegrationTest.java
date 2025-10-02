@@ -131,6 +131,28 @@ public class JwtIntegrationTest {
         authorUserToken = jwtUtil.generateAccessToken(authorUser);
     }
 
+    /**
+     * Create a test user with specified parameters
+     */
+    private User createTestUser(String email, String username, boolean isAuthor, boolean isAdmin) {
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setHashPassword(passwordEncoder.encode("password123"));
+        user.setEmailVerified(true);
+        user.setStatus(1);
+        user.setIsAuthor(isAuthor);
+        user.setAuthorVerified(isAuthor);
+        user.setIsAdmin(isAdmin);
+        user.setLevel(1);
+        user.setExp(0.0f);
+        user.setReadTime(0.0f);
+        user.setReadBookNum(0);
+        userMapper.insert(user);
+        return user;
+    }
+
     // ==================== JWT TOKEN TESTS ====================
 
     @Test
@@ -451,6 +473,81 @@ public class JwtIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Unauthorized: Invalid or missing JWT token"));
+    }
+
+    @Test
+    void testIsAdminFieldInLoginResponse() throws Exception {
+        // Test login with admin user - create user first
+        createTestUser("admin@example.com", "AdminUser", true, true);
+
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("email", "admin@example.com");
+        loginRequest.put("password", "password123");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
+    }
+
+    @Test
+    void testIsAdminFieldInNormalUserResponse() throws Exception {
+        // Test login with normal user - create user first
+        createTestUser("normal@example.com", "NormalUser", false, false);
+
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("email", "normal@example.com");
+        loginRequest.put("password", "password123");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(false))
+                .andExpect(jsonPath("$.data.isAuthor").value(false))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
+    }
+
+    @Test
+    void testIsAdminFieldInUserProfileResponse() throws Exception {
+        // Test user profile endpoint with admin user
+        User adminUser = createTestUser("adminprofile@example.com", "AdminProfileUser", true, true);
+        String adminToken = jwtUtil.generateAccessToken(adminUser);
+
+        mockMvc.perform(get("/api/users/me")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.email").value("adminprofile@example.com"));
+    }
+
+    @Test
+    void testIsAdminFieldInRefreshTokenResponse() throws Exception {
+        // Test refresh token with admin user
+        User adminUser = createTestUser("adminrefresh@example.com", "AdminRefreshUser", true, true);
+        String refreshToken = jwtUtil.generateRefreshToken(adminUser);
+
+        Map<String, String> refreshRequest = new HashMap<>();
+        refreshRequest.put("refreshToken", refreshToken);
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
     }
 }
 

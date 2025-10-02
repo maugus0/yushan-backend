@@ -108,6 +108,7 @@ public class UserService {
         dto.setGender(user.getGender());
         dto.setIsAuthor(user.getIsAuthor());
         dto.setAuthorVerified(user.getAuthorVerified());
+        dto.setIsAdmin(user.getIsAdmin());
         dto.setLevel(user.getLevel());
         dto.setExp(user.getExp());
         dto.setReadTime(user.getReadTime());

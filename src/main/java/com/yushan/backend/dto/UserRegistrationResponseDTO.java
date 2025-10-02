@@ -19,6 +19,7 @@ public class UserRegistrationResponseDTO {
     private Integer gender;
     private Boolean isAuthor;
     private Boolean authorVerified;
+    private Boolean isAdmin;
     private Integer level;
     private Float exp;
     private Float readTime;

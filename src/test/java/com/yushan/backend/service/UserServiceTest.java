@@ -14,6 +14,7 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
+import static org.mockito.ArgumentMatchers.any;
 
 public class UserServiceTest {
 
@@ -187,6 +188,71 @@ public class UserServiceTest {
         userService.sendEmailChangeVerification("free@example.com");
         verify(mailService).sendVerificationCode("free@example.com");
     }
+
+    @Test
+    void getUserProfile_returnsIsAdminField_forAdminUser() {
+        UUID id = UUID.randomUUID();
+        User adminUser = new User();
+        adminUser.setUuid(id);
+        adminUser.setEmail("admin@example.com");
+        adminUser.setUsername("AdminUser");
+        adminUser.setIsAuthor(true);
+        adminUser.setAuthorVerified(true);
+        adminUser.setIsAdmin(true);  // Admin user
+        adminUser.setLevel(5);
+        adminUser.setExp(100.0f);
+        adminUser.setReadTime(50.0f);
+        adminUser.setReadBookNum(10);
+
+        when(userMapper.selectByPrimaryKey(id)).thenReturn(adminUser);
+
+        var profile = userService.getUserProfile(id);
+
+        assertNotNull(profile);
+        assertEquals(id.toString(), profile.getUuid());
+        assertEquals("admin@example.com", profile.getEmail());
+        assertEquals("AdminUser", profile.getUsername());
+        assertTrue(profile.getIsAuthor());
+        assertTrue(profile.getAuthorVerified());
+        assertTrue(profile.getIsAdmin());  // Should be true for admin
+        assertEquals(5, profile.getLevel());
+        assertEquals(100.0f, profile.getExp());
+        assertEquals(50.0f, profile.getReadTime());
+        assertEquals(10, profile.getReadBookNum());
+    }
+
+    @Test
+    void getUserProfile_returnsIsAdminField_forNormalUser() {
+        UUID id = UUID.randomUUID();
+        User normalUser = new User();
+        normalUser.setUuid(id);
+        normalUser.setEmail("normal@example.com");
+        normalUser.setUsername("NormalUser");
+        normalUser.setIsAuthor(false);
+        normalUser.setAuthorVerified(false);
+        normalUser.setIsAdmin(false);  // Normal user
+        normalUser.setLevel(1);
+        normalUser.setExp(0.0f);
+        normalUser.setReadTime(0.0f);
+        normalUser.setReadBookNum(0);
+
+        when(userMapper.selectByPrimaryKey(id)).thenReturn(normalUser);
+
+        var profile = userService.getUserProfile(id);
+
+        assertNotNull(profile);
+        assertEquals(id.toString(), profile.getUuid());
+        assertEquals("normal@example.com", profile.getEmail());
+        assertEquals("NormalUser", profile.getUsername());
+        assertFalse(profile.getIsAuthor());
+        assertFalse(profile.getAuthorVerified());
+        assertFalse(profile.getIsAdmin());  // Should be false for normal user
+        assertEquals(1, profile.getLevel());
+        assertEquals(0.0f, profile.getExp());
+        assertEquals(0.0f, profile.getReadTime());
+        assertEquals(0, profile.getReadBookNum());
+    }
+
 }
 
 
