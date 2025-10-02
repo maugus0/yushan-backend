@@ -295,7 +295,7 @@ class AuthorControllerTest {
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
-                .andExpect(jsonPath("$.message").value("Verification code is required; Verification code must be exactly 6 characters"));
+                .andExpect(jsonPath("$.message").value("Verification code must be exactly 6 characters; Verification code is required"));
     }
 
     @Test
