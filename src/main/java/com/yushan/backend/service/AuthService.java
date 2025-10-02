@@ -63,7 +63,6 @@ public class AuthService {
         user.setAvatarUrl("123"); //todo: set default avatar URL
         user.setStatus(1); // 1 for normal
         user.setIsAuthor(false);
-        user.setAuthorVerified(false);
         user.setIsAdmin(false);
         user.setLevel(1);
         user.setExp(0f);
@@ -214,7 +213,6 @@ public class AuthService {
         dto.setBirthday(user.getBirthday());
         dto.setGender(user.getGender());
         dto.setIsAuthor(user.getIsAuthor());
-        dto.setAuthorVerified(user.getAuthorVerified());
         dto.setIsAdmin(user.getIsAdmin());
         dto.setLevel(user.getLevel());
         dto.setExp(user.getExp());

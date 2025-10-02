@@ -64,28 +64,10 @@ public class ExampleController {
             userDetails.getProfileUsername(),
             userDetails.isAuthor()
         );
-        response.setIsVerifiedAuthor(userDetails.isVerifiedAuthor());
         
         return ApiResponse.success("Author-only endpoint accessed successfully", response);
     }
 
-    /**
-     * Verified author-only endpoint - requires verified author role
-     */
-    @GetMapping("/verified-author-only")
-    @PreAuthorize("isVerifiedAuthor()")
-    public ApiResponse<ExampleResponseDTO> verifiedAuthorOnlyEndpoint(Authentication authentication) {
-        CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        ExampleResponseDTO response = new ExampleResponseDTO(
-            "This is a verified author-only endpoint", 
-            "Verified author role required",
-            userDetails.getProfileUsername(),
-            userDetails.isAuthor()
-        );
-        response.setIsVerifiedAuthor(userDetails.isVerifiedAuthor());
-        
-        return ApiResponse.success("Verified author-only endpoint accessed successfully", response);
-    }
 
     /**
      * Admin-only endpoint - requires admin role

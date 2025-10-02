@@ -39,7 +39,6 @@ public class SecurityExpressionRootTest {
         regularUser.setEmail("regular@example.com");
         regularUser.setUsername("regular");
         regularUser.setIsAuthor(false);
-        regularUser.setAuthorVerified(false);
 
         // Create author user
         authorUser = new User();
@@ -47,7 +46,6 @@ public class SecurityExpressionRootTest {
         authorUser.setEmail("author@example.com");
         authorUser.setUsername("author");
         authorUser.setIsAuthor(true);
-        authorUser.setAuthorVerified(false);
 
         // Create verified author user
         verifiedAuthorUser = new User();
@@ -55,7 +53,6 @@ public class SecurityExpressionRootTest {
         verifiedAuthorUser.setEmail("verified@example.com");
         verifiedAuthorUser.setUsername("verified");
         verifiedAuthorUser.setIsAuthor(true);
-        verifiedAuthorUser.setAuthorVerified(true);
 
         // Create admin user
         adminUser = new User();
@@ -63,7 +60,6 @@ public class SecurityExpressionRootTest {
         adminUser.setEmail("admin@example.com");
         adminUser.setUsername("admin");
         adminUser.setIsAuthor(false);
-        adminUser.setAuthorVerified(false);
         adminUser.setIsAdmin(true);
     }
 
@@ -97,30 +93,6 @@ public class SecurityExpressionRootTest {
         securityExpressionRoot = new SecurityExpressionRoot(null);
         
         assertFalse(securityExpressionRoot.isAuthor(), "Null authentication should return false for isAuthor()");
-    }
-
-    @Test
-    void testIsVerifiedAuthorWithVerifiedAuthor() {
-        Authentication auth = createAuthentication(verifiedAuthorUser, "ROLE_USER", "ROLE_AUTHOR");
-        securityExpressionRoot = new SecurityExpressionRoot(auth);
-        
-        assertTrue(securityExpressionRoot.isVerifiedAuthor(), "Verified author should return true for isVerifiedAuthor()");
-    }
-
-    @Test
-    void testIsVerifiedAuthorWithRegularAuthor() {
-        Authentication auth = createAuthentication(authorUser, "ROLE_USER", "ROLE_AUTHOR");
-        securityExpressionRoot = new SecurityExpressionRoot(auth);
-        
-        assertFalse(securityExpressionRoot.isVerifiedAuthor(), "Regular author should return false for isVerifiedAuthor()");
-    }
-
-    @Test
-    void testIsVerifiedAuthorWithRegularUser() {
-        Authentication auth = createAuthentication(regularUser, "ROLE_USER");
-        securityExpressionRoot = new SecurityExpressionRoot(auth);
-        
-        assertFalse(securityExpressionRoot.isVerifiedAuthor(), "Regular user should return false for isVerifiedAuthor()");
     }
 
     @Test

@@ -86,7 +86,6 @@ public class CustomUserDetailsService implements UserDetailsService {
         private final String displayUsername;
         private final String hashPassword;
         private final Boolean isAuthor;
-        private final Boolean authorVerified;
         private final Boolean isAdmin;
         private final Integer status;
 
@@ -96,7 +95,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             this.displayUsername = user.getUsername();
             this.hashPassword = user.getHashPassword();
             this.isAuthor = user.getIsAuthor();
-            this.authorVerified = user.getAuthorVerified();
             this.isAdmin = user.getIsAdmin();
             this.status = user.getStatus();
         }
@@ -177,14 +175,6 @@ public class CustomUserDetailsService implements UserDetailsService {
             return isAuthor != null && isAuthor;
         }
 
-        /**
-         * Check if user is verified author
-         * 
-         * @return true if user is verified author, false otherwise
-         */
-        public boolean isVerifiedAuthor() {
-            return authorVerified != null && authorVerified;
-        }
 
         /**
          * Check if user is admin

@@ -32,7 +32,6 @@ public class JwtDemoTest {
         user.setEmail("demo@example.com");
         user.setUsername("demo_user");
         user.setIsAuthor(true);
-        user.setAuthorVerified(false);
 
         // Test token generation
         String accessToken = jwtUtil.generateAccessToken(user);
@@ -68,7 +67,6 @@ public class JwtDemoTest {
         user.setEmail("structure@example.com");
         user.setUsername("structure_user");
         user.setIsAuthor(false);
-        user.setAuthorVerified(false);
 
         String token = jwtUtil.generateAccessToken(user);
 
@@ -90,14 +88,12 @@ public class JwtDemoTest {
         user1.setEmail("user1@example.com");
         user1.setUsername("user1");
         user1.setIsAuthor(true);
-        user1.setAuthorVerified(true);
 
         User user2 = new User();
         user2.setUuid(UUID.randomUUID());
         user2.setEmail("user2@example.com");
         user2.setUsername("user2");
         user2.setIsAuthor(false);
-        user2.setAuthorVerified(false);
 
         // Generate tokens for both users
         String token1 = jwtUtil.generateAccessToken(user1);
@@ -130,7 +126,6 @@ public class JwtDemoTest {
         adminUser.setEmailVerified(true);
         adminUser.setStatus(1);
         adminUser.setIsAuthor(true);
-        adminUser.setAuthorVerified(true);
         adminUser.setIsAdmin(true);  // Admin user
         adminUser.setLevel(5);
         adminUser.setExp(100.0f);
@@ -146,7 +141,6 @@ public class JwtDemoTest {
         normalUser.setEmailVerified(true);
         normalUser.setStatus(1);
         normalUser.setIsAuthor(false);
-        normalUser.setAuthorVerified(false);
         normalUser.setIsAdmin(false);  // Normal user
         normalUser.setLevel(1);
         normalUser.setExp(0.0f);

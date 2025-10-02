@@ -32,7 +32,6 @@ public class JwtUtilTest {
         testUser.setEmail("test@example.com");
         testUser.setUsername("testuser");
         testUser.setIsAuthor(true);
-        testUser.setAuthorVerified(false);
     }
 
     @Test

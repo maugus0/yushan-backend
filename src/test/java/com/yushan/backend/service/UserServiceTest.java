@@ -197,7 +197,6 @@ public class UserServiceTest {
         adminUser.setEmail("admin@example.com");
         adminUser.setUsername("AdminUser");
         adminUser.setIsAuthor(true);
-        adminUser.setAuthorVerified(true);
         adminUser.setIsAdmin(true);  // Admin user
         adminUser.setLevel(5);
         adminUser.setExp(100.0f);
@@ -213,7 +212,6 @@ public class UserServiceTest {
         assertEquals("admin@example.com", profile.getEmail());
         assertEquals("AdminUser", profile.getUsername());
         assertTrue(profile.getIsAuthor());
-        assertTrue(profile.getAuthorVerified());
         assertTrue(profile.getIsAdmin());  // Should be true for admin
         assertEquals(5, profile.getLevel());
         assertEquals(100.0f, profile.getExp());
@@ -229,7 +227,6 @@ public class UserServiceTest {
         normalUser.setEmail("normal@example.com");
         normalUser.setUsername("NormalUser");
         normalUser.setIsAuthor(false);
-        normalUser.setAuthorVerified(false);
         normalUser.setIsAdmin(false);  // Normal user
         normalUser.setLevel(1);
         normalUser.setExp(0.0f);
@@ -245,7 +242,6 @@ public class UserServiceTest {
         assertEquals("normal@example.com", profile.getEmail());
         assertEquals("NormalUser", profile.getUsername());
         assertFalse(profile.getIsAuthor());
-        assertFalse(profile.getAuthorVerified());
         assertFalse(profile.getIsAdmin());  // Should be false for normal user
         assertEquals(1, profile.getLevel());
         assertEquals(0.0f, profile.getExp());

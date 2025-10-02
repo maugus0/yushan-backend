@@ -113,7 +113,6 @@ public class JwtIntegrationTest {
         testUser.setUsername("testuser");
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setIsAuthor(false);
-        testUser.setAuthorVerified(false);
         userMapper.insert(testUser);
 
         // Create author user
@@ -123,7 +122,6 @@ public class JwtIntegrationTest {
         authorUser.setUsername("author");
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setIsAuthor(true);
-        authorUser.setAuthorVerified(true);
         userMapper.insert(authorUser);
 
         // Generate tokens
@@ -143,7 +141,6 @@ public class JwtIntegrationTest {
         user.setEmailVerified(true);
         user.setStatus(1);
         user.setIsAuthor(isAuthor);
-        user.setAuthorVerified(isAuthor);
         user.setIsAdmin(isAdmin);
         user.setLevel(1);
         user.setExp(0.0f);
@@ -352,8 +349,7 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Author-only endpoint accessed successfully"))
                 .andExpect(jsonPath("$.data.access").value("Author role required"))
                 .andExpect(jsonPath("$.data.user").value("author"))
-                .andExpect(jsonPath("$.data.isAuthor").value(true))
-                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
+                .andExpect(jsonPath("$.data.isAuthor").value(true));
     }
 
     @Test
@@ -361,18 +357,6 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/author-only")
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void testVerifiedAuthorOnlyEndpointWithVerifiedAuthor() throws Exception {
-        mockMvc.perform(get("/api/example/verified-author-only")
-                .header("Authorization", "Bearer " + authorUserToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Verified author-only endpoint accessed successfully"))
-                .andExpect(jsonPath("$.data.access").value("Verified author role required"))
-                .andExpect(jsonPath("$.data.user").value("author"))
-                .andExpect(jsonPath("$.data.isAuthor").value(true))
-                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
     }
 
     @Test
