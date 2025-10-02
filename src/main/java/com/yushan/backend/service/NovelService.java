@@ -52,9 +52,7 @@ public class NovelService {
         novel.setUpdateTime(now);
         novel.setPublishTime(null);
 
-        System.out.println("DEBUG: Before insert - novel.getId() = " + novel.getId());
         novelMapper.insertSelective(novel);
-        System.out.println("DEBUG: After insert - novel.getId() = " + novel.getId());
         return toResponse(novel);
     }
 
