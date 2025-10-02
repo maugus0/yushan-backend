@@ -3,6 +3,7 @@ package com.yushan.backend.service;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
+import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,13 +34,14 @@ public class UserService {
     /**
      * Update user profile selectively with allowed fields only
      */
-    public UserProfileResponseDTO updateUserProfileSelective(UUID userId, UserProfileUpdateRequestDTO req) {
+    public UserProfileUpdateResponseDTO updateUserProfileSelective(UUID userId, UserProfileUpdateRequestDTO req) {
         User existing = userMapper.selectByPrimaryKey(userId);
         if (existing == null) {
             return null;
         }
 
         // Handle email change with verification
+        boolean emailChanged = false;
         if (req.getEmail() != null && !req.getEmail().trim().isEmpty() && !req.getEmail().equals(existing.getEmail())) {
             // Check if verification code is provided
             if (req.getVerificationCode() == null || req.getVerificationCode().trim().isEmpty()) {
@@ -57,6 +59,9 @@ public class UserService {
             if (userWithNewEmail != null) {
                 throw new IllegalArgumentException("Email already exists");
             }
+            
+            // Only set emailChanged = true AFTER all validations pass
+            emailChanged = true;
         }
 
         User toUpdate = new User();
@@ -86,7 +91,10 @@ public class UserService {
 
         // reload to get latest values
         User updated = userMapper.selectByPrimaryKey(userId);
-        return mapToProfileResponse(updated);
+        UserProfileResponseDTO profileResponse = mapToProfileResponse(updated);
+        
+        // Return response with email change flag
+        return new UserProfileUpdateResponseDTO(profileResponse, emailChanged);
     }
 
     private UserProfileResponseDTO mapToProfileResponse(User user) {

@@ -251,4 +251,13 @@ public class JwtUtil {
         String tokenType = extractTokenType(token);
         return "refresh".equals(tokenType);
     }
+
+    /**
+     * Get access token expiration time in milliseconds
+     * 
+     * @return Access token expiration time
+     */
+    public long getAccessTokenExpiration() {
+        return accessTokenExpiration;
+    }
 }

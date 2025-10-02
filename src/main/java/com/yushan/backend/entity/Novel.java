@@ -10,7 +10,7 @@ public class Novel {
 
     private String title;
 
-    private Integer authorId;
+    private UUID authorId;
 
     private String authorName;
 
@@ -46,7 +46,7 @@ public class Novel {
 
     private Date publishTime;
 
-    public Novel(Integer id, UUID uuid, String title, Integer authorId, String authorName, Integer categoryId, String synopsis, String coverImgUrl, Integer status, Boolean isCompleted, Boolean isValid, Integer chapterCnt, Long wordCnt, Float avgRating, Integer reviewCnt, Long viewCnt, Integer voteCnt, Float yuanCnt, Date createTime, Date updateTime, Date publishTime) {
+    public Novel(Integer id, UUID uuid, String title, UUID authorId, String authorName, Integer categoryId, String synopsis, String coverImgUrl, Integer status, Boolean isCompleted, Boolean isValid, Integer chapterCnt, Long wordCnt, Float avgRating, Integer reviewCnt, Long viewCnt, Integer voteCnt, Float yuanCnt, Date createTime, Date updateTime, Date publishTime) {
         this.id = id;
         this.uuid = uuid;
         this.title = title;
@@ -98,11 +98,11 @@ public class Novel {
         this.title = title == null ? null : title.trim();
     }
 
-    public Integer getAuthorId() {
+    public UUID getAuthorId() {
         return authorId;
     }
 
-    public void setAuthorId(Integer authorId) {
+    public void setAuthorId(UUID authorId) {
         this.authorId = authorId;
     }
 

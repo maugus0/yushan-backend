@@ -19,6 +19,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @EnableWebSecurity
@@ -113,8 +114,13 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/error").permitAll()
                 
-                // Protected endpoints - require authentication
-                .requestMatchers("/api/novels/**").authenticated()
+                // Novel APIs
+                .requestMatchers(HttpMethod.POST, "/api/novels").hasAnyRole("AUTHOR","ADMIN")
+                .requestMatchers(HttpMethod.GET, "/api/novels").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/novels/*").permitAll()
+                .requestMatchers(HttpMethod.PUT, "/api/novels/*").authenticated()
+
+                // Other protected APIs - require authentication
                 .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/libraries/**").authenticated()
                 .requestMatchers("/api/history/**").authenticated()

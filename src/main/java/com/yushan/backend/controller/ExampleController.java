@@ -1,14 +1,12 @@
 package com.yushan.backend.controller;
 
+import com.yushan.backend.dto.ExampleResponseDTO;
+import com.yushan.backend.dto.ApiResponse;
 import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Example Controller demonstrating role-based authorization
@@ -26,29 +24,31 @@ public class ExampleController {
      * Public endpoint - no authentication required
      */
     @GetMapping("/public")
-    public ResponseEntity<Map<String, Object>> publicEndpoint() {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This is a public endpoint");
-        response.put("access", "No authentication required");
-        return ResponseEntity.ok(response);
+    public ApiResponse<ExampleResponseDTO> publicEndpoint() {
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This is a public endpoint", 
+            "No authentication required"
+        );
+        return ApiResponse.success("Public endpoint accessed successfully", response);
     }
 
     /**
      * Protected endpoint - requires authentication
      */
     @GetMapping("/protected")
-    public ResponseEntity<Map<String, Object>> protectedEndpoint(Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This is a protected endpoint");
-        response.put("access", "Authentication required");
+    public ApiResponse<ExampleResponseDTO> protectedEndpoint(Authentication authentication) {
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This is a protected endpoint", 
+            "Authentication required"
+        );
         
         if (authentication != null) {
             CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-            response.put("user", userDetails.getProfileUsername());
-            response.put("isAuthor", userDetails.isAuthor());
+            response.setUser(userDetails.getProfileUsername());
+            response.setIsAuthor(userDetails.isAuthor());
         }
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Protected endpoint accessed successfully", response);
     }
 
     /**
@@ -56,17 +56,17 @@ public class ExampleController {
      */
     @GetMapping("/author-only")
     @PreAuthorize("isAuthor()")
-    public ResponseEntity<Map<String, Object>> authorOnlyEndpoint(Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This is an author-only endpoint");
-        response.put("access", "Author role required");
-        
+    public ApiResponse<ExampleResponseDTO> authorOnlyEndpoint(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("isAuthor", userDetails.isAuthor());
-        response.put("isVerifiedAuthor", userDetails.isVerifiedAuthor());
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This is an author-only endpoint", 
+            "Author role required",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setIsVerifiedAuthor(userDetails.isVerifiedAuthor());
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Author-only endpoint accessed successfully", response);
     }
 
     /**
@@ -74,17 +74,17 @@ public class ExampleController {
      */
     @GetMapping("/verified-author-only")
     @PreAuthorize("isVerifiedAuthor()")
-    public ResponseEntity<Map<String, Object>> verifiedAuthorOnlyEndpoint(Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This is a verified author-only endpoint");
-        response.put("access", "Verified author role required");
-        
+    public ApiResponse<ExampleResponseDTO> verifiedAuthorOnlyEndpoint(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("isAuthor", userDetails.isAuthor());
-        response.put("isVerifiedAuthor", userDetails.isVerifiedAuthor());
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This is a verified author-only endpoint", 
+            "Verified author role required",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setIsVerifiedAuthor(userDetails.isVerifiedAuthor());
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Verified author-only endpoint accessed successfully", response);
     }
 
     /**
@@ -92,17 +92,18 @@ public class ExampleController {
      */
     @GetMapping("/admin-only")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Map<String, Object>> adminOnlyEndpoint(Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This is an admin-only endpoint");
-        response.put("access", "Admin role required");
-        
+    public ApiResponse<ExampleResponseDTO> adminOnlyEndpoint(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("isAdmin", userDetails.getAuthorities().stream()
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This is an admin-only endpoint", 
+            "Admin role required",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setIsAdmin(userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Admin-only endpoint accessed successfully", response);
     }
 
     /**
@@ -110,18 +111,18 @@ public class ExampleController {
      */
     @GetMapping("/author-or-admin")
     @PreAuthorize("isAuthorOrAdmin()")
-    public ResponseEntity<Map<String, Object>> authorOrAdminEndpoint(Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This endpoint allows authors or admins");
-        response.put("access", "Author or admin role required");
-        
+    public ApiResponse<ExampleResponseDTO> authorOrAdminEndpoint(Authentication authentication) {
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("isAuthor", userDetails.isAuthor());
-        response.put("isAdmin", userDetails.getAuthorities().stream()
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This endpoint allows authors or admins", 
+            "Author or admin role required",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setIsAdmin(userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Author or admin endpoint accessed successfully", response);
     }
 
     /**
@@ -129,23 +130,23 @@ public class ExampleController {
      */
     @GetMapping("/resource")
     @PreAuthorize("canAccess(#resourceId)")
-    public ResponseEntity<Map<String, Object>> resourceOwnershipEndpoint(
+    public ApiResponse<ExampleResponseDTO> resourceOwnershipEndpoint(
             @RequestParam String resourceId,
             Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This endpoint checks resource ownership");
-        response.put("resourceId", resourceId);
-        response.put("access", "Resource owner, author, or admin required");
-        
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("userId", userDetails.getUserId());
-        response.put("isOwner", userDetails.getUserId().equals(resourceId));
-        response.put("isAuthor", userDetails.isAuthor());
-        response.put("isAdmin", userDetails.getAuthorities().stream()
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This endpoint checks resource ownership", 
+            "Resource owner, author, or admin required",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setResourceId(resourceId);
+        response.setUserId(userDetails.getUserId());
+        response.setIsOwner(userDetails.getUserId().equals(resourceId));
+        response.setIsAdmin(userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Resource ownership endpoint accessed successfully", response);
     }
 
     /**
@@ -153,22 +154,22 @@ public class ExampleController {
      */
     @GetMapping("/complex")
     @PreAuthorize("isAuthenticated() and (isAuthor() or hasRole('ADMIN') or isOwner(#userId))")
-    public ResponseEntity<Map<String, Object>> complexEndpoint(
+    public ApiResponse<ExampleResponseDTO> complexEndpoint(
             @RequestParam String userId,
             Authentication authentication) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("message", "This endpoint has complex authorization rules");
-        response.put("userId", userId);
-        response.put("access", "Authenticated user who is author, admin, or owner");
-        
         CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
-        response.put("user", userDetails.getProfileUsername());
-        response.put("currentUserId", userDetails.getUserId());
-        response.put("isOwner", userDetails.getUserId().equals(userId));
-        response.put("isAuthor", userDetails.isAuthor());
-        response.put("isAdmin", userDetails.getAuthorities().stream()
+        ExampleResponseDTO response = new ExampleResponseDTO(
+            "This endpoint has complex authorization rules", 
+            "Authenticated user who is author, admin, or owner",
+            userDetails.getProfileUsername(),
+            userDetails.isAuthor()
+        );
+        response.setUserId(userId);
+        response.setCurrentUserId(userDetails.getUserId());
+        response.setIsOwner(userDetails.getUserId().equals(userId));
+        response.setIsAdmin(userDetails.getAuthorities().stream()
             .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN")));
         
-        return ResponseEntity.ok(response);
+        return ApiResponse.success("Complex authorization endpoint accessed successfully", response);
     }
 }

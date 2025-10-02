@@ -5,10 +5,11 @@ import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.service.AuthService;
 import com.yushan.backend.service.MailService;
-import com.yushan.backend.common.Result;
+import com.yushan.backend.exception.ValidationException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
@@ -42,18 +43,19 @@ public class AuthController {
      * @return
      */
     @PostMapping("/register")
-    public Result<UserRegistrationResponseDTO> register(@Valid @RequestBody UserRegistrationRequestDTO registrationDTO) {
+    @ResponseStatus(HttpStatus.CREATED)
+    public ApiResponse<UserRegistrationResponseDTO> register(@Valid @RequestBody UserRegistrationRequestDTO registrationDTO) {
         // no need to check if email exists here since we check it in register()
         boolean isValid = mailService.verifyEmail(registrationDTO.getEmail(), registrationDTO.getCode());
 
         if (!isValid) {
-            return Result.error("Invalid verification code or code expired");
+            throw new ValidationException("Invalid verification code or code expired");
         }
 
         // Prepare user info & token (without sensitive data)
         UserRegistrationResponseDTO responseDTO = authService.registerAndCreateResponse(registrationDTO);
 
-        return Result.success(responseDTO);
+        return ApiResponse.success("User registered successfully", responseDTO);
     }
 
     /**
@@ -62,15 +64,14 @@ public class AuthController {
      * @return
      */
     @PostMapping("/login")
-    public Result<UserRegistrationResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO loginRequest) {
+    public ApiResponse<UserRegistrationResponseDTO> login(@Valid @RequestBody UserLoginRequestDTO loginRequest) {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         UserRegistrationResponseDTO responseDTO = authService.loginAndCreateResponse(email, password);
         if(responseDTO == null) {
-            return Result.error("Invalid email or password");
-        } else {
-            return Result.success(responseDTO);
+            throw new ValidationException("Invalid email or password");
         }
+        return ApiResponse.success("Login successful", responseDTO);
     }
 
     /**
@@ -78,11 +79,11 @@ public class AuthController {
      * @return
      */
     @PostMapping("/logout")
-    public Result<String> logout() {
+    public ApiResponse<String> logout() {
         // Clear SecurityContext
         SecurityContextHolder.clearContext();
 
-        return Result.success("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens.");
+        return ApiResponse.success("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens.");
     }
 
     /**
@@ -91,11 +92,15 @@ public class AuthController {
      * @return
      */
     @PostMapping("/refresh")
-    public Result<UserRegistrationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
+    public ApiResponse<UserRegistrationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
-        return Result.success(responseDTO);
+        try {
+            UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
+            return ApiResponse.success("Token refreshed successfully", responseDTO);
+        } catch (IllegalArgumentException e) {
+            throw new ValidationException("Invalid refresh token");
+        }
     }
 
     /**
@@ -104,22 +109,22 @@ public class AuthController {
      * @return
      */
     @PostMapping("/send-email")
-    public Result<String> sendEmail(@RequestBody EmailVerificationRequestDTO emailRequest) {
+    public ApiResponse<String> sendEmail(@RequestBody EmailVerificationRequestDTO emailRequest) {
         String email = emailRequest.getEmail();
 
         // check here instead of dto since only one field
         if (email == null || email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            return Result.error("wrong email");
+            throw new ValidationException("Invalid email format");
         }
 
         //query email if exists
         User user = userMapper.selectByEmail(email);
         if (user != null) {
-            return Result.error("email exists");
+            throw new ValidationException("Email already exists");
         }
 
         mailService.sendVerificationCode(email);
 
-        return Result.success("Verification code sent successfully");
+        return ApiResponse.success("Verification code sent successfully");
     }
 }

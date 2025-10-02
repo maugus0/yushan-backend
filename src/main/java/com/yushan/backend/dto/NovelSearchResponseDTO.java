@@ -1,0 +1,62 @@
+package com.yushan.backend.dto;
+
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.EqualsAndHashCode;
+
+import java.util.List;
+
+@Data
+@NoArgsConstructor
+@EqualsAndHashCode(exclude = "content")
+public class NovelSearchResponseDTO {
+    
+    private List<NovelDetailResponseDTO> content;
+    private long totalElements;
+    private int totalPages;
+    private int currentPage;
+    private int size;
+    private boolean first;
+    private boolean last;
+    private boolean hasNext;
+    private boolean hasPrevious;
+    
+    // Override getter and setter for content to use defensive copy
+    public List<NovelDetailResponseDTO> getContent() {
+        return content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
+    }
+    
+    public void setContent(List<NovelDetailResponseDTO> content) {
+        this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
+    }
+    
+    public NovelSearchResponseDTO(List<NovelDetailResponseDTO> content, long totalElements, int currentPage, int size) {
+        this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
+        this.totalElements = totalElements;
+        this.currentPage = currentPage;
+        this.size = size;
+        this.totalPages = (int) Math.ceil((double) totalElements / size);
+        this.first = currentPage == 0;
+        this.last = currentPage >= totalPages - 1;
+        this.hasNext = !this.last;
+        this.hasPrevious = !this.first;
+    }
+    
+    public static NovelSearchResponseDTO of(List<NovelDetailResponseDTO> content, long totalElements, int currentPage, int size) {
+        return new NovelSearchResponseDTO(content, totalElements, currentPage, size);
+    }
+    
+    // All-args constructor for Lombok compatibility
+    public NovelSearchResponseDTO(List<NovelDetailResponseDTO> content, long totalElements, int totalPages, int currentPage, int size, boolean first, boolean last, boolean hasNext, boolean hasPrevious) {
+        this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
+        this.totalElements = totalElements;
+        this.totalPages = totalPages;
+        this.currentPage = currentPage;
+        this.size = size;
+        this.first = first;
+        this.last = last;
+        this.hasNext = hasNext;
+        this.hasPrevious = hasPrevious;
+    }
+    
+}

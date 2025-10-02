@@ -191,8 +191,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
@@ -209,8 +208,8 @@ public class JwtIntegrationTest {
         mockMvc.perform(post("/api/auth/login")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("Invalid email or password"));
     }
 
@@ -228,9 +227,8 @@ public class JwtIntegrationTest {
         mockMvc.perform(post("/api/auth/register")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("success"))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
@@ -248,7 +246,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists());
     }
@@ -261,8 +259,8 @@ public class JwtIntegrationTest {
         mockMvc.perform(post("/api/auth/refresh")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(500))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.message").value("Invalid refresh token"));
     }
 
@@ -271,9 +269,8 @@ public class JwtIntegrationTest {
         mockMvc.perform(post("/api/auth/logout")
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("success"))
-                .andExpect(jsonPath("$.data").value("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens."));
+                .andExpect(jsonPath("$.message").value("JWT tokens are stateless and cannot be invalidated server-side. Client should discard tokens."))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     @Test
@@ -285,8 +282,8 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(sendEmailRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.message").value("success"));
+                .andExpect(jsonPath("$.message").value("Verification code sent successfully"))
+                .andExpect(jsonPath("$.timestamp").exists());
     }
 
     // ==================== PROTECTED ENDPOINT TESTS ====================
@@ -295,8 +292,8 @@ public class JwtIntegrationTest {
     void testPublicEndpoint() throws Exception {
         mockMvc.perform(get("/api/example/public"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This is a public endpoint"))
-                .andExpect(jsonPath("$.access").value("No authentication required"));
+                .andExpect(jsonPath("$.message").value("Public endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.access").value("No authentication required"));
     }
 
     @Test
@@ -304,10 +301,10 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/protected")
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This is a protected endpoint"))
-                .andExpect(jsonPath("$.access").value("Authentication required"))
-                .andExpect(jsonPath("$.user").value("testuser"))
-                .andExpect(jsonPath("$.isAuthor").value(false));
+                .andExpect(jsonPath("$.message").value("Protected endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.access").value("Authentication required"))
+                .andExpect(jsonPath("$.data.user").value("testuser"))
+                .andExpect(jsonPath("$.data.isAuthor").value(false));
     }
 
     @Test
@@ -334,19 +331,18 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/author-only")
                 .header("Authorization", "Bearer " + authorUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This is an author-only endpoint"))
-                .andExpect(jsonPath("$.access").value("Author role required"))
-                .andExpect(jsonPath("$.user").value("author"))
-                .andExpect(jsonPath("$.isAuthor").value(true))
-                .andExpect(jsonPath("$.isVerifiedAuthor").value(true));
+                .andExpect(jsonPath("$.message").value("Author-only endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.access").value("Author role required"))
+                .andExpect(jsonPath("$.data.user").value("author"))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
     }
 
     @Test
     void testAuthorOnlyEndpointWithRegularUser() throws Exception {
         mockMvc.perform(get("/api/example/author-only")
                 .header("Authorization", "Bearer " + testUserToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -354,11 +350,11 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/verified-author-only")
                 .header("Authorization", "Bearer " + authorUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This is a verified author-only endpoint"))
-                .andExpect(jsonPath("$.access").value("Verified author role required"))
-                .andExpect(jsonPath("$.user").value("author"))
-                .andExpect(jsonPath("$.isAuthor").value(true))
-                .andExpect(jsonPath("$.isVerifiedAuthor").value(true));
+                .andExpect(jsonPath("$.message").value("Verified author-only endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.access").value("Verified author role required"))
+                .andExpect(jsonPath("$.data.user").value("author"))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
     }
 
     @Test
@@ -369,13 +365,13 @@ public class JwtIntegrationTest {
                 .param("resourceId", resourceId)
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This endpoint checks resource ownership"))
-                .andExpect(jsonPath("$.resourceId").value(resourceId))
-                .andExpect(jsonPath("$.access").value("Resource owner, author, or admin required"))
-                .andExpect(jsonPath("$.user").value("testuser"))
-                .andExpect(jsonPath("$.userId").value(resourceId))
-                .andExpect(jsonPath("$.isOwner").value(true))
-                .andExpect(jsonPath("$.isAuthor").value(false));
+                .andExpect(jsonPath("$.message").value("Resource ownership endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.resourceId").value(resourceId))
+                .andExpect(jsonPath("$.data.access").value("Resource owner, author, or admin required"))
+                .andExpect(jsonPath("$.data.user").value("testuser"))
+                .andExpect(jsonPath("$.data.userId").value(resourceId))
+                .andExpect(jsonPath("$.data.isOwner").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(false));
     }
 
     @Test
@@ -386,13 +382,13 @@ public class JwtIntegrationTest {
                 .param("resourceId", resourceId)
                 .header("Authorization", "Bearer " + authorUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This endpoint checks resource ownership"))
-                .andExpect(jsonPath("$.resourceId").value(resourceId))
-                .andExpect(jsonPath("$.access").value("Resource owner, author, or admin required"))
-                .andExpect(jsonPath("$.user").value("author"))
-                .andExpect(jsonPath("$.userId").value(authorUser.getUuid().toString()))
-                .andExpect(jsonPath("$.isOwner").value(false))
-                .andExpect(jsonPath("$.isAuthor").value(true));
+                .andExpect(jsonPath("$.message").value("Resource ownership endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.resourceId").value(resourceId))
+                .andExpect(jsonPath("$.data.access").value("Resource owner, author, or admin required"))
+                .andExpect(jsonPath("$.data.user").value("author"))
+                .andExpect(jsonPath("$.data.userId").value(authorUser.getUuid().toString()))
+                .andExpect(jsonPath("$.data.isOwner").value(false))
+                .andExpect(jsonPath("$.data.isAuthor").value(true));
     }
 
     @Test
@@ -402,8 +398,7 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/resource")
                 .param("resourceId", resourceId)
                 .header("Authorization", "Bearer " + testUserToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(401));
+                .andExpect(status().isUnauthorized());
     }
 
     @Test
@@ -414,13 +409,13 @@ public class JwtIntegrationTest {
                 .param("userId", userId)
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("This endpoint has complex authorization rules"))
-                .andExpect(jsonPath("$.userId").value(userId))
-                .andExpect(jsonPath("$.access").value("Authenticated user who is author, admin, or owner"))
-                .andExpect(jsonPath("$.user").value("testuser"))
-                .andExpect(jsonPath("$.currentUserId").value(userId))
-                .andExpect(jsonPath("$.isOwner").value(true))
-                .andExpect(jsonPath("$.isAuthor").value(false));
+                .andExpect(jsonPath("$.message").value("Complex authorization endpoint accessed successfully"))
+                .andExpect(jsonPath("$.data.userId").value(userId))
+                .andExpect(jsonPath("$.data.access").value("Authenticated user who is author, admin, or owner"))
+                .andExpect(jsonPath("$.data.user").value("testuser"))
+                .andExpect(jsonPath("$.data.currentUserId").value(userId))
+                .andExpect(jsonPath("$.data.isOwner").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(false));
     }
 
     // ==================== ERROR HANDLING TESTS ====================
@@ -462,3 +457,4 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Unauthorized: Invalid or missing JWT token"));
     }
 }
+

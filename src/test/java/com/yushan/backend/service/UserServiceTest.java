@@ -1,8 +1,8 @@
 package com.yushan.backend.service;
 
 import com.yushan.backend.dao.UserMapper;
-import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
+import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.entity.User;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -85,7 +85,7 @@ public class UserServiceTest {
         req.setProfileDetail("new profile");
         req.setGender(2);
 
-        UserProfileResponseDTO dto = userService.updateUserProfileSelective(id, req);
+        UserProfileUpdateResponseDTO dto = userService.updateUserProfileSelective(id, req);
 
         // verify mapper called with selective update
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
@@ -100,13 +100,15 @@ public class UserServiceTest {
 
         // validate returned DTO fields
         assertNotNull(dto);
-        assertEquals(id.toString(), dto.getUuid());
-        assertEquals("newname", dto.getUsername());
-        assertEquals("new.png", dto.getAvatarUrl());
-        assertEquals("new profile", dto.getProfileDetail());
-        assertEquals(2, dto.getGender());
-        assertEquals(10.5f, dto.getReadTime());
-        assertEquals(5, dto.getReadBookNum());
+        assertNotNull(dto.getProfile());
+        assertEquals(id.toString(), dto.getProfile().getUuid());
+        assertEquals("newname", dto.getProfile().getUsername());
+        assertEquals("new.png", dto.getProfile().getAvatarUrl());
+        assertEquals("new profile", dto.getProfile().getProfileDetail());
+        assertEquals(2, dto.getProfile().getGender());
+        assertEquals(10.5f, dto.getProfile().getReadTime());
+        assertEquals(5, dto.getProfile().getReadBookNum());
+        assertFalse(dto.isEmailChanged());
     }
 
     @Test
@@ -162,12 +164,13 @@ public class UserServiceTest {
         req.setEmail("new@example.com");
         req.setVerificationCode("123456");
 
-        UserProfileResponseDTO dto = userService.updateUserProfileSelective(id, req);
+        UserProfileUpdateResponseDTO dto = userService.updateUserProfileSelective(id, req);
 
         ArgumentCaptor<User> captor = ArgumentCaptor.forClass(User.class);
         verify(userMapper).updateByPrimaryKeySelective(captor.capture());
         assertEquals("new@example.com", captor.getValue().getEmail());
-        assertEquals("new@example.com", dto.getEmail());
+        assertEquals("new@example.com", dto.getProfile().getEmail());
+        assertTrue(dto.isEmailChanged());
     }
 
     @Test

@@ -6,14 +6,14 @@
       <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
       <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
-      <arg column="author_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="author_id" jdbcType="OTHER" javaType="java.util.UUID" />
       <arg column="author_name" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="category_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="synopsis" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="cover_img_url" jdbcType="VARCHAR" javaType="java.lang.String" />
       <arg column="status" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="is_completed" jdbcType="BIT" javaType="java.lang.Boolean" />
-      <arg column="is_valid" jdbcType="BIT" javaType="java.lang.Boolean" />
+      <arg column="is_completed" jdbcType="BOOLEAN" javaType="java.lang.Boolean" />
+      <arg column="is_valid" jdbcType="BOOLEAN" javaType="java.lang.Boolean" />
       <arg column="chapter_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="word_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
       <arg column="avg_rating" jdbcType="REAL" javaType="java.lang.Float" />
@@ -41,7 +41,7 @@
     delete from novel
     where id = #{id,jdbcType=INTEGER}
   </delete>
-  <insert id="insert" parameterType="com.yushan.backend.entity.Novel" >
+  <insert id="insert" parameterType="com.yushan.backend.entity.Novel" useGeneratedKeys="true" keyProperty="id">
     insert into novel (id, uuid, title, 
       author_id, author_name, category_id, 
       synopsis, cover_img_url, status, 
@@ -51,15 +51,15 @@
       create_time, update_time, publish_time
       )
     values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{title,jdbcType=VARCHAR}, 
-      #{authorId,jdbcType=INTEGER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
+      #{authorId,jdbcType=OTHER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
       #{synopsis,jdbcType=VARCHAR}, #{coverImgUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{isCompleted,jdbcType=BIT}, #{isValid,jdbcType=BIT}, #{chapterCnt,jdbcType=INTEGER}, 
+      #{isCompleted,jdbcType=BOOLEAN}, #{isValid,jdbcType=BOOLEAN}, #{chapterCnt,jdbcType=INTEGER}, 
       #{wordCnt,jdbcType=BIGINT}, #{avgRating,jdbcType=REAL}, #{reviewCnt,jdbcType=INTEGER}, 
       #{viewCnt,jdbcType=BIGINT}, #{voteCnt,jdbcType=INTEGER}, #{yuanCnt,jdbcType=REAL}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP}
       )
   </insert>
-  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Novel" >
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Novel" useGeneratedKeys="true" keyProperty="id">
     insert into novel
     <trim prefix="(" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -137,7 +137,7 @@
         #{title,jdbcType=VARCHAR},
       </if>
       <if test="authorId != null" >
-        #{authorId,jdbcType=INTEGER},
+        #{authorId,jdbcType=OTHER},
       </if>
       <if test="authorName != null" >
         #{authorName,jdbcType=VARCHAR},
@@ -155,10 +155,10 @@
         #{status,jdbcType=INTEGER},
       </if>
       <if test="isCompleted != null" >
-        #{isCompleted,jdbcType=BIT},
+        #{isCompleted,jdbcType=BOOLEAN},
       </if>
       <if test="isValid != null" >
-        #{isValid,jdbcType=BIT},
+        #{isValid,jdbcType=BOOLEAN},
       </if>
       <if test="chapterCnt != null" >
         #{chapterCnt,jdbcType=INTEGER},
@@ -202,7 +202,7 @@
         title = #{title,jdbcType=VARCHAR},
       </if>
       <if test="authorId != null" >
-        author_id = #{authorId,jdbcType=INTEGER},
+        author_id = #{authorId,jdbcType=OTHER},
       </if>
       <if test="authorName != null" >
         author_name = #{authorName,jdbcType=VARCHAR},
@@ -220,10 +220,10 @@
         status = #{status,jdbcType=INTEGER},
       </if>
       <if test="isCompleted != null" >
-        is_completed = #{isCompleted,jdbcType=BIT},
+        is_completed = #{isCompleted,jdbcType=BOOLEAN},
       </if>
       <if test="isValid != null" >
-        is_valid = #{isValid,jdbcType=BIT},
+        is_valid = #{isValid,jdbcType=BOOLEAN},
       </if>
       <if test="chapterCnt != null" >
         chapter_cnt = #{chapterCnt,jdbcType=INTEGER},
@@ -262,14 +262,14 @@
     update novel
     set uuid = #{uuid,jdbcType=OTHER},
       title = #{title,jdbcType=VARCHAR},
-      author_id = #{authorId,jdbcType=INTEGER},
+      author_id = #{authorId,jdbcType=OTHER},
       author_name = #{authorName,jdbcType=VARCHAR},
       category_id = #{categoryId,jdbcType=INTEGER},
       synopsis = #{synopsis,jdbcType=VARCHAR},
       cover_img_url = #{coverImgUrl,jdbcType=VARCHAR},
       status = #{status,jdbcType=INTEGER},
-      is_completed = #{isCompleted,jdbcType=BIT},
-      is_valid = #{isValid,jdbcType=BIT},
+      is_completed = #{isCompleted,jdbcType=BOOLEAN},
+      is_valid = #{isValid,jdbcType=BOOLEAN},
       chapter_cnt = #{chapterCnt,jdbcType=INTEGER},
       word_cnt = #{wordCnt,jdbcType=BIGINT},
       avg_rating = #{avgRating,jdbcType=REAL},
@@ -282,4 +282,104 @@
       publish_time = #{publishTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <!-- Common WHERE clause for filtering -->
+  <sql id="Novel_Where">
+    <where>
+      is_valid = true
+      <if test="req.categoryId != null and req.categoryId > 0">
+        and category_id = #{req.categoryId,jdbcType=INTEGER}
+      </if>
+      <if test="req.status != null and req.status != ''">
+        <choose>
+          <when test="req.status == 'DRAFT'">
+            and status = 0
+          </when>
+          <when test="req.status == 'PUBLISHED'">
+            and status = 1
+          </when>
+          <when test="req.status == 'ARCHIVED'">
+            and status = 2
+          </when>
+        </choose>
+      </if>
+      <if test="req.search != null and req.search != ''">
+        <bind name="searchPattern" value="'%' + req.search + '%'" />
+        and (title ILIKE #{searchPattern} or synopsis ILIKE #{searchPattern})
+      </if>
+      <if test="req.authorName != null and req.authorName != ''">
+        and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
+      </if>
+    </where>
+  </sql>
+
+  <!-- Pagination and filtering queries -->
+  <select id="selectNovelsWithPagination" resultMap="BaseResultMap" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
+    <bind name="page" value="req.page != null ? req.page : 0" />
+    <bind name="size" value="req.size != null ? req.size : 10" />
+    <bind name="offset" value="page * size" />
+    select 
+    <include refid="Base_Column_List" />
+    from novel
+    <include refid="Novel_Where" />
+    <choose>
+      <when test="req.sort == 'title'">
+        <choose>
+          <when test="req.order == 'asc'">
+            order by title asc
+          </when>
+          <otherwise>
+            order by title desc
+          </otherwise>
+        </choose>
+      </when>
+      <when test="req.sort == 'updateTime'">
+        <choose>
+          <when test="req.order == 'asc'">
+            order by update_time asc
+          </when>
+          <otherwise>
+            order by update_time desc
+          </otherwise>
+        </choose>
+      </when>
+      <when test="req.sort == 'viewCnt'">
+        <choose>
+          <when test="req.order == 'asc'">
+            order by view_cnt asc
+          </when>
+          <otherwise>
+            order by view_cnt desc
+          </otherwise>
+        </choose>
+      </when>
+      <when test="req.sort == 'avgRating'">
+        <choose>
+          <when test="req.order == 'asc'">
+            order by avg_rating asc
+          </when>
+          <otherwise>
+            order by avg_rating desc
+          </otherwise>
+        </choose>
+      </when>
+      <otherwise>
+        <choose>
+          <when test="req.order == 'asc'">
+            order by create_time asc
+          </when>
+          <otherwise>
+            order by create_time desc
+          </otherwise>
+        </choose>
+      </otherwise>
+    </choose>
+    limit #{size,jdbcType=INTEGER} offset #{offset}
+  </select>
+
+  <select id="countNovels" resultType="long" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
+    select count(*)
+    from novel
+    <include refid="Novel_Where" />
+  </select>
 </mapper>

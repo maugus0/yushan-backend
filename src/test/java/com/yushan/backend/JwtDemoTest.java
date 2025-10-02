@@ -63,12 +63,6 @@ public class JwtDemoTest {
         // Test refresh token type
         String refreshTokenType = jwtUtil.extractTokenType(refreshToken);
         assertEquals("refresh", refreshTokenType, "Refresh token type should be 'refresh'");
-
-        System.out.println("✅ JWT Basic Functionality Test Passed!");
-        System.out.println("   - Token generation: ✓");
-        System.out.println("   - Token validation: ✓");
-        System.out.println("   - Claim extraction: ✓");
-        System.out.println("   - Token types: ✓");
     }
 
     @Test
@@ -90,12 +84,6 @@ public class JwtDemoTest {
         for (int i = 0; i < parts.length; i++) {
             assertFalse(parts[i].isEmpty(), "JWT token part " + (i + 1) + " should not be empty");
         }
-
-        System.out.println("✅ JWT Token Structure Test Passed!");
-        System.out.println("   - Token parts: " + parts.length);
-        System.out.println("   - Header: " + parts[0].substring(0, Math.min(20, parts[0].length())) + "...");
-        System.out.println("   - Payload: " + parts[1].substring(0, Math.min(20, parts[1].length())) + "...");
-        System.out.println("   - Signature: " + parts[2].substring(0, Math.min(20, parts[2].length())) + "...");
     }
 
     @Test
@@ -135,9 +123,5 @@ public class JwtDemoTest {
         assertEquals("user2@example.com", jwtUtil.extractEmail(token2), "Token2 should contain user2's email");
         assertEquals(true, jwtUtil.extractIsAuthor(token1), "Token1 should indicate user1 is author");
         assertEquals(false, jwtUtil.extractIsAuthor(token2), "Token2 should indicate user2 is not author");
-
-        System.out.println("✅ JWT Different Users Test Passed!");
-        System.out.println("   - User1 (Author): " + jwtUtil.extractEmail(token1) + " - isAuthor: " + jwtUtil.extractIsAuthor(token1));
-        System.out.println("   - User2 (Regular): " + jwtUtil.extractEmail(token2) + " - isAuthor: " + jwtUtil.extractIsAuthor(token2));
     }
 }
