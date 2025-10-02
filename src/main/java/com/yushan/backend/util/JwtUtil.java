@@ -62,8 +62,6 @@ public class JwtUtil {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", user.getUuid().toString());
         claims.put("email", user.getEmail());
-        claims.put("username", user.getUsername());
-        claims.put("isAuthor", user.getIsAuthor());
         claims.put("tokenType", "access");
         claims.put("jti", UUID.randomUUID().toString()); // Unique token ID
         
@@ -109,16 +107,6 @@ public class JwtUtil {
     }
 
     /**
-     * Extract username from JWT token
-     * 
-     * @param token JWT token
-     * @return Username from token subject
-     */
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    /**
      * Extract user ID from JWT token
      * 
      * @param token JWT token
@@ -136,16 +124,6 @@ public class JwtUtil {
      */
     public String extractEmail(String token) {
         return extractClaim(token, claims -> claims.get("email", String.class));
-    }
-
-    /**
-     * Extract isAuthor from JWT token
-     * 
-     * @param token JWT token
-     * @return isAuthor from token claims
-     */
-    public Boolean extractIsAuthor(String token) {
-        return extractClaim(token, claims -> claims.get("isAuthor", Boolean.class));
     }
 
     /**
@@ -212,8 +190,8 @@ public class JwtUtil {
      * @return true if token is valid for user, false otherwise
      */
     public Boolean validateToken(String token, User user) {
-        final String username = extractUsername(token);
-        return (username.equals(user.getEmail()) && !isTokenExpired(token));
+        final String email = extractEmail(token);
+        return (email.equals(user.getEmail()) && !isTokenExpired(token));
     }
 
     /**

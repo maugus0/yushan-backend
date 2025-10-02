@@ -166,16 +166,12 @@ public class JwtIntegrationTest {
     @Test
     void testJwtTokenClaims() throws Exception {
         // Test extracting claims from token
-        String username = jwtUtil.extractUsername(testUserToken);
         String email = jwtUtil.extractEmail(testUserToken);
         String userId = jwtUtil.extractUserId(testUserToken);
-        Boolean isAuthor = jwtUtil.extractIsAuthor(testUserToken);
         String tokenType = jwtUtil.extractTokenType(testUserToken);
 
-        assert username.equals(testUser.getEmail());
         assert email.equals(testUser.getEmail());
         assert userId.equals(testUser.getUuid().toString());
-        assert isAuthor.equals(testUser.getIsAuthor());
         assert tokenType.equals("access");
     }
 

@@ -49,15 +49,11 @@ public class JwtDemoTest {
 
         // Test claim extraction
         String extractedEmail = jwtUtil.extractEmail(accessToken);
-        String extractedUsername = jwtUtil.extractUsername(accessToken);
         String extractedUserId = jwtUtil.extractUserId(accessToken);
-        Boolean extractedIsAuthor = jwtUtil.extractIsAuthor(accessToken);
         String extractedTokenType = jwtUtil.extractTokenType(accessToken);
 
         assertEquals(user.getEmail(), extractedEmail, "Extracted email should match user email");
-        assertEquals(user.getEmail(), extractedUsername, "Extracted username should match user email");
         assertEquals(user.getUuid().toString(), extractedUserId, "Extracted userId should match user UUID");
-        assertEquals(user.getIsAuthor(), extractedIsAuthor, "Extracted isAuthor should match user isAuthor");
         assertEquals("access", extractedTokenType, "Access token type should be 'access'");
 
         // Test refresh token type
@@ -121,7 +117,5 @@ public class JwtDemoTest {
         // Extract and verify claims
         assertEquals("user1@example.com", jwtUtil.extractEmail(token1), "Token1 should contain user1's email");
         assertEquals("user2@example.com", jwtUtil.extractEmail(token2), "Token2 should contain user2's email");
-        assertEquals(true, jwtUtil.extractIsAuthor(token1), "Token1 should indicate user1 is author");
-        assertEquals(false, jwtUtil.extractIsAuthor(token2), "Token2 should indicate user2 is not author");
     }
 }

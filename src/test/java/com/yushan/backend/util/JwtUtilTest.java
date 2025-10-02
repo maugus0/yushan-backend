@@ -96,14 +96,6 @@ public class JwtUtilTest {
     }
 
     @Test
-    void testExtractUsername() {
-        String token = jwtUtil.generateAccessToken(testUser);
-        String username = jwtUtil.extractUsername(token);
-        
-        assertEquals(testUser.getEmail(), username, "Extracted username should match user email");
-    }
-
-    @Test
     void testExtractEmail() {
         String token = jwtUtil.generateAccessToken(testUser);
         String email = jwtUtil.extractEmail(token);
@@ -117,14 +109,6 @@ public class JwtUtilTest {
         String userId = jwtUtil.extractUserId(token);
         
         assertEquals(testUser.getUuid().toString(), userId, "Extracted userId should match user UUID");
-    }
-
-    @Test
-    void testExtractIsAuthor() {
-        String token = jwtUtil.generateAccessToken(testUser);
-        Boolean isAuthor = jwtUtil.extractIsAuthor(token);
-        
-        assertEquals(testUser.getIsAuthor(), isAuthor, "Extracted isAuthor should match user isAuthor");
     }
 
     @Test
@@ -162,7 +146,7 @@ public class JwtUtilTest {
         String invalidToken = "invalid.token.here";
         
         assertThrows(Exception.class, () -> {
-            jwtUtil.extractUsername(invalidToken);
+            jwtUtil.extractEmail(invalidToken);
         }, "Extracting claims from invalid token should throw exception");
     }
 
