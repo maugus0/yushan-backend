@@ -46,7 +46,6 @@ public class UserProfileUpdateResponseDTO {
         copy.setBirthday(original.getBirthday());
         copy.setGender(original.getGender());
         copy.setIsAuthor(original.getIsAuthor());
-        copy.setAuthorVerified(original.getAuthorVerified());
         copy.setLevel(original.getLevel());
         copy.setExp(original.getExp());
         copy.setReadTime(original.getReadTime());

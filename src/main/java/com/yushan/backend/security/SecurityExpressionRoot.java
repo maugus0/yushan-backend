@@ -131,25 +131,6 @@ public class SecurityExpressionRoot implements MethodSecurityExpressionOperation
         return false;
     }
 
-    /**
-     * Check if current user is a verified author
-     * 
-     * @return true if user is a verified author, false otherwise
-     */
-    public boolean isVerifiedAuthor() {
-        Authentication auth = getAuthentication();
-        if (auth == null || !auth.isAuthenticated()) {
-            return false;
-        }
-        
-        Object principal = auth.getPrincipal();
-        if (principal instanceof CustomUserDetails) {
-            CustomUserDetails userDetails = (CustomUserDetails) principal;
-            return userDetails.isVerifiedAuthor();
-        }
-        
-        return false;
-    }
 
     /**
      * Check if current user is admin
@@ -190,14 +171,6 @@ public class SecurityExpressionRoot implements MethodSecurityExpressionOperation
         return isAuthor() || isAdmin();
     }
 
-    /**
-     * Check if current user is verified author or admin
-     * 
-     * @return true if user is verified author or admin, false otherwise
-     */
-    public boolean isVerifiedAuthorOrAdmin() {
-        return isVerifiedAuthor() || isAdmin();
-    }
 
     /**
      * Check if current user can access the resource

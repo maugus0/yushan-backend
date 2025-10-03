@@ -114,7 +114,6 @@ public class JwtIntegrationTest {
         testUser.setUsername("testuser");
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setIsAuthor(false);
-        testUser.setAuthorVerified(false);
         userMapper.insert(testUser);
 
         // Create author user
@@ -124,12 +123,32 @@ public class JwtIntegrationTest {
         authorUser.setUsername("author");
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setIsAuthor(true);
-        authorUser.setAuthorVerified(true);
         userMapper.insert(authorUser);
 
         // Generate tokens
         testUserToken = jwtUtil.generateAccessToken(testUser);
         authorUserToken = jwtUtil.generateAccessToken(authorUser);
+    }
+
+    /**
+     * Create a test user with specified parameters
+     */
+    private User createTestUser(String email, String username, boolean isAuthor, boolean isAdmin) {
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setHashPassword(passwordEncoder.encode("password123"));
+        user.setEmailVerified(true);
+        user.setStatus(1);
+        user.setIsAuthor(isAuthor);
+        user.setIsAdmin(isAdmin);
+        user.setLevel(1);
+        user.setExp(0.0f);
+        user.setReadTime(0.0f);
+        user.setReadBookNum(0);
+        userMapper.insert(user);
+        return user;
     }
 
     // ==================== JWT TOKEN TESTS ====================
@@ -167,16 +186,12 @@ public class JwtIntegrationTest {
     @Test
     void testJwtTokenClaims() throws Exception {
         // Test extracting claims from token
-        String username = jwtUtil.extractUsername(testUserToken);
         String email = jwtUtil.extractEmail(testUserToken);
         String userId = jwtUtil.extractUserId(testUserToken);
-        Boolean isAuthor = jwtUtil.extractIsAuthor(testUserToken);
         String tokenType = jwtUtil.extractTokenType(testUserToken);
 
-        assert username.equals(testUser.getEmail());
         assert email.equals(testUser.getEmail());
         assert userId.equals(testUser.getUuid().toString());
-        assert isAuthor.equals(testUser.getIsAuthor());
         assert tokenType.equals("access");
     }
 
@@ -335,8 +350,7 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Author-only endpoint accessed successfully"))
                 .andExpect(jsonPath("$.data.access").value("Author role required"))
                 .andExpect(jsonPath("$.data.user").value("author"))
-                .andExpect(jsonPath("$.data.isAuthor").value(true))
-                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
+                .andExpect(jsonPath("$.data.isAuthor").value(true));
     }
 
     @Test
@@ -344,18 +358,6 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/example/author-only")
                 .header("Authorization", "Bearer " + testUserToken))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    void testVerifiedAuthorOnlyEndpointWithVerifiedAuthor() throws Exception {
-        mockMvc.perform(get("/api/example/verified-author-only")
-                .header("Authorization", "Bearer " + authorUserToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Verified author-only endpoint accessed successfully"))
-                .andExpect(jsonPath("$.data.access").value("Verified author role required"))
-                .andExpect(jsonPath("$.data.user").value("author"))
-                .andExpect(jsonPath("$.data.isAuthor").value(true))
-                .andExpect(jsonPath("$.data.isVerifiedAuthor").value(true));
     }
 
     @Test
@@ -456,6 +458,81 @@ public class JwtIntegrationTest {
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.message").value("Unauthorized: Invalid or missing JWT token"));
+    }
+
+    @Test
+    void testIsAdminFieldInLoginResponse() throws Exception {
+        // Test login with admin user - create user first
+        createTestUser("admin@example.com", "AdminUser", true, true);
+
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("email", "admin@example.com");
+        loginRequest.put("password", "password123");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
+    }
+
+    @Test
+    void testIsAdminFieldInNormalUserResponse() throws Exception {
+        // Test login with normal user - create user first
+        createTestUser("normal@example.com", "NormalUser", false, false);
+
+        Map<String, String> loginRequest = new HashMap<>();
+        loginRequest.put("email", "normal@example.com");
+        loginRequest.put("password", "password123");
+
+        mockMvc.perform(post("/api/auth/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(false))
+                .andExpect(jsonPath("$.data.isAuthor").value(false))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
+    }
+
+    @Test
+    void testIsAdminFieldInUserProfileResponse() throws Exception {
+        // Test user profile endpoint with admin user
+        User adminUser = createTestUser("adminprofile@example.com", "AdminProfileUser", true, true);
+        String adminToken = jwtUtil.generateAccessToken(adminUser);
+
+        mockMvc.perform(get("/api/users/me")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.email").value("adminprofile@example.com"));
+    }
+
+    @Test
+    void testIsAdminFieldInRefreshTokenResponse() throws Exception {
+        // Test refresh token with admin user
+        User adminUser = createTestUser("adminrefresh@example.com", "AdminRefreshUser", true, true);
+        String refreshToken = jwtUtil.generateRefreshToken(adminUser);
+
+        Map<String, String> refreshRequest = new HashMap<>();
+        refreshRequest.put("refreshToken", refreshToken);
+
+        mockMvc.perform(post("/api/auth/refresh")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(refreshRequest)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.data.isAdmin").value(true))
+                .andExpect(jsonPath("$.data.isAuthor").value(true))
+                .andExpect(jsonPath("$.data.accessToken").exists())
+                .andExpect(jsonPath("$.data.refreshToken").exists());
     }
 }
 
