@@ -86,7 +86,7 @@ public class CustomUserDetailsService implements UserDetailsService {
         private final String displayUsername;
         private final String hashPassword;
         private final Boolean isAuthor;
-        private final Boolean authorVerified;
+        private final Boolean isAdmin;
         private final Integer status;
 
         public CustomUserDetails(User user) {
@@ -95,7 +95,7 @@ public class CustomUserDetailsService implements UserDetailsService {
             this.displayUsername = user.getUsername();
             this.hashPassword = user.getHashPassword();
             this.isAuthor = user.getIsAuthor();
-            this.authorVerified = user.getAuthorVerified();
+            this.isAdmin = user.getIsAdmin();
             this.status = user.getStatus();
         }
 
@@ -111,8 +111,8 @@ public class CustomUserDetailsService implements UserDetailsService {
                 authorities.add(new SimpleGrantedAuthority("ROLE_AUTHOR"));
             }
 
-            // Add admin authority if user is admin (you can add this logic later)
-            if (email != null && "admin@example.com".equals(email)) {
+            // Add admin authority if user is admin
+            if (isAdmin != null && isAdmin) {
                 authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
             }
             
@@ -175,13 +175,14 @@ public class CustomUserDetailsService implements UserDetailsService {
             return isAuthor != null && isAuthor;
         }
 
+
         /**
-         * Check if user is verified author
+         * Check if user is admin
          * 
-         * @return true if user is verified author, false otherwise
+         * @return true if user is admin, false otherwise
          */
-        public boolean isVerifiedAuthor() {
-            return authorVerified != null && authorVerified;
+        public boolean isAdmin() {
+            return isAdmin != null && isAdmin;
         }
     }
 }

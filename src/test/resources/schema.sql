@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS users (
     gender INTEGER,
     status INTEGER DEFAULT 1,
     is_author BOOLEAN DEFAULT FALSE,
-    author_verified BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE,
     level INTEGER DEFAULT 1,
     exp FLOAT DEFAULT 0.0,
     yuan FLOAT DEFAULT 0.0,

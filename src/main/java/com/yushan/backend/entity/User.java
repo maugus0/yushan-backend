@@ -28,7 +28,7 @@ public class User implements Serializable {
 
     private Boolean isAuthor;
 
-    private Boolean authorVerified;
+    private Boolean isAdmin;
 
     private Integer level;
 
@@ -48,7 +48,7 @@ public class User implements Serializable {
 
     private Date lastActive;
 
-    public User(UUID uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean authorVerified, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createTime, Date updateTime, Date lastLogin, Date lastActive) {
+    public User(UUID uuid, String email, String username, String hashPassword, Boolean emailVerified, String avatarUrl, String profileDetail, Date birthday, Integer gender, Integer status, Boolean isAuthor, Boolean isAdmin, Integer level, Float exp, Float yuan, Float readTime, Integer readBookNum, Date createTime, Date updateTime, Date lastLogin, Date lastActive) {
         this.uuid = uuid;
         this.email = email;
         this.username = username;
@@ -60,7 +60,7 @@ public class User implements Serializable {
         this.gender = gender;
         this.status = status;
         this.isAuthor = isAuthor;
-        this.authorVerified = authorVerified;
+        this.isAdmin = isAdmin;
         this.level = level;
         this.exp = exp;
         this.yuan = yuan;
@@ -164,12 +164,12 @@ public class User implements Serializable {
         this.isAuthor = isAuthor;
     }
 
-    public Boolean getAuthorVerified() {
-        return authorVerified;
+    public Boolean getIsAdmin() {
+        return isAdmin;
     }
 
-    public void setAuthorVerified(Boolean authorVerified) {
-        this.authorVerified = authorVerified;
+    public void setIsAdmin(Boolean isAdmin) {
+        this.isAdmin = isAdmin;
     }
 
     public Integer getLevel() {

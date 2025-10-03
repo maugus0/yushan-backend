@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
-import java.util.ArrayList;
 
 /**
  * JWT Authentication Filter
@@ -24,8 +23,9 @@ import java.util.ArrayList;
  * This filter runs before every request and:
  * 1. Extracts JWT token from Authorization header
  * 2. Validates the token
- * 3. Loads user from database
- * 4. Sets authentication in SecurityContext
+ * 3. Extracts email from token
+ * 4. Loads user from database
+ * 5. Sets authentication in SecurityContext
  */
 @Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
@@ -54,13 +54,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = extractTokenFromRequest(request);
             
             if (token != null && jwtUtil.validateToken(token)) {
-                // 2. Extract username from token
-                String username = jwtUtil.extractUsername(token);
+                // 2. Extract email from token
+                String email = jwtUtil.extractEmail(token);
                 
                 // 3. Check if user is not already authenticated
-                if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     // 4. Load user from database
-                    User user = userMapper.selectByEmail(username);
+                    User user = userMapper.selectByEmail(email);
                     
                     if (user != null && jwtUtil.validateToken(token, user)) {
                         // 5. Create CustomUserDetails from User

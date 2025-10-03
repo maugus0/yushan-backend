@@ -12,7 +12,6 @@ public class ExampleResponseDTO {
     private String access;
     private String user;
     private Boolean isAuthor;
-    private Boolean isVerifiedAuthor;
     private Boolean isAdmin;
     private String userId;
     private String currentUserId;
@@ -45,14 +44,13 @@ public class ExampleResponseDTO {
     
     // Full constructor with defensive copying for authorities
     public ExampleResponseDTO(String message, String access, String user, Boolean isAuthor, 
-                             Boolean isVerifiedAuthor, Boolean isAdmin, String userId, 
+                             Boolean isAdmin, String userId, 
                              String currentUserId, Boolean isOwner, String resourceId, 
                              List<String> authorities) {
         this.message = message;
         this.access = access;
         this.user = user;
         this.isAuthor = isAuthor;
-        this.isVerifiedAuthor = isVerifiedAuthor;
         this.isAdmin = isAdmin;
         this.userId = userId;
         this.currentUserId = currentUserId;

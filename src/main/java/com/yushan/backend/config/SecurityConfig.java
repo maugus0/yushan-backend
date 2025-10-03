@@ -130,7 +130,9 @@ public class SecurityConfig {
                 // Admin endpoints - require admin role
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
 
-                // Author endpoints - require author role
+                // Author endpoints - most require author role, but some are for registration
+                .requestMatchers("/api/author/send-email-author-verification").authenticated()
+                .requestMatchers("/api/author/upgrade-to-author").authenticated()
                 .requestMatchers("/api/author/**").hasRole("AUTHOR")
 
                 // All other requests require authentication
