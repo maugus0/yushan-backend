@@ -46,6 +46,12 @@ spring:
   devtools:
     restart:
       enabled: false
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+    clean-disabled: true
 
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
@@ -54,7 +60,7 @@ mybatis:
 
 # JWT Configuration
 jwt:
-  secret: ${JWT_SECRET:YushanBackendJWTSecretKey2024ForSecureTokenGenerationAndValidation}
+  secret: ${JWT_SECRET:YushanBackendJWTSecretKey2025ForSecureTokenGenerationAndValidation}
   access-token:
     expiration: ${JWT_ACCESS_TOKEN_EXPIRATION:900000}  # 15 minutes in milliseconds
   refresh-token:
