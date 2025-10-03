@@ -1,9 +1,11 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.LibraryMapper;
 import com.yushan.backend.dao.NovelLibraryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.LibraryResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
+import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.NovelLibrary;
 import com.yushan.backend.exception.ResourceNotFoundException;
@@ -25,6 +27,9 @@ class LibraryServiceTest {
 
     @Mock
     private NovelMapper novelMapper;
+
+    @Mock
+    private LibraryMapper libraryMapper;
 
     @Mock
     private NovelLibraryMapper novelLibraryMapper;
@@ -51,14 +56,21 @@ class LibraryServiceTest {
         novel.setId(novelId);
         novel.setChapterCnt(10);
 
+        Library library = new Library();
+        library.setId(100);
+
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
         when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, novelId)).thenReturn(null);
+        when(libraryMapper.selectByUserId(testUserId)).thenReturn(library);
 
         // When
         libraryService.addNovelToLibrary(testUserId, novelId, 5);
 
         // Then
-        verify(novelLibraryMapper).insertSelective(any(NovelLibrary.class));
+        verify(novelLibraryMapper).insertSelective(argThat(novelLibrary ->
+                novelLibrary.getNovelId().equals(novelId) &&
+                        novelLibrary.getProgress() == 5 &&
+                        novelLibrary.getLibraryId().equals(100)));
     }
 
     @Test
@@ -72,7 +84,7 @@ class LibraryServiceTest {
                 () -> libraryService.addNovelToLibrary(testUserId, novelId, 5)
         );
 
-        assertTrue(exception.getMessage().contains("novel not found" + novelId));
+        assertTrue(exception.getMessage().contains("novel not found: " + novelId));
     }
 
     @Test

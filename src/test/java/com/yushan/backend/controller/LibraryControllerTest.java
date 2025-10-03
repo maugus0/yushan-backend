@@ -146,9 +146,9 @@ class LibraryControllerTest {
     void getLibraryNovelProgress_Success() {
         // Given
         mockAuthentication();
-        NovelLibrary novelLibrary = new NovelLibrary();
-        novelLibrary.setProgress(5);
-        when(libraryService.novelFromLibrary(testUserId, novelId)).thenReturn(novelLibrary);
+        LibraryResponseDTO libraryResponseDTO = new LibraryResponseDTO();
+        libraryResponseDTO.setProgress(5);
+        when(libraryService.getNovel(testUserId, novelId)).thenReturn(libraryResponseDTO);
 
         // When
         ApiResponse<LibraryResponseDTO> response = libraryController.getLibraryNovel(novelId, authentication);
@@ -157,13 +157,16 @@ class LibraryControllerTest {
         assertNotNull(response);
         assertEquals(response.getCode(), ErrorCode.SUCCESS.getCode());
         assertEquals(5, response.getData().getProgress());
+
+        verify(libraryService).getNovel(testUserId, novelId);
     }
 
     @Test
     void getLibraryNovelProgress_NovelNotFound() {
         // Given
         mockAuthentication();
-        when(libraryService.novelFromLibrary(testUserId, novelId)).thenReturn(null);
+        when(libraryService.getNovel(testUserId, novelId))
+                .thenThrow(new ResourceNotFoundException("Novel not found in library"));
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> {
