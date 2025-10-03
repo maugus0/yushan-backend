@@ -171,7 +171,7 @@ public class NovelControllerTest {
         NovelDetailResponseDTO novel2 = createTestNovelDetailResponseDTO(2, "Novel 2", "Author 2");
         List<NovelDetailResponseDTO> novels = Arrays.asList(novel1, novel2);
         
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(novels, 25L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(novels, 25L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
@@ -195,7 +195,7 @@ public class NovelControllerTest {
     void listNovels_WithFilters_ReturnsFilteredResults() throws Exception {
         // Arrange
         NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Test Novel", "Test Author");
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
@@ -212,7 +212,7 @@ public class NovelControllerTest {
         // Arrange
         String authorId = "123e4567-e89b-12d3-a456-426614174000";
         NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Author's Novel", "Author Name");
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
@@ -229,7 +229,7 @@ public class NovelControllerTest {
         NovelDetailResponseDTO novel1 = createTestNovelDetailResponseDTO(1, "A Novel", "Author 1");
         NovelDetailResponseDTO novel2 = createTestNovelDetailResponseDTO(2, "B Novel", "Author 2");
         List<NovelDetailResponseDTO> novels = Arrays.asList(novel1, novel2);
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(novels, 2L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(novels, 2L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
@@ -243,7 +243,7 @@ public class NovelControllerTest {
     @Test
     void listNovels_WithEmptyResults_ReturnsEmptyPage() throws Exception {
         // Arrange
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(), 0L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(), 0L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
@@ -260,7 +260,7 @@ public class NovelControllerTest {
     @Test
     void listNovels_WithDefaultParameters_UsesDefaults() throws Exception {
         // Arrange
-        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(), 0L, 0, 10);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(), 0L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
