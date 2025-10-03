@@ -2,6 +2,7 @@ package com.yushan.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.dto.*;
+import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.NovelService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -178,7 +179,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?page=0&size=10&sort=createTime&order=desc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.totalElements").value(25))
@@ -202,7 +203,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?category=1&status=published&search=test"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.totalElements").value(1));
     }
@@ -219,7 +220,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?author=" + authorId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content.length()").value(1));
     }
 
@@ -236,7 +237,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels?sort=title&order=asc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 
@@ -250,7 +251,7 @@ public class NovelControllerTest {
         // Act & Assert
         mockMvc.perform(get("/api/novels"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(0))
                 .andExpect(jsonPath("$.data.totalElements").value(0))
