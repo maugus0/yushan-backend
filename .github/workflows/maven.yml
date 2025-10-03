@@ -299,7 +299,7 @@ jobs:
       run: |
         echo "Smoke test $STAGING_URL/actuator/health"
         for i in {1..30}; do
-          RESP=$(curl -fsS -H "Accept: application/json" "$STAGING_URL/actuator/health" || true)
+          RESP=$(curl -fsSL -H "Accept: application/json" "$STAGING_URL/actuator/health" || true)
           echo "Attempt $i/30: $RESP"
           if echo "$RESP" | grep -q '"status":"UP"'; then
             echo "Health OK"
@@ -321,22 +321,22 @@ jobs:
         
         # Test health endpoint first
         echo "Testing health endpoint..."
-        curl -fsS "$STAGING_URL/actuator/health" | jq .
+        curl -fsSL "$STAGING_URL/actuator/health" | jq .
         
         # Test public endpoint
         echo "Testing public endpoint..."
-        curl -fsS "$STAGING_URL/api/example/public" | jq .
+        curl -fsSL "$STAGING_URL/api/example/public" | jq .
         
         # Test auth test endpoint
         echo "Testing auth test endpoint..."
-        curl -fsS "$STAGING_URL/api/auth/test" | grep -q "test"
+        curl -fsSL "$STAGING_URL/api/auth/test" | grep -q "test"
         
         # Test actuator endpoints
         echo "Testing actuator info..."
-        curl -fsS "$STAGING_URL/actuator/info" | jq .
+        curl -fsSL "$STAGING_URL/actuator/info" | jq .
         
         echo "Testing actuator metrics..."
-        curl -fsS "$STAGING_URL/actuator/metrics" | jq .
+        curl -fsSL "$STAGING_URL/actuator/metrics" | jq .
         
         echo "All smoke tests passed!"
         
