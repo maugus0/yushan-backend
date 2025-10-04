@@ -195,7 +195,7 @@ public class NovelServiceTest {
         when(novelMapper.countNovels(request)).thenReturn(25L);
         
         // Act
-        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         
         // Assert
         assertNotNull(response);
@@ -219,7 +219,7 @@ public class NovelServiceTest {
         when(novelMapper.countNovels(request)).thenReturn(0L);
         
         // Act
-        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         
         // Assert
         assertNotNull(response);

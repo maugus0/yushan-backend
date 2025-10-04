@@ -1,7 +1,9 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.LibraryMapper;
 import com.yushan.backend.dto.UserRegistrationRequestDTO;
 import com.yushan.backend.dto.UserRegistrationResponseDTO;
+import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.util.JwtUtil;
@@ -18,6 +20,9 @@ public class AuthService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private LibraryMapper libraryMapper;
 
     @Autowired
     private JwtUtil jwtUtil;
@@ -70,12 +75,14 @@ public class AuthService {
         user.setReadTime(0f);
         user.setReadBookNum(0);
 
-        try {
-            userMapper.insert(user);
-        } catch (Exception e) {
-            userMapper.deleteByPrimaryKey(user.getUuid());
-            throw new RuntimeException("registered failed", e);
-        }
+        userMapper.insert(user);
+
+        // create user library
+        Library library = new Library();
+        library.setUuid(UUID.randomUUID());
+        library.setUserId(user.getUuid());
+
+        libraryMapper.insertSelective(library);
         return user;
     }
 
