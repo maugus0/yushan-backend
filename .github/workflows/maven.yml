@@ -240,6 +240,8 @@ jobs:
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+        build-args: |
+          SPRING_PROFILES_ACTIVE=staging
         
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
@@ -284,6 +286,11 @@ jobs:
       run: |
         curl -fsSL https://railway.app/install.sh | sh
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
+        
+    - name: Set Railway environment variables
+      run: |
+        railway variables set SPRING_PROFILES_ACTIVE=staging --service $SVC_ID
+        railway variables set PORT=8080 --service $SVC_ID
         
     - name: Redeploy staging
       run: railway redeploy --service $SVC_ID --yes
