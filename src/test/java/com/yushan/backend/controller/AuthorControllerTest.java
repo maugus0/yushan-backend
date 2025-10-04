@@ -6,6 +6,7 @@ import com.yushan.backend.dto.AuthorUpgradeRequestDTO;
 import com.yushan.backend.dto.EmailVerificationRequestDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.AuthorService;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.service.UserService;
@@ -121,7 +122,7 @@ class AuthorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.message").value("Verification code sent successfully"));
 
         verify(mailService).sendVerificationCode(testEmail);
@@ -242,7 +243,7 @@ class AuthorControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.message").value("User upgraded to author successfully"))
                 .andExpect(jsonPath("$.data.email").value(testEmail))
                 .andExpect(jsonPath("$.data.isAuthor").value(true));

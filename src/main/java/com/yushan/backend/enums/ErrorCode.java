@@ -2,7 +2,7 @@ package com.yushan.backend.enums;
 
 public enum ErrorCode {
     // Success
-    SUCCESS(0, "Success"),
+    SUCCESS(200, "Success"),
     
     // Client errors (4xx)
     BAD_REQUEST(400, "Bad Request"),

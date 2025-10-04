@@ -3,6 +3,7 @@ package com.yushan.backend.security;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -206,7 +207,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
@@ -243,7 +244,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(registerRequest)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists())
                 .andExpect(jsonPath("$.data.tokenType").value("Bearer"))
@@ -261,7 +262,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.accessToken").exists())
                 .andExpect(jsonPath("$.data.refreshToken").exists());
     }
@@ -472,7 +473,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.isAdmin").value(true))
                 .andExpect(jsonPath("$.data.isAuthor").value(true))
                 .andExpect(jsonPath("$.data.accessToken").exists())
@@ -492,7 +493,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(loginRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.isAdmin").value(false))
                 .andExpect(jsonPath("$.data.isAuthor").value(false))
                 .andExpect(jsonPath("$.data.accessToken").exists())
@@ -508,7 +509,7 @@ public class JwtIntegrationTest {
         mockMvc.perform(get("/api/users/me")
                 .header("Authorization", "Bearer " + adminToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.isAdmin").value(true))
                 .andExpect(jsonPath("$.data.isAuthor").value(true))
                 .andExpect(jsonPath("$.data.email").value("adminprofile@example.com"));
@@ -527,7 +528,7 @@ public class JwtIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(refreshRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.isAdmin").value(true))
                 .andExpect(jsonPath("$.data.isAuthor").value(true))
                 .andExpect(jsonPath("$.data.accessToken").exists())

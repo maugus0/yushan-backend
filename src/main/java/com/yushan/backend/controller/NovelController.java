@@ -54,7 +54,7 @@ public class NovelController {
     }
 
     @GetMapping
-    public ApiResponse<NovelSearchResponseDTO> listNovels(
+    public ApiResponse<PageResponseDTO<NovelDetailResponseDTO>> listNovels(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
             @RequestParam(value = "size", defaultValue = "10") Integer size,
             @RequestParam(value = "sort", defaultValue = "createTime") String sort,
@@ -68,7 +68,7 @@ public class NovelController {
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
                                                               categoryId, status, search, authorName);
         
-        NovelSearchResponseDTO response = novelService.listNovelsWithPagination(request);
+        PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         return ApiResponse.success("Novels retrieved successfully", response);
     }
 }

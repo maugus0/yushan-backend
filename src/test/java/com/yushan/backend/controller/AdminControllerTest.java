@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.AdminPromoteRequestDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
+import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.AdminService;
 import com.yushan.backend.service.UserService;
 import com.yushan.backend.util.JwtUtil;
@@ -71,7 +72,7 @@ class AdminControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(0))
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.message").value("User promoted to admin successfully"))
                 .andExpect(jsonPath("$.data.email").value("test@example.com"))
                 .andExpect(jsonPath("$.data.isAdmin").value(true));
