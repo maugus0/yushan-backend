@@ -3,6 +3,8 @@ package com.yushan.backend.controller;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.exception.UnauthorizedException;
+import com.yushan.backend.security.CustomUserDetailsService;
 import com.yushan.backend.service.AuthService;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.exception.ValidationException;
@@ -10,9 +12,12 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -68,9 +73,6 @@ public class AuthController {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         UserRegistrationResponseDTO responseDTO = authService.loginAndCreateResponse(email, password);
-        if(responseDTO == null) {
-            throw new ValidationException("Invalid email or password");
-        }
         return ApiResponse.success("Login successful", responseDTO);
     }
 
@@ -95,12 +97,8 @@ public class AuthController {
     public ApiResponse<UserRegistrationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        try {
-            UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
-            return ApiResponse.success("Token refreshed successfully", responseDTO);
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Invalid refresh token");
-        }
+        UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
+        return ApiResponse.success("Token refreshed successfully", responseDTO);
     }
 
     /**
@@ -112,11 +110,6 @@ public class AuthController {
     public ApiResponse<String> sendEmail(@RequestBody EmailVerificationRequestDTO emailRequest) {
         String email = emailRequest.getEmail();
 
-        // check here instead of dto since only one field
-        if (email == null || email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            throw new ValidationException("Invalid email format");
-        }
-
         //query email if exists
         User user = userMapper.selectByEmail(email);
         if (user != null) {
@@ -126,5 +119,39 @@ public class AuthController {
         mailService.sendVerificationCode(email);
 
         return ApiResponse.success("Verification code sent successfully");
+    }
+
+    /**
+     * Update last active time
+     * @param authentication
+     * @return
+     */
+    @PatchMapping("/lastActive")
+    public ApiResponse<String> updateLastActive(Authentication authentication) {
+        //get user id from authentication
+        UUID userId = getCurrentUserId(authentication);
+
+        authService.updateLastActive(userId);
+        return ApiResponse.success("Update last active successfully");
+    }
+
+    /**
+     * get current user id from authentication
+     */
+    protected UUID getCurrentUserId(Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new UnauthorizedException("Authentication required");
+        }
+
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof CustomUserDetailsService.CustomUserDetails) {
+            String id = ((CustomUserDetailsService.CustomUserDetails) principal).getUserId();
+            if (id != null) {
+                return UUID.fromString(id);
+            } else {
+                throw new ValidationException("User ID not found");
+            }
+        }
+        throw new UnauthorizedException("Invalid authentication");
     }
 }
