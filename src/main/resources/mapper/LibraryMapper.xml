@@ -19,44 +19,51 @@
     from library
     where id = #{id,jdbcType=INTEGER}
   </select>
-
-  <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.util.UUID">
-    select
-    <include refid="Base_Column_List" />
-    from library
-    where user_id = #{userId,jdbcType=OTHER}
-  </select>
   <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
     delete from library
     where id = #{id,jdbcType=INTEGER}
   </delete>
-      <insert id="insert" parameterType="com.yushan.backend.entity.Library" useGeneratedKeys="true" keyProperty="id">
-    insert into library (uuid, user_id,
+  <insert id="insert" parameterType="com.yushan.backend.entity.Library" >
+    insert into library (id, uuid, user_id,
       create_time, update_time)
-    values (#{uuid,jdbcType=OTHER}, #{userId,jdbcType=OTHER},
-      NOW(), NOW())
+    values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{userId,jdbcType=OTHER},
+      #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
-  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Library" useGeneratedKeys="true" keyProperty="id">
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Library" >
     insert into library
     <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
       <if test="uuid != null" >
         uuid,
       </if>
       <if test="userId != null" >
         user_id,
       </if>
-      create_time,
-      update_time,
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
       <if test="uuid != null" >
         #{uuid,jdbcType=OTHER},
       </if>
       <if test="userId != null" >
         #{userId,jdbcType=OTHER},
       </if>
-      NOW(),
-      NOW(),
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Library" >
@@ -71,7 +78,9 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-        update_time = NOW(),
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -80,7 +89,7 @@
     set uuid = #{uuid,jdbcType=OTHER},
       user_id = #{userId,jdbcType=OTHER},
       create_time = #{createTime,jdbcType=TIMESTAMP},
-      update_time = NOW()
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
 </mapper>
