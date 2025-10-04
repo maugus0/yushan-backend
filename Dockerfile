@@ -24,6 +24,9 @@ RUN ./mvnw clean package -DskipTests
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 
+# Install CA certificates for SSL connections (required for Supabase)
+RUN apk add --no-cache ca-certificates
+
 # Accept build argument for Spring profile
 ARG SPRING_PROFILES_ACTIVE=staging
 
