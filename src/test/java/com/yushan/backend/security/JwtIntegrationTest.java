@@ -302,6 +302,15 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.timestamp").exists());
     }
 
+    @Test
+    void testUpdateLastActive() throws Exception {
+        mockMvc.perform(patch("/api/auth/lastActive")
+                .header("Authorization", "Bearer " + testUserToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Update last active successfully"))
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
     // ==================== PROTECTED ENDPOINT TESTS ====================
 
     @Test
