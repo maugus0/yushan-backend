@@ -24,7 +24,7 @@ public enum Gender {
     }
 
     public static boolean isDefaultAvatar(String avatarUrl) {
-        if (avatarUrl == null) return false;
+        if (avatarUrl == null) return true;
         for (Gender gender : values()) {
             if (gender.avatarUrl.equals(avatarUrl)) {
                 return true;
