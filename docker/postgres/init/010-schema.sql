@@ -62,20 +62,3 @@ CREATE TABLE IF NOT EXISTS novel (
     CONSTRAINT fk_novel_author FOREIGN KEY (author_id) REFERENCES users(uuid),
     CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
 );
-
-CREATE TABLE IF NOT EXISTS library (
-    id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL,
-    user_id UUID NOT NULL,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE IF NOT EXISTS novel_library (
-   id SERIAL PRIMARY KEY,
-   library_id INTEGER NOT NULL,
-   novel_id INTEGER NOT NULL,
-   progress INTEGER NOT NULL,
-   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);

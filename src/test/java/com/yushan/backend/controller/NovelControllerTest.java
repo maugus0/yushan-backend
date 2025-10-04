@@ -2,7 +2,6 @@ package com.yushan.backend.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.dto.*;
-import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.NovelService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -172,14 +171,14 @@ public class NovelControllerTest {
         NovelDetailResponseDTO novel2 = createTestNovelDetailResponseDTO(2, "Novel 2", "Author 2");
         List<NovelDetailResponseDTO> novels = Arrays.asList(novel1, novel2);
         
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(novels, 25L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(novels, 25L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
         mockMvc.perform(get("/api/novels?page=0&size=10&sort=createTime&order=desc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(2))
                 .andExpect(jsonPath("$.data.totalElements").value(25))
@@ -196,14 +195,14 @@ public class NovelControllerTest {
     void listNovels_WithFilters_ReturnsFilteredResults() throws Exception {
         // Arrange
         NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Test Novel", "Test Author");
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
         mockMvc.perform(get("/api/novels?category=1&status=published&search=test"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(1))
                 .andExpect(jsonPath("$.data.totalElements").value(1));
     }
@@ -213,14 +212,14 @@ public class NovelControllerTest {
         // Arrange
         String authorId = "123e4567-e89b-12d3-a456-426614174000";
         NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Author's Novel", "Author Name");
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
         mockMvc.perform(get("/api/novels?author=" + authorId))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(1));
     }
 
@@ -230,28 +229,28 @@ public class NovelControllerTest {
         NovelDetailResponseDTO novel1 = createTestNovelDetailResponseDTO(1, "A Novel", "Author 1");
         NovelDetailResponseDTO novel2 = createTestNovelDetailResponseDTO(2, "B Novel", "Author 2");
         List<NovelDetailResponseDTO> novels = Arrays.asList(novel1, novel2);
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(novels, 2L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(novels, 2L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
         mockMvc.perform(get("/api/novels?sort=title&order=asc"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content.length()").value(2));
     }
 
     @Test
     void listNovels_WithEmptyResults_ReturnsEmptyPage() throws Exception {
         // Arrange
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(), 0L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(), 0L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
         mockMvc.perform(get("/api/novels"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.code").value(0))
                 .andExpect(jsonPath("$.data.content").isArray())
                 .andExpect(jsonPath("$.data.content.length()").value(0))
                 .andExpect(jsonPath("$.data.totalElements").value(0))
@@ -261,7 +260,7 @@ public class NovelControllerTest {
     @Test
     void listNovels_WithDefaultParameters_UsesDefaults() throws Exception {
         // Arrange
-        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(), 0L, 0, 10);
+        NovelSearchResponseDTO pageResponse = NovelSearchResponseDTO.of(Arrays.asList(), 0L, 0, 10);
         
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         

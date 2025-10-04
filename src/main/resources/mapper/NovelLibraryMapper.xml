@@ -1,142 +1,108 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="com.yushan.backend.dao.NovelLibraryMapper">
-    <resultMap id="BaseResultMap" type="com.yushan.backend.entity.NovelLibrary">
-        <constructor>
-            <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-            <arg column="library_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-            <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-            <arg column="progress" jdbcType="INTEGER" javaType="java.lang.Integer"/>
-            <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date"/>
-            <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date"/>
-        </constructor>
-    </resultMap>
-    <sql id="Base_Column_List">
-        id, library_id, novel_id, progress, create_time, update_time
-    </sql>
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
-        select
-        <include refid="Base_Column_List"/>
-        from novel_library
-        where id = #{id,jdbcType=INTEGER}
-    </select>
-
-    <select id="selectWithUserInfo" resultMap="BaseResultMap" parameterType="map">
-        SELECT nl.id,
-               nl.library_id,
-               nl.novel_id,
-               nl.progress,
-               nl.create_time,
-               nl.update_time,
-               l.user_id
-        FROM novel_library nl
-                 JOIN library l ON nl.library_id = l.id
-        WHERE l.user_id = #{userId,jdbcType=OTHER}
-    </select>
-
-    <select id="selectByUserIdAndNovelId" resultMap="BaseResultMap">
-        SELECT nl.*
-        FROM novel_library nl
-                 JOIN library l ON nl.library_id = l.id
-        WHERE l.user_id = #{userId,jdbcType=OTHER}
-          AND nl.novel_id = #{novelId,jdbcType=INTEGER}
-    </select>
-
-    <select id="countByUserId" resultType="long">
-        SELECT COUNT(*)
-        FROM novel_library nl
-                 JOIN library l ON nl.library_id = l.id
-        WHERE l.user_id = #{userId,jdbcType=OTHER}
-    </select>
-
-    <select id="selectByUserIdWithPagination" resultMap="BaseResultMap">
-        SELECT nl.*
-        FROM novel_library nl
-                 JOIN library l ON nl.library_id = l.id
-        WHERE l.user_id = #{userId,jdbcType=OTHER}
-        ORDER BY nl.${sort} ${order}
-            LIMIT #{size,jdbcType=INTEGER} OFFSET #{offset}
-    </select>
-
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        delete
-        from novel_library
-        where id = #{id,jdbcType=INTEGER}
-    </delete>
-
-    <delete id="deleteByUserIdAndNovelIds">
-        DELETE FROM novel_library
-        WHERE library_id IN (
-        SELECT id FROM library
-        WHERE user_id = #{userId}
-        )
-        AND novel_id IN
-        <foreach item="novelId" collection="novelIds" open="(" separator="," close=")">
-            #{novelId}
-        </foreach>
-    </delete>
-
-    <insert id="insert" parameterType="com.yushan.backend.entity.NovelLibrary" useGeneratedKeys="true" keyProperty="id">
-        insert into novel_library (library_id, novel_id,
-                                   progress, create_time, update_time)
-        values (#{libraryId,jdbcType=INTEGER}, #{novelId,jdbcType=INTEGER},
-                #{progress,jdbcType=INTEGER}, NOW(), NOW())
-    </insert>
-    <insert id="insertSelective" parameterType="com.yushan.backend.entity.NovelLibrary" useGeneratedKeys="true" keyProperty="id">
-        insert into novel_library
-        <trim prefix="(" suffix=")" suffixOverrides=",">
-            <if test="libraryId != null">
-                library_id,
-            </if>
-            <if test="novelId != null">
-                novel_id,
-            </if>
-            <if test="progress != null">
-                progress,
-            </if>
-            create_time,
-            update_time,
-        </trim>
-        <trim prefix="values (" suffix=")" suffixOverrides=",">
-            <if test="libraryId != null">
-                #{libraryId,jdbcType=INTEGER},
-            </if>
-            <if test="novelId != null">
-                #{novelId,jdbcType=INTEGER},
-            </if>
-            <if test="progress != null">
-                #{progress,jdbcType=INTEGER},
-            </if>
-            NOW(),
-            NOW()
-        </trim>
-    </insert>
-    <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.NovelLibrary">
-        update novel_library
-        <set>
-            <if test="libraryId != null">
-                library_id = #{libraryId,jdbcType=INTEGER},
-            </if>
-            <if test="novelId != null">
-                novel_id = #{novelId,jdbcType=INTEGER},
-            </if>
-            <if test="progress != null">
-                progress = #{progress,jdbcType=INTEGER},
-            </if>
-            <if test="createTime != null">
-                create_time = #{createTime,jdbcType=TIMESTAMP},
-            </if>
-            update_time = NOW()
-        </set>
-        where id = #{id,jdbcType=INTEGER}
-    </update>
-    <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.NovelLibrary">
-        update novel_library
-        set library_id  = #{libraryId,jdbcType=INTEGER},
-            novel_id    = #{novelId,jdbcType=INTEGER},
-            progress    = #{progress,jdbcType=INTEGER},
-            create_time = #{createTime,jdbcType=TIMESTAMP},
-            update_time = NOW()
-        where id = #{id,jdbcType=INTEGER}
-    </update>
+<mapper namespace="com.yushan.backend.dao.NovelLibraryMapper" >
+  <resultMap id="BaseResultMap" type="com.yushan.backend.entity.NovelLibrary" >
+    <constructor >
+      <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="library_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="progress" jdbcType="INTEGER" javaType="java.lang.Integer" />
+      <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+      <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+    </constructor>
+  </resultMap>
+  <sql id="Base_Column_List" >
+    id, library_id, novel_id, progress, create_time, update_time
+  </sql>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+    select 
+    <include refid="Base_Column_List" />
+    from novel_library
+    where id = #{id,jdbcType=INTEGER}
+  </select>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+    delete from novel_library
+    where id = #{id,jdbcType=INTEGER}
+  </delete>
+  <insert id="insert" parameterType="com.yushan.backend.entity.NovelLibrary" >
+    insert into novel_library (id, library_id, novel_id, 
+      progress, create_time, update_time
+      )
+    values (#{id,jdbcType=INTEGER}, #{libraryId,jdbcType=INTEGER}, #{novelId,jdbcType=INTEGER}, 
+      #{progress,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.yushan.backend.entity.NovelLibrary" >
+    insert into novel_library
+    <trim prefix="(" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        id,
+      </if>
+      <if test="libraryId != null" >
+        library_id,
+      </if>
+      <if test="novelId != null" >
+        novel_id,
+      </if>
+      <if test="progress != null" >
+        progress,
+      </if>
+      <if test="createTime != null" >
+        create_time,
+      </if>
+      <if test="updateTime != null" >
+        update_time,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides="," >
+      <if test="id != null" >
+        #{id,jdbcType=INTEGER},
+      </if>
+      <if test="libraryId != null" >
+        #{libraryId,jdbcType=INTEGER},
+      </if>
+      <if test="novelId != null" >
+        #{novelId,jdbcType=INTEGER},
+      </if>
+      <if test="progress != null" >
+        #{progress,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.NovelLibrary" >
+    update novel_library
+    <set >
+      <if test="libraryId != null" >
+        library_id = #{libraryId,jdbcType=INTEGER},
+      </if>
+      <if test="novelId != null" >
+        novel_id = #{novelId,jdbcType=INTEGER},
+      </if>
+      <if test="progress != null" >
+        progress = #{progress,jdbcType=INTEGER},
+      </if>
+      <if test="createTime != null" >
+        create_time = #{createTime,jdbcType=TIMESTAMP},
+      </if>
+      <if test="updateTime != null" >
+        update_time = #{updateTime,jdbcType=TIMESTAMP},
+      </if>
+    </set>
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.NovelLibrary" >
+    update novel_library
+    set library_id = #{libraryId,jdbcType=INTEGER},
+      novel_id = #{novelId,jdbcType=INTEGER},
+      progress = #{progress,jdbcType=INTEGER},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
 </mapper>
