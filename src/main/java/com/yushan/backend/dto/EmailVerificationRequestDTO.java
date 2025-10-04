@@ -13,7 +13,6 @@ public class EmailVerificationRequestDTO {
             example = "newuser@example.com")
     @NotBlank(message = "Email is required")
     @Email(message = "Email must be valid")
-    @Pattern(regexp = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$", message = "Email format is invalid")
     private String email;
 
     // Getters and Setters
