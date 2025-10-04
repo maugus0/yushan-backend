@@ -6,6 +6,7 @@ import com.yushan.backend.dto.UserRegistrationResponseDTO;
 import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.enums.Gender;
 import com.yushan.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -48,11 +49,10 @@ public class AuthService {
         user.setHashPassword(hashPassword(registrationDTO.getPassword()));
         user.setEmailVerified(true);
 
-        if (registrationDTO.getGender() != null) {
-            user.setGender(registrationDTO.getGender());
-        } else {
-            user.setGender(0); // default for unknown gender
-        }
+        Gender gender = Gender.fromCode(registrationDTO.getGender());
+        user.setGender(gender.getCode());
+        user.setAvatarUrl(gender.getAvatarUrl());
+
         if (registrationDTO.getBirthday() != null) {
             user.setBirthday(registrationDTO.getBirthday());
         } else {
@@ -65,7 +65,6 @@ public class AuthService {
         user.setLastActive(new Date());
 
         // set default user profile
-        user.setAvatarUrl("123"); //todo: set default avatar URL
         user.setStatus(1); // 1 for normal
         user.setIsAuthor(false);
         user.setIsAdmin(false);

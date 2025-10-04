@@ -36,6 +36,7 @@ public class UserRegistrationRequestDTO {
 
     @Min(value = 0, message = "gender must be 0 or 1 or 2")
     @Max(value = 2, message = "gender must be 0 or 1 or 2")
+    @NotNull(message = "gender cannot be empty")
     private Integer gender = 0;
 
     @NotBlank(message = "code cannot be empty")

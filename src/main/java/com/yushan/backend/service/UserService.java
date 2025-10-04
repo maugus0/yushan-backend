@@ -5,6 +5,7 @@ import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
 import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.Gender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -74,14 +75,19 @@ public class UserService {
         if (req.getEmail() != null && !req.getEmail().trim().isEmpty() && !req.getEmail().equals(existing.getEmail())) {
             toUpdate.setEmail(req.getEmail().trim());
         }
+        if (req.getGender() != null) {
+            toUpdate.setGender(req.getGender());
+            // check if update default gender URL
+            if(Gender.isDefaultAvatar(existing.getAvatarUrl())){
+                Gender gender = Gender.fromCode(req.getGender());
+                toUpdate.setAvatarUrl(gender.getAvatarUrl());
+            }
+        }
         if (req.getAvatarUrl() != null && !req.getAvatarUrl().trim().isEmpty()) {
             toUpdate.setAvatarUrl(req.getAvatarUrl().trim());
         }
         if (req.getProfileDetail() != null && !req.getProfileDetail().trim().isEmpty()) {
             toUpdate.setProfileDetail(req.getProfileDetail().trim());
-        }
-        if (req.getGender() != null) {
-            toUpdate.setGender(req.getGender());
         }
 
         // update timestamp
