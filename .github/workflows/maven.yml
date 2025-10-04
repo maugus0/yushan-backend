@@ -287,11 +287,6 @@ jobs:
         curl -fsSL https://railway.app/install.sh | sh
         echo "$HOME/.railway/bin" >> $GITHUB_PATH
         
-    - name: Set Railway environment variables
-      run: |
-        railway variables set SPRING_PROFILES_ACTIVE=staging --service $SVC_ID
-        railway variables set PORT=8080 --service $SVC_ID
-        
     - name: Redeploy staging
       run: railway redeploy --service $SVC_ID --yes
 

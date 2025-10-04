@@ -24,6 +24,12 @@ RUN ./mvnw clean package -DskipTests
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
 
+# Accept build argument for Spring profile
+ARG SPRING_PROFILES_ACTIVE=staging
+
+# Set environment variable
+ENV SPRING_PROFILES_ACTIVE=${SPRING_PROFILES_ACTIVE}
+
 # Create app user for security
 RUN addgroup -g 1001 -S appgroup && \
     adduser -u 1001 -S appuser -G appgroup
