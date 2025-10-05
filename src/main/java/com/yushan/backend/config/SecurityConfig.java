@@ -110,13 +110,9 @@ public class SecurityConfig {
                 .requestMatchers("/api/example/public").permitAll()
                 .requestMatchers("/api/public/**").permitAll()
                 .requestMatchers("/actuator/**").permitAll()
-                // Swagger/OpenAPI endpoints - FIXED
-                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/swagger-ui/index.html").permitAll()
+                // Swagger/OpenAPI endpoints
+                .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/error").permitAll()
-                // Root path and static resources
-                .requestMatchers("/", "/index.html", "/favicon.ico").permitAll()
-                // WebJars for Swagger UI
-                .requestMatchers("/webjars/**", "/swagger-resources/**").permitAll()
                 
                 // Novel APIs
                 .requestMatchers(HttpMethod.POST, "/api/novels").hasAnyRole("AUTHOR","ADMIN")
