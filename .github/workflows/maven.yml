@@ -296,7 +296,8 @@ jobs:
       run: |
         echo "Smoke test $STAGING_URL/actuator/health"
         for i in {1..30}; do
-          RESP=$(curl -fsS -H "Accept: application/json" "$STAGING_URL/actuator/health" || true)
+          # Follow redirects and handle both HTTP/HTTPS
+          RESP=$(curl -fsSL -H "Accept: application/json" -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/health" || true)
           echo "Attempt $i/30: $RESP"
           if echo "$RESP" | grep -q '"status":"UP"'; then
             echo "Health OK"
@@ -318,10 +319,10 @@ jobs:
       run: |
         set -e
         echo "Running smoke tests..."
-        curl -fsS "$STAGING_URL/api/example/public" | jq .
-        curl -fsS "$STAGING_URL/api/auth/test" | grep -q "test"
-        curl -fsS "$STAGING_URL/actuator/info" | jq .
-        curl -fsS "$STAGING_URL/actuator/metrics" | jq .
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/api/example/public" | jq .
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/api/auth/test" | grep -q "test"
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/info" | jq .
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/metrics" | jq .
         echo "All smoke tests passed!"
         
     # ZAP baseline
