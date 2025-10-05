@@ -329,7 +329,7 @@ jobs:
     name: OWASP ZAP Baseline (staging)
     runs-on: ubuntu-latest
     needs: [staging-deploy]
-    if: always()
+    if: needs.staging-deploy.result == 'success'
     permissions:
       contents: read
     steps:
@@ -340,7 +340,7 @@ jobs:
       uses: zaproxy/action-baseline@v0.13.0
       with:
         target: ${{ secrets.STAGING_URL }}
-        cmd_options: "-a -J zap.json -w zap.md -r zap.html"
+        cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
         
     - name: Upload ZAP report
       if: always()
