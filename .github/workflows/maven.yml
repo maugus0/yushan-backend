@@ -285,6 +285,10 @@ jobs:
     - name: Wait for deployment
       run: sleep 60
 
+    # Install curl for health checks
+    - name: Install curl
+      run: apk add --no-cache curl
+
     # Health check /actuator/health
     - name: Health Check
       env:
@@ -303,7 +307,11 @@ jobs:
         echo "Health check FAILED after 30 attempts"
         exit 1
 
-    # Additional smoke tests (jq already installed above)
+    # Install jq for JSON parsing
+    - name: Install jq
+      run: apk add --no-cache jq
+
+    # Additional smoke tests
     - name: Smoke Tests
       env:
         STAGING_URL: ${{ secrets.STAGING_URL }}
