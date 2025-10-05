@@ -1,7 +1,6 @@
 -- Initial database schema for Yushan Backend
 -- This migration creates all the basic tables
 
--- Users table
 CREATE TABLE users (
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -14,7 +13,7 @@ CREATE TABLE users (
     gender INTEGER,
     status INTEGER DEFAULT 1,
     is_author BOOLEAN DEFAULT FALSE,
-    author_verified BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE,
     level INTEGER DEFAULT 1,
     exp DOUBLE PRECISION DEFAULT 0.0,
     yuan DOUBLE PRECISION DEFAULT 0.0,
@@ -26,7 +25,7 @@ CREATE TABLE users (
     last_active TIMESTAMP
 );
 
--- Category table
+-- Category table (required by novel.category_id FK)
 CREATE TABLE category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -64,86 +63,19 @@ CREATE TABLE novel (
     CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
--- Chapter table
-CREATE TABLE chapter (
-    id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
-    novel_id INTEGER NOT NULL,
-    title VARCHAR(255) NOT NULL,
-    content TEXT,
-    chapter_num INTEGER NOT NULL,
-    word_cnt INTEGER DEFAULT 0,
-    is_published BOOLEAN DEFAULT FALSE,
-    is_free BOOLEAN DEFAULT TRUE,
-    yuan_price REAL DEFAULT 0.0,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    publish_time TIMESTAMP,
-    CONSTRAINT fk_chapter_novel FOREIGN KEY (novel_id) REFERENCES novel(id)
-);
-
--- Library table (user's personal library)
 CREATE TABLE library (
     id SERIAL PRIMARY KEY,
+    uuid UUID NOT NULL,
     user_id UUID NOT NULL,
-    novel_id INTEGER NOT NULL,
-    status INTEGER DEFAULT 0, -- 0: reading, 1: completed, 2: dropped
-    add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_read_time TIMESTAMP,
-    CONSTRAINT fk_library_user FOREIGN KEY (user_id) REFERENCES users(uuid),
-    CONSTRAINT fk_library_novel FOREIGN KEY (novel_id) REFERENCES novel(id),
-    UNIQUE(user_id, novel_id)
-);
-
--- Reading history table
-CREATE TABLE history (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    novel_id INTEGER NOT NULL,
-    chapter_id INTEGER,
-    read_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_history_user FOREIGN KEY (user_id) REFERENCES users(uuid),
-    CONSTRAINT fk_history_novel FOREIGN KEY (novel_id) REFERENCES novel(id),
-    CONSTRAINT fk_history_chapter FOREIGN KEY (chapter_id) REFERENCES chapter(id)
-);
-
--- Comments table
-CREATE TABLE comment (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    novel_id INTEGER NOT NULL,
-    content TEXT NOT NULL,
-    parent_id INTEGER,
-    is_deleted BOOLEAN DEFAULT FALSE,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES users(uuid),
-    CONSTRAINT fk_comment_novel FOREIGN KEY (novel_id) REFERENCES novel(id),
-    CONSTRAINT fk_comment_parent FOREIGN KEY (parent_id) REFERENCES comment(id)
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Reviews table
-CREATE TABLE review (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    novel_id INTEGER NOT NULL,
-    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    content TEXT,
-    is_deleted BOOLEAN DEFAULT FALSE,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES users(uuid),
-    CONSTRAINT fk_review_novel FOREIGN KEY (novel_id) REFERENCES novel(id),
-    UNIQUE(user_id, novel_id)
-);
-
--- Novel library junction table (for many-to-many relationship)
 CREATE TABLE novel_library (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    novel_id INTEGER NOT NULL,
-    add_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_novel_library_user FOREIGN KEY (user_id) REFERENCES users(uuid),
-    CONSTRAINT fk_novel_library_novel FOREIGN KEY (novel_id) REFERENCES novel(id),
-    UNIQUE(user_id, novel_id)
+   id SERIAL PRIMARY KEY,
+   library_id INTEGER NOT NULL,
+   novel_id INTEGER NOT NULL,
+   progress INTEGER NOT NULL,
+   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
