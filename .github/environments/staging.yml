@@ -8,8 +8,7 @@ description: Staging environment for testing and QA
 # Protection rules
 protection_rules:
   # Require approval for deployments
-  required_reviewers:
-    - phutruonnttn  # Replace with your GitHub username
+  required_reviewers: [] # Replace with your GitHub username
   
   # Wait timer before deployment (optional)
   wait_timer: 0  # minutes
