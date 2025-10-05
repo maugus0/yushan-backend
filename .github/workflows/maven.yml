@@ -230,7 +230,7 @@ jobs:
           type=raw,value=${{ github.sha }}
           type=raw,value=latest,enable={{is_default_branch}}
           type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
-          type=raw,value=ci-cd-testing,enable=${{ github.ref == 'refs/heads/ci-cd-testing' }}
+          type=raw,value=ci-cd-testing,enable=${{ github.ref == 'refs/heads/ci-cd-testing' || github.head_ref == 'ci-cd-testing' }}
           
     - name: Build and push Docker image
       id: build
