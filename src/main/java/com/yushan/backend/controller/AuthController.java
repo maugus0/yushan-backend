@@ -3,8 +3,6 @@ package com.yushan.backend.controller;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.User;
-import com.yushan.backend.exception.UnauthorizedException;
-import com.yushan.backend.security.CustomUserDetailsService;
 import com.yushan.backend.service.AuthService;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.exception.ValidationException;
@@ -12,12 +10,9 @@ import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -119,39 +114,5 @@ public class AuthController {
         mailService.sendVerificationCode(email);
 
         return ApiResponse.success("Verification code sent successfully");
-    }
-
-    /**
-     * Update last active time
-     * @param authentication
-     * @return
-     */
-    @PatchMapping("/lastActive")
-    public ApiResponse<String> updateLastActive(Authentication authentication) {
-        //get user id from authentication
-        UUID userId = getCurrentUserId(authentication);
-
-        authService.updateLastActive(userId);
-        return ApiResponse.success("Update last active successfully");
-    }
-
-    /**
-     * get current user id from authentication
-     */
-    protected UUID getCurrentUserId(Authentication authentication) {
-        if (authentication == null || !authentication.isAuthenticated()) {
-            throw new UnauthorizedException("Authentication required");
-        }
-
-        Object principal = authentication.getPrincipal();
-        if (principal instanceof CustomUserDetailsService.CustomUserDetails) {
-            String id = ((CustomUserDetailsService.CustomUserDetails) principal).getUserId();
-            if (id != null) {
-                return UUID.fromString(id);
-            } else {
-                throw new ValidationException("User ID not found");
-            }
-        }
-        throw new UnauthorizedException("Invalid authentication");
     }
 }

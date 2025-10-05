@@ -193,12 +193,6 @@ public class AuthService {
         return responseDTO;
     }
 
-    public void updateLastActive(UUID uuid) {
-        User user = userMapper.selectByPrimaryKey(uuid);
-        user.setLastActive(new Date());
-        userMapper.updateByPrimaryKeySelective(user);
-    }
-
     /**
      * hash password
      * @param password

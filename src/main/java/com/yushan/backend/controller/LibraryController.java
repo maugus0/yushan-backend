@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/library")
+@RequestMapping("/api/library")
 @CrossOrigin(origins = "*")
 @Validated
 public class LibraryController {
