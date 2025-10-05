@@ -231,6 +231,7 @@ jobs:
           type=raw,value=latest,enable={{is_default_branch}}
           
     - name: Build and push Docker image
+      id: build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -244,7 +245,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
+        image-ref: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
         format: 'sarif'
         output: 'trivy-results.sarif'
         
