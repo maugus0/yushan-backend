@@ -2,7 +2,7 @@ name: Yushan Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main ]
+    branches: [ main , ci-cd-testing ]
   pull_request:
     branches: [ main ]
     types: [opened, synchronize, reopened]
@@ -229,6 +229,9 @@ jobs:
           type=sha
           type=raw,value=${{ github.sha }}
           type=raw,value=latest,enable={{is_default_branch}}
+          # Tag cố định cho Railway
+          type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
+          type=raw,value=ci-cd-testing,enable=${{ github.ref == 'refs/heads/ci-cd-testing' }}
           
     - name: Build and push Docker image
       id: build
@@ -266,7 +269,7 @@ jobs:
     timeout-minutes: 20
     needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
     environment: yushan-staging
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     permissions:
       contents: read
       packages: read
