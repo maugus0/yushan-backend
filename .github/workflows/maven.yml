@@ -2,9 +2,9 @@ name: Yushan Backend CI/CD Pipeline
 
 on:
   push:
-    branches: [ main, ci-cd-testing ]
+    branches: [ main ]
   pull_request:
-    branches: [ main, ci-cd-testing ]
+    branches: [ main ]
     types: [opened, synchronize, reopened]
 
 # Avoid overlapping runs
