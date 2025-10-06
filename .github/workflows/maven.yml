@@ -81,7 +81,7 @@ jobs:
         cache: maven
         
     - name: Run SpotBugs (static analysis)
-      run: ./mvnw spotbugs:spotbugs
+      run: ./mvnw spotbugs:check
       
     - name: Run Checkstyle (code style)
       run: ./mvnw checkstyle:check
