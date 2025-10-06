@@ -8,7 +8,6 @@ import java.util.Date;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class LibraryResponseDTO {
     private Integer id;
     private Integer novelId;
@@ -32,6 +31,17 @@ public class LibraryResponseDTO {
     }
 
     public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime == null ? null : new Date(updateTime.getTime());
+    }
+
+    public LibraryResponseDTO(Integer id, Integer novelId, String novelTitle, String novelAuthor, String novelCover, Integer progress, Date createTime, Date updateTime) {
+        this.id = id;
+        this.novelId = novelId;
+        this.novelTitle = novelTitle;
+        this.novelAuthor = novelAuthor;
+        this.novelCover = novelCover;
+        this.progress = progress;
+        this.createTime = createTime == null ? null : new Date(createTime.getTime());
         this.updateTime = updateTime == null ? null : new Date(updateTime.getTime());
     }
 }

@@ -301,7 +301,6 @@ public class JwtIntegrationTest {
                 .andExpect(jsonPath("$.message").value("Verification code sent successfully"))
                 .andExpect(jsonPath("$.timestamp").exists());
     }
-
     // ==================== PROTECTED ENDPOINT TESTS ====================
 
     @Test

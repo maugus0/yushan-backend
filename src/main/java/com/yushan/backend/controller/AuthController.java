@@ -68,9 +68,6 @@ public class AuthController {
         String email = loginRequest.getEmail();
         String password = loginRequest.getPassword();
         UserRegistrationResponseDTO responseDTO = authService.loginAndCreateResponse(email, password);
-        if(responseDTO == null) {
-            throw new ValidationException("Invalid email or password");
-        }
         return ApiResponse.success("Login successful", responseDTO);
     }
 
@@ -95,12 +92,8 @@ public class AuthController {
     public ApiResponse<UserRegistrationResponseDTO> refresh(@Valid @RequestBody RefreshRequestDTO refreshRequest) {
         String refreshToken = refreshRequest.getRefreshToken();
 
-        try {
-            UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
-            return ApiResponse.success("Token refreshed successfully", responseDTO);
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException("Invalid refresh token");
-        }
+        UserRegistrationResponseDTO responseDTO = authService.refreshToken(refreshToken);
+        return ApiResponse.success("Token refreshed successfully", responseDTO);
     }
 
     /**
@@ -111,11 +104,6 @@ public class AuthController {
     @PostMapping("/send-email")
     public ApiResponse<String> sendEmail(@RequestBody EmailVerificationRequestDTO emailRequest) {
         String email = emailRequest.getEmail();
-
-        // check here instead of dto since only one field
-        if (email == null || email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
-            throw new ValidationException("Invalid email format");
-        }
 
         //query email if exists
         User user = userMapper.selectByEmail(email);
