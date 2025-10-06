@@ -1,0 +1,216 @@
+name: Promote to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      from-tag:
+        description: "Source tag (e.g., staging | sha-xxxxx | pr-20)"
+        required: false
+        default: "staging"
+      digest:
+        description: "Override specific digest (ghcr.io/...@sha256:xxx). Leave empty to use latest artifact."
+        required: false
+        default: ""
+      force-promote:
+        description: "Force promote (skip staging verification)"
+        required: false
+        default: false
+        type: boolean
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  promote:
+    name: Promote Image & Deploy to Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    environment: yushan-production  # Set protection rules to require approval
+    permissions:
+      contents: read
+      packages: write
+      deployments: write
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    # If user doesn't provide digest, get from latest build artifact
+    - name: Try download last image digest artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: image-digest
+        path: .
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+      continue-on-error: true
+
+    - name: Resolve SOURCE_IMAGE
+      id: resolve
+      run: |
+        REPO="ghcr.io/${{ github.repository }}"
+        if [ -n "${{ github.event.inputs.digest }}" ]; then
+          SRC="${{ github.event.inputs.digest }}"
+          echo "Using provided digest: $SRC"
+        elif [ -f image-digest.txt ]; then
+          DIGEST="$(cat image-digest.txt)"
+          SRC="${REPO}@${DIGEST}"
+          echo "Using digest from artifact: $SRC"
+        elif [ -n "${{ github.event.inputs.from-tag }}" ]; then
+          SRC="${REPO}:${{ github.event.inputs.from-tag }}"
+          echo "Using tag: $SRC"
+        else
+          echo "❌ No digest or tag provided"
+          echo "Please provide either:"
+          echo "  - A specific digest in the 'digest' input"
+          echo "  - A tag name in the 'from-tag' input"
+          echo "  - Or ensure a recent build artifact exists"
+          exit 1
+        fi
+        
+        echo "src=$SRC" >> $GITHUB_OUTPUT
+        TS="$(date +%Y%m%d-%H%M%S)"
+        echo "ts=$TS" >> $GITHUB_OUTPUT
+        echo "repo=$REPO" >> $GITHUB_OUTPUT
+        echo "✅ Source image resolved: $SRC"
+
+    # Verify source image exists
+    - name: Verify source image exists
+      run: |
+        echo "Verifying source image: ${{ steps.resolve.outputs.src }}"
+        docker buildx imagetools inspect "${{ steps.resolve.outputs.src }}" || {
+          echo "❌ Source image not found: ${{ steps.resolve.outputs.src }}"
+          echo "Please check the image exists and is accessible"
+          exit 1
+        }
+        echo "✅ Source image verified"
+
+    # Retag digest => prod + prod-<timestamp> (without pulling image locally)
+    - name: Retag to production (immutable promote)
+      run: |
+        echo "🏷️ Retagging to production..."
+        docker buildx imagetools create \
+          --tag "${{ steps.resolve.outputs.repo }}:prod" \
+          --tag "${{ steps.resolve.outputs.repo }}:prod-${{ steps.resolve.outputs.ts }}" \
+          "${{ steps.resolve.outputs.src }}"
+        echo "✅ Successfully tagged:"
+        echo "  - ${{ steps.resolve.outputs.repo }}:prod"
+        echo "  - ${{ steps.resolve.outputs.repo }}:prod-${{ steps.resolve.outputs.ts }}"
+
+    # Railway CLI
+    - name: Railway CLI
+      uses: docker://ghcr.io/railwayapp/cli:latest
+      with:
+        args: 'railway --version'
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    # Redeploy Production on Railway (prod service points to :prod)
+    - name: Redeploy Production
+      uses: docker://ghcr.io/railwayapp/cli:latest
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        SVC_ID: yushan-backend-production
+      with:
+        args: >
+          sh -c "railway redeploy --service $SVC_ID --yes"
+
+    # Wait for deployment
+    - name: Wait for production deployment
+      run: |
+        echo "⏳ Waiting for production deployment to complete..."
+        sleep 120  # Wait 2 minutes for deployment
+
+    # Install jq for JSON parsing
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+
+    # Health check
+    - name: Production Health Check
+      env:
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
+      run: |
+        echo "🏥 Checking production health..."
+        for i in {1..30}; do
+          echo "Attempt $i/30: Checking $PRODUCTION_URL/actuator/health"
+          RESP=$(curl -fsS -H "Accept: application/json" -H "User-Agent: GitHub-Actions" "$PRODUCTION_URL/actuator/health" || true)
+          echo "Response: $RESP"
+          if echo "$RESP" | grep -q '"status":"UP"'; then
+            echo "✅ Production health check passed!"
+            exit 0
+          fi
+          echo "⏳ Waiting 10s before next attempt..."
+          sleep 10
+        done
+        echo "❌ Production health check failed after 30 attempts"
+        echo "Please check the production deployment manually"
+        exit 1
+
+    # Additional production smoke tests
+    - name: Production Smoke Tests
+      env:
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
+      run: |
+        echo "🧪 Running production smoke tests..."
+        
+        # Test basic endpoints
+        echo "Testing /actuator/info..."
+        curl -fsS "$PRODUCTION_URL/actuator/info" | jq .
+        
+        echo "Testing /actuator/metrics..."
+        curl -fsS "$PRODUCTION_URL/actuator/metrics" | jq .
+        
+        echo "Testing /api/example/public..."
+        curl -fsS "$PRODUCTION_URL/api/example/public" | jq .
+        
+        echo "✅ All production smoke tests passed!"
+
+    # Save deployment info
+    - name: Save production deployment info
+      run: |
+        mkdir -p .deployment-info
+        cat > .deployment-info/production-deployment.json << EOF
+        {
+          "sha": "${{ github.sha }}",
+          "ref": "${{ github.ref }}",
+          "timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "source_image": "${{ steps.resolve.outputs.src }}",
+          "prod_tag": "prod-${{ steps.resolve.outputs.ts }}",
+          "promoted_by": "${{ github.actor }}",
+          "workflow_run": "${{ github.run_id }}"
+        }
+        EOF
+
+    - name: Upload production deployment info
+      uses: actions/upload-artifact@v4
+      with:
+        name: production-deployment-info
+        path: .deployment-info/
+        retention-days: 90
+
+    - name: Production deployment summary
+      run: |
+        echo "🎉 Production deployment completed successfully!"
+        echo ""
+        echo "📋 Deployment Summary:"
+        echo "  - Source: ${{ steps.resolve.outputs.src }}"
+        echo "  - Production tag: prod-${{ steps.resolve.outputs.ts }}"
+        echo "  - Deployed by: ${{ github.actor }}"
+        echo "  - Workflow run: ${{ github.run_id }}"
+        echo "  - Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo ""
+        echo "🔗 Production URL: https://yushan-backend-production.up.railway.app"
+        echo "🏷️ Image tags:"
+        echo "  - ${{ steps.resolve.outputs.repo }}:prod"
+        echo "  - ${{ steps.resolve.outputs.repo }}:prod-${{ steps.resolve.outputs.ts }}"

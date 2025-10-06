@@ -1,5 +1,5 @@
--- Seed data for local development (PostgreSQL)
--- NOTE: These scripts run ONLY when the Postgres data directory is empty
+-- Seed data for initial setup
+-- This migration adds basic data needed for the application
 
 -- Insert default admin user
 -- Email: admin@yushan.com
