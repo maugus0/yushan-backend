@@ -264,6 +264,17 @@ jobs:
         name: trivy-sarif
         path: trivy-results.sarif
 
+    # Save image digest for production promotion
+    - name: Save image digest
+      run: echo "${{ steps.build.outputs.digest }}" > image-digest.txt
+
+    - name: Upload image digest artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-digest
+        path: image-digest.txt
+        retention-days: 30
+
   staging-deploy:
     name: Deploy to Staging
     runs-on: ubuntu-latest
@@ -342,7 +353,7 @@ jobs:
     - name: ZAP Baseline
       uses: zaproxy/action-baseline@v0.13.0
       with:
-        target: https://yushan-backend-staging.up.railway.app
+        target: https://${{ secrets.STAGING_URL }}
         cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
         
     - name: Upload ZAP report
