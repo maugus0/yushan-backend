@@ -229,8 +229,11 @@ jobs:
           type=sha
           type=raw,value=${{ github.sha }}
           type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=staging,enable=${{ github.ref == 'refs/heads/main' }}
+          type=raw,value=ci-cd-testing,enable=${{ github.ref == 'refs/heads/ci-cd-testing' || github.head_ref == 'ci-cd-testing' }}
           
     - name: Build and push Docker image
+      id: build
       uses: docker/build-push-action@v5
       with:
         context: .
@@ -244,7 +247,7 @@ jobs:
     - name: Run Trivy vulnerability scanner
       uses: aquasecurity/trivy-action@master
       with:
-        image-ref: ghcr.io/${{ github.repository }}:${{ steps.meta.outputs.version }}
+        image-ref: ghcr.io/${{ github.repository }}@${{ steps.build.outputs.digest }}
         format: 'sarif'
         output: 'trivy-results.sarif'
         
@@ -261,85 +264,113 @@ jobs:
         name: trivy-sarif
         path: trivy-results.sarif
 
-  # TODO: Uncomment when ready to deploy
-  # staging-deploy:
-  #   name: Deploy to Staging
-  #   runs-on: ubuntu-latest
-  #   needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
-  #   environment: yushan-staging
-  #   if: github.ref == 'refs/heads/main'
-  #   permissions:
-  #     contents: read
-  #     packages: read
-  #     deployments: write
-  #   
-  #   steps:
-  #   - name: Checkout code
-  #     uses: actions/checkout@v4
-  #     
-  #   # Install official Railway CLI (non-interactive, reads token from env)
-  #   - name: Install Railway CLI
-  #     run: curl -fsSL https://railway.app/install.sh | sh
-  #
-  #   # Set environment variables for staging service on each deploy
-  #   - name: Set staging variables on Railway
-  #     env:
-  #       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-  #     run: |
-  #       railway variables set \
-  #         SPRING_DATASOURCE_URL='${{ secrets.STAGING_DATABASE_URL }}' \
-  #         SPRING_DATA_REDIS_URL='${{ secrets.STAGING_REDIS_URL }}' \
-  #         --project ${{ secrets.RAILWAY_PROJECT_ID }} \
-  #         --service yushan-be-staging
-  #
-  #   # Deploy image built/pushed in previous job
-  #   - name: Deploy image to Railway
-  #     env:
-  #       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-  #     run: |
-  #       IMAGE="ghcr.io/${{ github.repository }}:${{ github.ref_name }}"
-  #       railway deploy --image "$IMAGE" \
-  #         --project ${{ secrets.RAILWAY_PROJECT_ID }} \
-  #         --service yushan-be-staging
-  #
-  #   # Smoke test: poll /actuator/health until UP
-  #   - name: Health Check
-  #     env:
-  #       STAGING_URL: ${{ secrets.STAGING_URL }}
-  #     run: |
-  #       echo "Smoke test $STAGING_URL/actuator/health"
-  #       for i in {1..30}; do
-  #         if curl -fsS "$STAGING_URL/actuator/health" | grep -q '"status":"UP"'; then
-  #           echo "Health OK"; exit 0
-  #         fi
-  #         sleep 5
-  #       done
-  #       echo "Health check FAILED"; exit 1
-  #       
-  #   # ZAP baseline scan against fixed staging URL
-  #   - name: OWASP ZAP Baseline (staging)
-  #     if: always()
-  #     env:
-  #       STAGING_URL: ${{ secrets.STAGING_URL }}
-  #     run: |
-  #       docker run --rm -v $(pwd):/zap/wrk -t ghcr.io/zaproxy/zaproxy:stable \
-  #         zap-baseline.py -t "$STAGING_URL" \
-  #         -J zap.json -w zap.md -r zap.html -a
-  #
-  #   - name: Upload ZAP report
-  #     if: always()
-  #     uses: actions/upload-artifact@v4
-  #     with:
-  #       name: zap-staging
-  #       path: |
-  #         zap.html
-  #         zap.json
-  #         zap.md
+    # Save image digest for production promotion
+    - name: Save image digest
+      run: echo "${{ steps.build.outputs.digest }}" > image-digest.txt
+
+    - name: Upload image digest artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: image-digest
+        path: image-digest.txt
+        retention-days: 30
+
+  staging-deploy:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
+    environment: yushan-staging
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    permissions:
+      contents: read
+      packages: read
+      deployments: write
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      SVC_ID: yushan-backend-staging
+
+    steps:
+    - name: Redeploy staging
+      run: railway redeploy --service $SVC_ID --yes
+
+    # Wait 300s for warm-up (depends on app cold start)
+    - name: Wait for deployment
+      run: sleep 300
+
+    # Install curl for health checks
+    - name: Install curl
+      run: apk add --no-cache curl
+
+    # Health check /actuator/health
+    - name: Health Check
+      env:
+        STAGING_URL: ${{ secrets.STAGING_URL }}
+      run: |
+        echo "Smoke test $STAGING_URL/actuator/health"
+        for i in {1..30}; do
+          # Follow redirects and handle both HTTP/HTTPS
+          RESP=$(curl -fsSL -H "Accept: application/json" -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/health" || true)
+          echo "Attempt $i/30: $RESP"
+          if echo "$RESP" | grep -q '"status":"UP"'; then
+            echo "Health OK"
+            exit 0
+          fi
+          sleep 5
+        done
+        echo "Health check FAILED after 30 attempts"
+        exit 1
+
+    # Install jq for JSON parsing
+    - name: Install jq
+      run: apk add --no-cache jq
+
+    # Additional smoke tests
+    - name: Smoke Tests
+      env:
+        STAGING_URL: ${{ secrets.STAGING_URL }}
+      run: |
+        set -e
+        echo "Running smoke tests..."
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/api/example/public" | jq .
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/api/auth/test" | grep -q "test"
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/info" | jq .
+        curl -fsSL -H "User-Agent: GitHub-Actions" "$STAGING_URL/actuator/metrics" | jq .
+        echo "All smoke tests passed!"
+
+  dast-zap:
+    name: OWASP ZAP Baseline (staging)
+    runs-on: ubuntu-latest
+    needs: [staging-deploy]
+    if: needs.staging-deploy.result == 'success'
+    permissions:
+      contents: read
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: ZAP Baseline
+      uses: zaproxy/action-baseline@v0.13.0
+      with:
+        target: https://yushan-backend-staging.up.railway.app
+        cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
+        
+    - name: Upload ZAP report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: zap-staging
+        path: |
+          zap.html
+          zap.json
+          zap.md
 
   generate-reports:
     name: Generate CI Summary & Collect Reports
     runs-on: ubuntu-latest
-    needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
+    needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build, staging-deploy, dast-zap]
+    if: always()
     permissions:
       contents: read
       checks: write
@@ -359,6 +390,13 @@ jobs:
         name: trivy-sarif
         path: reports/trivy
 
+    - name: Download ZAP report
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        name: zap-staging
+        path: reports/zap
+
     - name: Create CI summary
       if: always()
       run: |
@@ -370,6 +408,7 @@ jobs:
           echo "## Artifacts";
           if [ -f reports/owasp/dependency-check-report.html ]; then echo "- OWASP Dependency-Check: reports/owasp/dependency-check-report.html"; fi
           if [ -f reports/trivy/trivy-results.sarif ]; then echo "- Trivy SARIF: reports/trivy/trivy-results.sarif"; fi
+          if [ -f reports/zap/zap.html ]; then echo "- ZAP Security Report: reports/zap/zap.html"; fi
         } > summary.md
 
     - name: Upload consolidated report bundle

@@ -1,13 +1,13 @@
-# GitHub Environment configuration for Staging
+# GitHub Environment configuration for Production
 # This file defines environment-specific settings and protection rules
 
-name: yushan-staging
-displayName: Yushan Staging Environment
-description: Staging environment for testing and QA
+name: yushan-production
+displayName: Yushan Production Environment
+description: Production environment for live application
 
 # Protection rules
 protection_rules:
-  # Require approval for deployments
+  # Require approval for deployments (CRITICAL for production)
   required_reviewers: [] # Replace with your GitHub username
   
   # Wait timer before deployment (optional)
@@ -16,7 +16,7 @@ protection_rules:
   # Prevent self-review
   prevent_self_review: true
   
-  # Restrict to specific branches
+  # Restrict to specific branches (main and ci-cd-testing for production testing)
   deployment_branch_policy:
     protected_branches: false
     custom_branch_policies: true
@@ -31,8 +31,11 @@ secrets:
   RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
   RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
   
-  # Database (Supabase)
-  STAGING_DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+  # Database (Supabase - Production)
+  PRODUCTION_DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
   
-  # Cache (Upstash)
-  STAGING_REDIS_URL: ${{ secrets.STAGING_REDIS_URL }}
+  # Cache (Upstash - Production)
+  PRODUCTION_REDIS_URL: ${{ secrets.PRODUCTION_REDIS_URL }}
+  
+  # Production URL
+  PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}

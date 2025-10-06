@@ -1,0 +1,208 @@
+name: Production Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      rollback-to:
+        description: "Rollback to specific tag (e.g., prod-20250106-143000 | staging | latest)"
+        required: true
+        default: ""
+      confirm-rollback:
+        description: "Confirm rollback (type 'ROLLBACK' to confirm)"
+        required: true
+        default: ""
+
+permissions:
+  contents: read
+  packages: write
+  deployments: write
+
+jobs:
+  rollback:
+    name: Rollback Production
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: yushan-production  # Set protection rules to require approval
+    permissions:
+      contents: read
+      packages: write
+      deployments: write
+
+    steps:
+    - name: Validate rollback confirmation
+      run: |
+        if [ "${{ github.event.inputs.confirm-rollback }}" != "ROLLBACK" ]; then
+          echo "❌ Rollback confirmation failed!"
+          echo "Please type 'ROLLBACK' in the confirm-rollback field to proceed"
+          exit 1
+        fi
+        echo "✅ Rollback confirmation validated"
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Resolve rollback target
+      id: rollback
+      run: |
+        REPO="ghcr.io/${{ github.repository }}"
+        ROLLBACK_TARGET="${{ github.event.inputs.rollback-to }}"
+        
+        if [ -z "$ROLLBACK_TARGET" ]; then
+          echo "❌ No rollback target specified"
+          echo "Please provide a rollback target (e.g., prod-20250106-143000, staging, latest)"
+          exit 1
+        fi
+        
+        # Determine source image
+        if [[ "$ROLLBACK_TARGET" == prod-* ]]; then
+          SRC="${REPO}:${ROLLBACK_TARGET}"
+        elif [[ "$ROLLBACK_TARGET" == staging ]]; then
+          SRC="${REPO}:staging"
+        elif [[ "$ROLLBACK_TARGET" == latest ]]; then
+          SRC="${REPO}:latest"
+        else
+          SRC="${REPO}:${ROLLBACK_TARGET}"
+        fi
+        
+        echo "src=$SRC" >> $GITHUB_OUTPUT
+        echo "repo=$REPO" >> $GITHUB_OUTPUT
+        echo "target=$ROLLBACK_TARGET" >> $GITHUB_OUTPUT
+        echo "✅ Rollback target resolved: $SRC"
+
+    # Verify rollback source exists
+    - name: Verify rollback source exists
+      run: |
+        echo "🔍 Verifying rollback source: ${{ steps.rollback.outputs.src }}"
+        docker buildx imagetools inspect "${{ steps.rollback.outputs.src }}" || {
+          echo "❌ Rollback source not found: ${{ steps.rollback.outputs.src }}"
+          echo "Available options:"
+          echo "  - prod-YYYYMMDD-HHMMSS (specific production version)"
+          echo "  - staging (latest staging version)"
+          echo "  - latest (latest version)"
+          echo "  - Or any other valid tag"
+          exit 1
+        }
+        echo "✅ Rollback source verified"
+
+    # Retag to prod
+    - name: Retag to production
+      run: |
+        echo "🏷️ Retagging ${{ steps.rollback.outputs.src }} to production..."
+        docker buildx imagetools create \
+          --tag "${{ steps.rollback.outputs.repo }}:prod" \
+          "${{ steps.rollback.outputs.src }}"
+        echo "✅ Successfully retagged to production"
+
+    # Railway CLI
+    - name: Railway CLI
+      uses: docker://ghcr.io/railwayapp/cli:latest
+      with:
+        args: 'railway --version'
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+    # Redeploy Production
+    - name: Redeploy Production
+      uses: docker://ghcr.io/railwayapp/cli:latest
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        SVC_ID: yushan-backend-production
+      with:
+        args: >
+          sh -c "railway redeploy --service $SVC_ID --yes"
+
+    # Wait for rollback deployment
+    - name: Wait for rollback deployment
+      run: |
+        echo "⏳ Waiting for rollback deployment to complete..."
+        sleep 120  # Wait 2 minutes for deployment
+
+    # Install jq for JSON parsing
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
+
+    # Health check
+    - name: Rollback Health Check
+      env:
+        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        echo "🏥 Checking rollback health..."
+        for i in {1..30}; do
+          echo "Attempt $i/30: Checking $PRODUCTION_URL/actuator/health"
+          RESP=$(curl -fsS -H "Accept: application/json" -H "User-Agent: GitHub-Actions" "$PRODUCTION_URL/actuator/health" || true)
+          echo "Response: $RESP"
+          if echo "$RESP" | grep -q '"status":"UP"'; then
+            echo "✅ Rollback health check passed!"
+            exit 0
+          fi
+          echo "⏳ Waiting 10s before next attempt..."
+          sleep 10
+        done
+        echo "❌ Rollback health check failed after 30 attempts"
+        echo "Please check the production deployment manually"
+        exit 1
+
+    # Rollback smoke tests
+    - name: Rollback Smoke Tests
+      env:
+        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+      run: |
+        echo "🧪 Running rollback smoke tests..."
+        
+        # Test basic endpoints
+        echo "Testing /actuator/info..."
+        curl -fsS "$PRODUCTION_URL/actuator/info" | jq .
+        
+        echo "Testing /actuator/metrics..."
+        curl -fsS "$PRODUCTION_URL/actuator/metrics" | jq .
+        
+        echo "Testing /api/example/public..."
+        curl -fsS "$PRODUCTION_URL/api/example/public" | jq .
+        
+        echo "✅ All rollback smoke tests passed!"
+
+    # Save rollback info
+    - name: Save rollback info
+      run: |
+        mkdir -p .deployment-info
+        cat > .deployment-info/rollback-info.json << EOF
+        {
+          "rollback_timestamp": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+          "rollback_to": "${{ steps.rollback.outputs.target }}",
+          "rollback_source": "${{ steps.rollback.outputs.src }}",
+          "rolled_back_by": "${{ github.actor }}",
+          "workflow_run": "${{ github.run_id }}",
+          "reason": "Manual rollback via GitHub Actions"
+        }
+        EOF
+
+    - name: Upload rollback info
+      uses: actions/upload-artifact@v4
+      with:
+        name: rollback-info
+        path: .deployment-info/
+        retention-days: 90
+
+    - name: Rollback summary
+      run: |
+        echo "🔄 Production rollback completed successfully!"
+        echo ""
+        echo "📋 Rollback Summary:"
+        echo "  - Rolled back to: ${{ steps.rollback.outputs.target }}"
+        echo "  - Source image: ${{ steps.rollback.outputs.src }}"
+        echo "  - Rolled back by: ${{ github.actor }}"
+        echo "  - Workflow run: ${{ github.run_id }}"
+        echo "  - Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo ""
+        echo "🔗 Production URL: ${{ secrets.PRODUCTION_URL }}"
+        echo "🏷️ Current production tag: prod"
