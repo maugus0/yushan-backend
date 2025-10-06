@@ -93,6 +93,7 @@ public class AuthService {
      * @param registrationDTO
      * @return
      */
+    @Transactional(rollbackFor = Exception.class)
     public UserRegistrationResponseDTO registerAndCreateResponse(UserRegistrationRequestDTO registrationDTO) {
 
         User user = register(registrationDTO);
