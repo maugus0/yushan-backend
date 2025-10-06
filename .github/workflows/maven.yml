@@ -329,7 +329,7 @@ jobs:
     # Additional smoke tests
     - name: Smoke Tests
       env:
-        STAGING_URL: ${{ secrets.STAGING_URL }}
+        STAGING_URL: https://yushan-backend-staging.up.railway.app
       run: |
         set -e
         echo "Running smoke tests..."

@@ -134,7 +134,7 @@ jobs:
     # Health check
     - name: Rollback Health Check
       env:
-        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
       run: |
         echo "🏥 Checking rollback health..."
         for i in {1..30}; do
@@ -155,7 +155,7 @@ jobs:
     # Rollback smoke tests
     - name: Rollback Smoke Tests
       env:
-        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
       run: |
         echo "🧪 Running rollback smoke tests..."
         
@@ -204,5 +204,5 @@ jobs:
         echo "  - Workflow run: ${{ github.run_id }}"
         echo "  - Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo ""
-        echo "🔗 Production URL: ${{ secrets.PRODUCTION_URL }}"
+        echo "🔗 Production URL: https://yushan-backend-production.up.railway.app"
         echo "🏷️ Current production tag: prod"

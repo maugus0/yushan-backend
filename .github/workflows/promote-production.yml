@@ -160,7 +160,7 @@ jobs:
     # Additional production smoke tests
     - name: Production Smoke Tests
       env:
-        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
       run: |
         echo "🧪 Running production smoke tests..."
         
@@ -210,7 +210,7 @@ jobs:
         echo "  - Workflow run: ${{ github.run_id }}"
         echo "  - Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo ""
-        echo "🔗 Production URL: ${{ secrets.PRODUCTION_URL }}"
+        echo "🔗 Production URL: https://yushan-backend-production.up.railway.app"
         echo "🏷️ Image tags:"
         echo "  - ${{ steps.resolve.outputs.repo }}:prod"
         echo "  - ${{ steps.resolve.outputs.repo }}:prod-${{ steps.resolve.outputs.ts }}"
