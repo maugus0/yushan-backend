@@ -353,7 +353,7 @@ jobs:
     - name: ZAP Baseline
       uses: zaproxy/action-baseline@v0.13.0
       with:
-        target: https://${{ secrets.STAGING_URL }}
+        target: ${{ secrets.STAGING_URL }}
         cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
         
     - name: Upload ZAP report
