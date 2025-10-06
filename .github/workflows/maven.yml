@@ -281,7 +281,7 @@ jobs:
     timeout-minutes: 20
     needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
     environment: yushan-staging
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
     permissions:
       contents: read
       packages: read
