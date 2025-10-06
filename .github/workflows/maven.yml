@@ -306,7 +306,7 @@ jobs:
     # Health check /actuator/health
     - name: Health Check
       env:
-        STAGING_URL: ${{ secrets.STAGING_URL }}
+        STAGING_URL: https://yushan-backend-staging.up.railway.app
       run: |
         echo "Smoke test $STAGING_URL/actuator/health"
         for i in {1..30}; do
@@ -353,7 +353,7 @@ jobs:
     - name: ZAP Baseline
       uses: zaproxy/action-baseline@v0.13.0
       with:
-        target: ${{ secrets.STAGING_URL }}
+        target: https://yushan-backend-staging.up.railway.app
         cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
         
     - name: Upload ZAP report

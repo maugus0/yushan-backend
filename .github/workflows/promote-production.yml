@@ -139,7 +139,7 @@ jobs:
     # Health check
     - name: Production Health Check
       env:
-        PRODUCTION_URL: ${{ secrets.PRODUCTION_URL }}
+        PRODUCTION_URL: https://yushan-backend-production.up.railway.app
       run: |
         echo "🏥 Checking production health..."
         for i in {1..30}; do
