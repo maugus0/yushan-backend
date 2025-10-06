@@ -103,20 +103,33 @@ jobs:
           "${{ steps.rollback.outputs.src }}"
         echo "✅ Successfully retagged to production"
 
+    # Railway CLI
+    - name: Railway CLI
+      uses: docker://ghcr.io/railwayapp/cli:latest
+      with:
+        args: 'railway --version'
+      env:
+        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
     # Redeploy Production
     - name: Redeploy Production
-      run: |
-        echo "🚀 Rolling back production deployment..."
-        railway redeploy --service $SVC_ID --yes
+      uses: docker://ghcr.io/railwayapp/cli:latest
       env:
         RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         SVC_ID: yushan-backend-production
+      with:
+        args: >
+          sh -c "railway redeploy --service $SVC_ID --yes"
 
     # Wait for rollback deployment
     - name: Wait for rollback deployment
       run: |
         echo "⏳ Waiting for rollback deployment to complete..."
         sleep 120  # Wait 2 minutes for deployment
+
+    # Install jq for JSON parsing
+    - name: Install jq
+      run: sudo apt-get update && sudo apt-get install -y jq
 
     # Health check
     - name: Rollback Health Check
