@@ -281,7 +281,7 @@ jobs:
     timeout-minutes: 20
     needs: [unit-tests, integration-tests, lint-quality, security-scan, docker-build]
     environment: yushan-staging
-    if: (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    if: (github.event_name == 'push' && github.ref == 'refs/heads/main') || github.event_name == 'pull_request'
     permissions:
       contents: read
       packages: read
@@ -353,7 +353,7 @@ jobs:
     - name: ZAP Baseline
       uses: zaproxy/action-baseline@v0.13.0
       with:
-        target: https://yushan-backend-staging.up.railway.app
+        target: ${{ secrets.STAGING_URL }}
         cmd_options: "-a -m 10 -J zap.json -w zap.md -r zap.html"
         
     - name: Upload ZAP report
@@ -382,6 +382,7 @@ jobs:
       with:
         name: owasp-dependency-check-report
         path: reports/owasp
+      continue-on-error: true
 
     - name: Download Trivy SARIF
       uses: actions/download-artifact@v4
@@ -389,6 +390,7 @@ jobs:
       with:
         name: trivy-sarif
         path: reports/trivy
+      continue-on-error: true
 
     - name: Download ZAP report
       uses: actions/download-artifact@v4
@@ -396,6 +398,7 @@ jobs:
       with:
         name: zap-staging
         path: reports/zap
+      continue-on-error: true
 
     - name: Create CI summary
       if: always()
@@ -404,11 +407,24 @@ jobs:
           echo "# Yushan Backend – CI Reports";
           echo "- Commit: $GITHUB_SHA";
           echo "- Branch: ${GITHUB_REF##*/}";
+          echo "- Event: ${{ github.event_name }}";
           echo "";
           echo "## Artifacts";
-          if [ -f reports/owasp/dependency-check-report.html ]; then echo "- OWASP Dependency-Check: reports/owasp/dependency-check-report.html"; fi
-          if [ -f reports/trivy/trivy-results.sarif ]; then echo "- Trivy SARIF: reports/trivy/trivy-results.sarif"; fi
-          if [ -f reports/zap/zap.html ]; then echo "- ZAP Security Report: reports/zap/zap.html"; fi
+          if [ -f reports/owasp/dependency-check-report.html ]; then 
+            echo "- OWASP Dependency-Check: reports/owasp/dependency-check-report.html"; 
+          else 
+            echo "- OWASP Dependency-Check: Not available (artifact not found or expired)"; 
+          fi
+          if [ -f reports/trivy/trivy-results.sarif ]; then 
+            echo "- Trivy SARIF: reports/trivy/trivy-results.sarif"; 
+          else 
+            echo "- Trivy SARIF: Not available (artifact not found or expired)"; 
+          fi
+          if [ -f reports/zap/zap.html ]; then 
+            echo "- ZAP Security Report: reports/zap/zap.html"; 
+          else 
+            echo "- ZAP Security Report: Not available (artifact not found or expired)"; 
+          fi
         } > summary.md
 
     - name: Upload consolidated report bundle
