@@ -295,9 +295,9 @@ jobs:
     - name: Redeploy staging
       run: railway redeploy --service $SVC_ID --yes
 
-    # Wait 300s for warm-up (depends on app cold start)
+    # Wait 180s for warm-up (depends on app cold start)
     - name: Wait for deployment
-      run: sleep 300
+      run: sleep 180
 
     # Install curl for health checks
     - name: Install curl
