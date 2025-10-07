@@ -220,7 +220,7 @@ note over U,DB: Email Notifications for Approval Status
 ```plantuml
 @startuml API Flow Sequence
 !theme plain
-title Detailed Novel Creation API Flow
+title Detailed Novel Creation & Publishing API Flow
 
 participant Client as C
 participant NovelController as NC
@@ -229,6 +229,7 @@ participant NovelMapper as NM
 participant CategoryMapper as CM
 database Database as DB
 
+== 1. Novel Creation ==
 C -> NC: POST /api/novels
 note over NC: Security & Validation
 NC -> NC: Check JWT token
@@ -247,7 +248,7 @@ alt Category exists
     note over NS: Create Novel Entity
     NS -> NS: new Novel()
     NS -> NS: Set all properties
-    NS -> NS: Set default values
+    NS -> NS: Set default values (status: DRAFT)
     
     NS -> NM: insertSelective(novel)
     NM -> DB: INSERT INTO novel VALUES (...)
@@ -261,6 +262,43 @@ else Category not found
     NS --> NC: IllegalArgumentException
     NC --> C: 400 Bad Request
 end
+
+== 2. Novel Publishing (Admin Only) ==
+C -> NC: PUT /api/novels/{id} (status: PUBLISHED)
+note over NC: Check Admin Role
+NC -> NC: Check if user is ADMIN
+
+alt User is Admin
+    NC -> NS: updateNovel(id, request)
+    NS -> NM: updateByPrimaryKeySelective(novel)
+    NM -> DB: UPDATE novel SET status = 2, publish_time = NOW()
+    DB --> NM: Novel updated
+    NM --> NS: Update successful
+    NS --> NC: NovelDetailResponseDTO
+    NC --> C: 200 OK + Updated novel
+else User is not Admin
+    NC --> C: 403 Forbidden - Only Admin can change status
+end
+
+== 3. Author Submit for Review (Future) ==
+C -> NC: POST /api/novels/{id}/submit-review
+NC -> NS: submitForReview(novelId, userId)
+NS -> NM: updateByPrimaryKeySelective(novel)
+NM -> DB: UPDATE novel SET status = 1 (UNDER_REVIEW)
+DB --> NM: Novel updated
+NM --> NS: Update successful
+NS --> NC: NovelDetailResponseDTO
+NC --> C: 200 OK + Novel under review
+
+== 4. Admin Approve Novel (Future) ==
+C -> NC: POST /api/novels/{id}/approve
+NC -> NS: approveNovel(novelId)
+NS -> NM: updateByPrimaryKeySelective(novel)
+NM -> DB: UPDATE novel SET status = 2, publish_time = NOW()
+DB --> NM: Novel approved and published
+NM --> NS: Update successful
+NS --> NC: NovelDetailResponseDTO
+NC --> C: 200 OK + Novel approved
 
 @enduml
 ```
@@ -303,12 +341,32 @@ note right
 - Pricing Settings
 end note
 
-:Publish Novel;
-note right
-- Status: DRAFT → PUBLISHED
-- Set Publish Time
-- Update Novel Stats
-end note
+if (User Role Check) then (Admin)
+    :Admin: Direct Publish;
+    note right
+    - Status: DRAFT → PUBLISHED
+    - Set Publish Time
+    - Update Novel Stats
+    end note
+else (Author)
+    :Author: Submit for Review;
+    note right
+    - Status: DRAFT → UNDER_REVIEW
+    - Wait for Admin Decision
+    end note
+    
+    :Admin Review Process;
+    if (Admin Decision) then (Approve)
+        :Status: UNDER_REVIEW → PUBLISHED;
+        :Set Publish Time;
+        :Update Novel Stats;
+    elseif (Reject) then (yes)
+        :Status: UNDER_REVIEW → DRAFT;
+        :Author can Edit and Resubmit;
+    else (Hide)
+        :Status: → HIDDEN;
+    endif
+endif
 
 stop
 
@@ -557,7 +615,6 @@ HIDDEN → PUBLISHED (Admin unhides)
 - `POST /api/novels/{id}/hide` - Hide novel (ADMIN only)
 - `GET /api/novels/admin/under-review` - Get novels under review (ADMIN only)
 
-### Library Management
-- `POST /library/{novelId}` - Add novel to library
-- `DELETE /library/{novelId}` - Remove novel from library
-- `GET /library` - Get personal library list
+### Category Management (for novel creation)
+- `GET /api/categories/active` - Get active categories (Public)
+- `GET /api/categories/{id}` - Get category by ID (Public)
