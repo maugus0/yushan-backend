@@ -11,6 +11,7 @@ import com.yushan.backend.service.AuthorService;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.service.UserService;
 import com.yushan.backend.util.JwtUtil;
+import com.yushan.backend.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,6 +84,9 @@ class AuthorControllerTest {
 
     @MockBean
     private MailService mailService;
+
+    @MockBean
+    private RedisUtil redisUtil;
 
     @MockBean
     private UserMapper userMapper;

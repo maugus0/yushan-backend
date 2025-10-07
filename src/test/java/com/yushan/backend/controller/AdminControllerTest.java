@@ -8,6 +8,7 @@ import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.service.AdminService;
 import com.yushan.backend.service.UserService;
 import com.yushan.backend.util.JwtUtil;
+import com.yushan.backend.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +46,9 @@ class AdminControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private RedisUtil redisUtil;
 
     private AdminPromoteRequestDTO request;
     private UserProfileResponseDTO response;
