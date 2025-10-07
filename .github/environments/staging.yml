@@ -8,8 +8,7 @@ description: Staging environment for testing and QA
 # Protection rules
 protection_rules:
   # Require approval for deployments
-  required_reviewers:
-    - phutruonnttn  # Replace with your GitHub username
+  required_reviewers: [] # Replace with your GitHub username
   
   # Wait timer before deployment (optional)
   wait_timer: 0  # minutes
@@ -24,14 +23,6 @@ protection_rules:
     custom_branches:
       - main
       - ci-cd-testing
-
-# Environment variables (will be set in GitHub UI)
-# These should be configured in GitHub repository settings
-# variables:
-#   # Application (using defaults for now)
-#   SPRING_PROFILES_ACTIVE: staging
-#   SERVER_PORT: 8080
-#   CORS_ALLOWED_ORIGINS: http://localhost:3000,https://yushan-staging.vercel.app
 
 # Environment secrets (will be set in GitHub UI)
 # These should be configured in GitHub repository settings

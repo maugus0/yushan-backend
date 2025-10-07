@@ -9,9 +9,8 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @EqualsAndHashCode(exclude = "content")
-public class NovelSearchResponseDTO {
-    
-    private List<NovelDetailResponseDTO> content;
+public class PageResponseDTO<T> {
+    private List<T> content;
     private long totalElements;
     private int totalPages;
     private int currentPage;
@@ -22,15 +21,15 @@ public class NovelSearchResponseDTO {
     private boolean hasPrevious;
     
     // Override getter and setter for content to use defensive copy
-    public List<NovelDetailResponseDTO> getContent() {
+    public List<T> getContent() {
         return content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
     }
     
-    public void setContent(List<NovelDetailResponseDTO> content) {
+    public void setContent(List<T> content) {
         this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
     }
     
-    public NovelSearchResponseDTO(List<NovelDetailResponseDTO> content, long totalElements, int currentPage, int size) {
+    public PageResponseDTO(List<T> content, long totalElements, int currentPage, int size) {
         this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
         this.totalElements = totalElements;
         this.currentPage = currentPage;
@@ -42,12 +41,12 @@ public class NovelSearchResponseDTO {
         this.hasPrevious = !this.first;
     }
     
-    public static NovelSearchResponseDTO of(List<NovelDetailResponseDTO> content, long totalElements, int currentPage, int size) {
-        return new NovelSearchResponseDTO(content, totalElements, currentPage, size);
+    public static <T> PageResponseDTO<T> of(List<T> content, long totalElements, int currentPage, int size) {
+        return new PageResponseDTO(content, totalElements, currentPage, size);
     }
     
     // All-args constructor for Lombok compatibility
-    public NovelSearchResponseDTO(List<NovelDetailResponseDTO> content, long totalElements, int totalPages, int currentPage, int size, boolean first, boolean last, boolean hasNext, boolean hasPrevious) {
+    public PageResponseDTO(List<T> content, long totalElements, int totalPages, int currentPage, int size, boolean first, boolean last, boolean hasNext, boolean hasPrevious) {
         this.content = content != null ? new java.util.ArrayList<>(content) : new java.util.ArrayList<>();
         this.totalElements = totalElements;
         this.totalPages = totalPages;

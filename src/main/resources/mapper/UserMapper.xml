@@ -14,7 +14,7 @@
       <arg column="gender" javaType="java.lang.Integer" jdbcType="INTEGER" />
       <arg column="status" javaType="java.lang.Integer" jdbcType="INTEGER" />
       <arg column="is_author" javaType="java.lang.Boolean" jdbcType="BIT" />
-      <arg column="author_verified" javaType="java.lang.Boolean" jdbcType="BIT" />
+      <arg column="is_admin" javaType="java.lang.Boolean" jdbcType="BIT" />
       <arg column="level" javaType="java.lang.Integer" jdbcType="INTEGER" />
       <arg column="exp" javaType="java.lang.Float" jdbcType="REAL" />
       <arg column="yuan" javaType="java.lang.Float" jdbcType="REAL" />
@@ -28,7 +28,7 @@
   </resultMap>
   <sql id="Base_Column_List">
     uuid, email, username, hash_password, email_verified, avatar_url, profile_detail, 
-    birthday, gender, status, is_author, author_verified, level, exp, yuan, read_time, 
+    birthday, gender, status, is_author, is_admin, level, exp, yuan, read_time, 
     read_book_num, create_time, update_time, last_login, last_active
   </sql>
   <select id="selectByPrimaryKey" parameterType="java.util.UUID" resultMap="BaseResultMap">
@@ -51,14 +51,14 @@
     insert into users (uuid, email, username,
       hash_password, email_verified, avatar_url,
       profile_detail, birthday, gender,
-      status, is_author, author_verified,
+      status, is_author, is_admin,
       level, exp, yuan, read_time,
       read_book_num, create_time, update_time,
       last_login, last_active)
     values (#{uuid,jdbcType=OTHER}, #{email,jdbcType=VARCHAR}, #{username,jdbcType=VARCHAR},
       #{hashPassword,jdbcType=VARCHAR}, #{emailVerified,jdbcType=BIT}, #{avatarUrl,jdbcType=VARCHAR},
       #{profileDetail,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{gender,jdbcType=INTEGER},
-      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{authorVerified,jdbcType=BIT},
+      #{status,jdbcType=INTEGER}, #{isAuthor,jdbcType=BIT}, #{isAdmin,jdbcType=BIT},
       #{level,jdbcType=INTEGER}, #{exp,jdbcType=REAL}, #{yuan,jdbcType=REAL}, #{readTime,jdbcType=REAL},
       #{readBookNum,jdbcType=INTEGER}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP},
       #{lastLogin,jdbcType=TIMESTAMP}, #{lastActive,jdbcType=TIMESTAMP})
@@ -99,8 +99,8 @@
       <if test="isAuthor != null">
         is_author,
       </if>
-      <if test="authorVerified != null">
-        author_verified,
+      <if test="isAdmin != null">
+        is_admin,
       </if>
       <if test="level != null">
         level,
@@ -164,8 +164,8 @@
       <if test="isAuthor != null">
         #{isAuthor,jdbcType=BIT},
       </if>
-      <if test="authorVerified != null">
-        #{authorVerified,jdbcType=BIT},
+      <if test="isAdmin != null">
+        #{isAdmin,jdbcType=BIT},
       </if>
       <if test="level != null">
         #{level,jdbcType=INTEGER},
@@ -229,8 +229,8 @@
       <if test="isAuthor != null">
         is_author = #{isAuthor,jdbcType=BIT},
       </if>
-      <if test="authorVerified != null">
-        author_verified = #{authorVerified,jdbcType=BIT},
+      <if test="isAdmin != null">
+        is_admin = #{isAdmin,jdbcType=BIT},
       </if>
       <if test="level != null">
         level = #{level,jdbcType=INTEGER},
@@ -274,7 +274,7 @@
       gender = #{gender,jdbcType=INTEGER},
       status = #{status,jdbcType=INTEGER},
       is_author = #{isAuthor,jdbcType=BIT},
-      author_verified = #{authorVerified,jdbcType=BIT},
+      is_admin = #{isAdmin,jdbcType=BIT},
       level = #{level,jdbcType=INTEGER},
       exp = #{exp,jdbcType=REAL},
       yuan = #{yuan,jdbcType=REAL},

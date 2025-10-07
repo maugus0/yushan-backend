@@ -147,7 +147,7 @@ public class NovelService {
         }
     }
 
-    public NovelSearchResponseDTO listNovelsWithPagination(NovelSearchRequestDTO request) {
+    public PageResponseDTO<NovelDetailResponseDTO> listNovelsWithPagination(NovelSearchRequestDTO request) {
         // Validate and set defaults
         if (request.getPage() == null || request.getPage() < 0) {
             request.setPage(0);
@@ -175,7 +175,6 @@ public class NovelService {
         List<NovelDetailResponseDTO> novelDTOs = novels.stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());
-        
-        return NovelSearchResponseDTO.of(novelDTOs, totalElements, request.getPage(), request.getSize());
+        return new PageResponseDTO<>(novelDTOs, totalElements, request.getPage(), request.getSize());
     }
 }

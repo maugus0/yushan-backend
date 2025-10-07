@@ -1,7 +1,7 @@
--- Basic schema for local development (PostgreSQL)
--- NOTE: These scripts run ONLY when the Postgres data directory is empty
+-- Initial database schema for Yushan Backend
+-- This migration creates all the basic tables
 
-CREATE TABLE IF NOT EXISTS users (
+CREATE TABLE users (
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(100) NOT NULL,
@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS users (
     gender INTEGER,
     status INTEGER DEFAULT 1,
     is_author BOOLEAN DEFAULT FALSE,
-    author_verified BOOLEAN DEFAULT FALSE,
+    is_admin BOOLEAN DEFAULT FALSE,
     level INTEGER DEFAULT 1,
     exp DOUBLE PRECISION DEFAULT 0.0,
     yuan DOUBLE PRECISION DEFAULT 0.0,
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
 );
 
 -- Category table (required by novel.category_id FK)
-CREATE TABLE IF NOT EXISTS category (
+CREATE TABLE category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS category (
 );
 
 -- Novel table
-CREATE TABLE IF NOT EXISTS novel (
+CREATE TABLE novel (
     id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -61,4 +61,21 @@ CREATE TABLE IF NOT EXISTS novel (
     publish_time TIMESTAMP,
     CONSTRAINT fk_novel_author FOREIGN KEY (author_id) REFERENCES users(uuid),
     CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
+);
+
+CREATE TABLE library (
+    id SERIAL PRIMARY KEY,
+    uuid UUID NOT NULL,
+    user_id UUID NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE novel_library (
+   id SERIAL PRIMARY KEY,
+   library_id INTEGER NOT NULL,
+   novel_id INTEGER NOT NULL,
+   progress INTEGER NOT NULL,
+   create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+   update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
