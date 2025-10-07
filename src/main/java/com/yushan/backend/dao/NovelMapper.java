@@ -25,4 +25,9 @@ public interface NovelMapper {
     List<Novel> selectNovelsWithPagination(@Param("req") NovelSearchRequestDTO req);
     
     long countNovels(@Param("req") NovelSearchRequestDTO req);
+    
+    // Vote count methods
+    int incrementVoteCount(@Param("novelId") Integer novelId);
+    
+    int decrementVoteCount(@Param("novelId") Integer novelId);
 }
