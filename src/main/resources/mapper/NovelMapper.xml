@@ -382,4 +382,68 @@
     from novel
     <include refid="Novel_Where" />
   </select>
+
+    <select id="selectNovelsByRanking" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM novel
+        <where>
+            is_valid = true
+            <if test="categoryId != null and categoryId > 0">
+                AND category_id = #{categoryId,jdbcType=INTEGER}
+            </if>
+        </where>
+        <choose>
+            <when test="sortType == 'view'">
+                ORDER BY view_cnt DESC
+            </when>
+            <when test="sortType == 'vote'">
+                ORDER BY vote_cnt DESC
+            </when>
+            <otherwise>
+                ORDER BY view_cnt DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countNovelsByRanking" resultType="long">
+        SELECT COUNT(*)
+        FROM novel
+        <where>
+            is_valid = true
+            <if test="categoryId != null and categoryId > 0">
+                AND category_id = #{categoryId,jdbcType=INTEGER}
+            </if>
+        </where>
+    </select>
+
+    <select id="selectAuthorsByRanking" resultType="com.yushan.backend.dto.AuthorResponseDTO">
+        SELECT
+        u.uuid as uuid,
+        u.username as username,
+        u.avatar_url as avatarUrl,
+        COUNT(n.id) as novelNum,
+        COALESCE(SUM(n.vote_cnt), 0) as totalVoteCnt,
+        COALESCE(SUM(n.view_cnt), 0) as totalViewCnt
+        FROM users u
+        LEFT JOIN novel n ON u.uuid = n.author_id AND n.is_valid = true
+        WHERE u.is_author = true
+        GROUP BY u.uuid, u.username, u.avatar_url
+        <choose>
+            <when test="sortType == 'novelNum'">
+                ORDER BY novelNum DESC, totalVoteCnt DESC, totalViewCnt DESC
+            </when>
+            <when test="sortType == 'vote'">
+                ORDER BY totalVoteCnt DESC, novelNum DESC, totalViewCnt DESC
+            </when>
+            <when test="sortType == 'view'">
+                ORDER BY totalViewCnt DESC, novelNum DESC, totalVoteCnt DESC
+            </when>
+            <otherwise>
+                ORDER BY novelNum DESC, totalVoteCnt DESC, totalViewCnt DESC
+            </otherwise>
+        </choose>
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
 </mapper>

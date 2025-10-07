@@ -1,32 +1,32 @@
 -- Initial database schema for Yushan Backend
 -- This migration creates all the basic tables
 
-CREATE TABLE users (
+CREATE TABLE users if not exists(
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(100) NOT NULL,
     hash_password VARCHAR(255) NOT NULL,
-    email_verified BOOLEAN DEFAULT FALSE,
-    avatar_url VARCHAR(500),
+    email_verified BOOLEAN NOT NULL DEFAULT FALSE,
+    avatar_url VARCHAR(500) NOT NULL,
     profile_detail TEXT,
     birthday DATE,
-    gender INTEGER,
-    status INTEGER DEFAULT 1,
-    is_author BOOLEAN DEFAULT FALSE,
-    is_admin BOOLEAN DEFAULT FALSE,
-    level INTEGER DEFAULT 1,
-    exp DOUBLE PRECISION DEFAULT 0.0,
-    yuan DOUBLE PRECISION DEFAULT 0.0,
-    read_time DOUBLE PRECISION DEFAULT 0.0,
-    read_book_num INTEGER DEFAULT 0,
-    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP,
-    last_active TIMESTAMP
+    gender INTEGER NOT NULL,
+    status INTEGER NOT NULL DEFAULT 1,
+    is_author BOOLEAN NOT NULL DEFAULT FALSE,
+    is_admin BOOLEAN NOT NULL DEFAULT FALSE,
+    level INTEGER NOT NULL DEFAULT 1,
+    exp DOUBLE NOT NULL PRECISION DEFAULT 0.0,
+    yuan DOUBLE NOT NULL PRECISION DEFAULT 0.0,
+    read_time DOUBLE NOT NULL PRECISION DEFAULT 0.0,
+    read_book_num INTEGER NOT NULL DEFAULT 0,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_login TIMESTAMP NOT NULL,
+    last_active TIMESTAMP NOT NULL
 );
 
 -- Category table (required by novel.category_id FK)
-CREATE TABLE category (
+CREATE TABLE category if not exists (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
@@ -37,7 +37,7 @@ CREATE TABLE category (
 );
 
 -- Novel table
-CREATE TABLE novel (
+CREATE TABLE novel if not exists(
     id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE novel (
     CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
-CREATE TABLE library (
+CREATE TABLE library if not exists(
     id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL,
     user_id UUID NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE library (
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE novel_library (
+CREATE TABLE novel_library if not exists (
    id SERIAL PRIMARY KEY,
    library_id INTEGER NOT NULL,
    novel_id INTEGER NOT NULL,
