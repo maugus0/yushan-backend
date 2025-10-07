@@ -295,11 +295,14 @@
           <when test="req.status == 'DRAFT'">
             and status = 0
           </when>
-          <when test="req.status == 'PUBLISHED'">
+          <when test="req.status == 'UNDER_REVIEW'">
             and status = 1
           </when>
-          <when test="req.status == 'ARCHIVED'">
+          <when test="req.status == 'PUBLISHED'">
             and status = 2
+          </when>
+          <when test="req.status == 'HIDDEN'">
+            and status = 3
           </when>
         </choose>
       </if>
