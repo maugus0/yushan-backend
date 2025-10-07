@@ -2,13 +2,11 @@ package com.yushan.backend.dto;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 import java.util.Date;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class CategoryResponseDTO {
 
     private Integer id;
@@ -19,6 +17,48 @@ public class CategoryResponseDTO {
     private Date createTime;
     private Date updateTime;
 
+
+    public CategoryResponseDTO(Integer id, String name, String description, String slug, Boolean isActive, Date createTime, Date updateTime) {
+        this.id = id;
+        this.name = name;
+        this.description = description;
+        this.slug = slug;
+        this.isActive = isActive;
+        this.setCreateTime(createTime);
+        this.setUpdateTime(updateTime);
+    }
+
+    // Defensive copy methods to prevent exposing internal representation
+    public Date getCreateTime() {
+        if (createTime == null) {
+            return null;
+        }
+        return new Date(createTime.getTime());
+    }
+
+    public void setCreateTime(Date createTime) {
+        if (createTime == null) {
+            this.createTime = null;
+        } else {
+            this.createTime = new Date(createTime.getTime());
+        }
+    }
+
+    public Date getUpdateTime() {
+        if (updateTime == null) {
+            return null;
+        }
+        return new Date(updateTime.getTime());
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        if (updateTime == null) {
+            this.updateTime = null;
+        } else {
+            this.updateTime = new Date(updateTime.getTime());
+        }
+    }
+
     /**
      * Convert Category entity to CategoryResponseDTO
      */
@@ -26,14 +66,14 @@ public class CategoryResponseDTO {
         if (category == null) {
             return null;
         }
-        return new CategoryResponseDTO(
-                category.getId(),
-                category.getName(),
-                category.getDescription(),
-                category.getSlug(),
-                category.getIsActive(),
-                category.getCreateTime(),
-                category.getUpdateTime()
-        );
+        CategoryResponseDTO dto = new CategoryResponseDTO();
+        dto.setId(category.getId());
+        dto.setName(category.getName());
+        dto.setDescription(category.getDescription());
+        dto.setSlug(category.getSlug());
+        dto.setIsActive(category.getIsActive());
+        dto.setCreateTime(category.getCreateTime());
+        dto.setUpdateTime(category.getUpdateTime());
+        return dto;
     }
 }

@@ -65,7 +65,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/api/categories"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Categories retrieved successfully"))
                     .andExpect(jsonPath("$.data.categories").isArray())
                     .andExpect(jsonPath("$.data.categories.length()").value(2))
@@ -89,7 +89,7 @@ class CategoryControllerTest {
             // When & Then
             mockMvc.perform(get("/api/categories"))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.data.categories").isArray())
                     .andExpect(jsonPath("$.data.categories.length()").value(0))
                     .andExpect(jsonPath("$.data.totalCount").value(0));
@@ -116,7 +116,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/api/categories/active"))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Active categories retrieved successfully"))
                     .andExpect(jsonPath("$.data.categories").isArray())
                     .andExpect(jsonPath("$.data.categories.length()").value(2))
@@ -143,7 +143,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/api/categories/{id}", id))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Category retrieved successfully"))
                     .andExpect(jsonPath("$.data.id").value(1))
                     .andExpect(jsonPath("$.data.name").value("Fiction"))
@@ -185,7 +185,7 @@ class CategoryControllerTest {
             mockMvc.perform(get("/api/categories/slug/{slug}", slug))
                     .andExpect(status().isOk())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.data.slug").value("fiction"))
                     .andExpect(jsonPath("$.data.name").value("Fiction"));
 
@@ -230,7 +230,7 @@ class CategoryControllerTest {
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isCreated())
                     .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Category created successfully"))
                     .andExpect(jsonPath("$.data.name").value("Science Fiction"))
                     .andExpect(jsonPath("$.data.slug").value("science-fiction"))
@@ -302,7 +302,7 @@ class CategoryControllerTest {
                             .contentType(MediaType.APPLICATION_JSON)
                             .content(objectMapper.writeValueAsString(request)))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.data.name").value("Updated Fiction"))
                     .andExpect(jsonPath("$.data.isActive").value(false));
 
@@ -344,7 +344,7 @@ class CategoryControllerTest {
             // When & Then
             mockMvc.perform(delete("/api/categories/{id}", id))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Category deactivated successfully"));
 
             verify(categoryService).deleteCategory(id);
@@ -380,7 +380,7 @@ class CategoryControllerTest {
             // When & Then
             mockMvc.perform(delete("/api/categories/{id}/hard", id))
                     .andExpect(status().isOk())
-                    .andExpect(jsonPath("$.code").value(0))
+                    .andExpect(jsonPath("$.code").value(200))
                     .andExpect(jsonPath("$.message").value("Category permanently deleted"));
 
             verify(categoryService).hardDeleteCategory(id);
