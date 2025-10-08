@@ -125,6 +125,11 @@ public class SecurityConfig {
                 .requestMatchers("/api/libraries/**").authenticated()
                 .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+                
+                // Review APIs - mixed public and authenticated
+                .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reviews/novel/*").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                 .requestMatchers("/api/reviews/**").authenticated()
 
                 // Admin endpoints - require admin role
