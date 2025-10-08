@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Integration tests for JWT authentication and authorization
+ * Unit tests for JWT authentication and authorization
  * 
  * This test class verifies the complete JWT flow including:
  * - Token generation and validation
@@ -51,7 +51,7 @@ import org.mockito.quality.Strictness;
 @ActiveProfiles("test")
 @Transactional
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JwtIntegrationTest {
+public class JwtAuthenticationTest {
 
     @Autowired
     private WebApplicationContext context;

@@ -27,6 +27,7 @@ import com.yushan.backend.security.CustomUserDetailsService.CustomUserDetails;
 import org.springframework.security.test.context.support.WithSecurityContext;
 import org.springframework.security.test.context.support.WithSecurityContextFactory;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.test.context.ActiveProfiles;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
@@ -42,6 +43,7 @@ import static org.hamcrest.Matchers.containsString;
 
 @WebMvcTest(AuthorController.class)
 @EnableMethodSecurity
+@ActiveProfiles("test")
 class AuthorControllerTest {
 
     @Retention(RetentionPolicy.RUNTIME)
