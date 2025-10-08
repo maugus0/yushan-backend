@@ -42,7 +42,17 @@ public class NovelController {
     @PutMapping("/{id}")
     @PreAuthorize("@novelGuard.canEdit(#id, authentication)")
     public ApiResponse<NovelDetailResponseDTO> updateNovel(@PathVariable Integer id,
-                                             @Valid @RequestBody NovelUpdateRequestDTO req) {
+                                             @Valid @RequestBody NovelUpdateRequestDTO req,
+                                             Authentication authentication) {
+        // Check if user is trying to change status - only admin allowed
+        if (req.getStatus() != null && !req.getStatus().trim().isEmpty()) {
+            boolean isAdmin = authentication.getAuthorities().stream()
+                    .anyMatch(auth -> auth.getAuthority().equals("ROLE_ADMIN"));
+            if (!isAdmin) {
+                throw new IllegalArgumentException("Only admin can change novel status directly");
+            }
+        }
+        
         NovelDetailResponseDTO dto = novelService.updateNovel(id, req);
         return ApiResponse.success("Novel updated successfully", dto);
     }
@@ -70,5 +80,52 @@ public class NovelController {
         
         PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         return ApiResponse.success("Novels retrieved successfully", response);
+    }
+
+    // Novel Approval Workflow APIs
+    
+    @PostMapping("/{id}/submit-review")
+    @PreAuthorize("hasRole('AUTHOR')")
+    public ApiResponse<NovelDetailResponseDTO> submitForReview(@PathVariable Integer id,
+                                                               Authentication authentication) {
+        Object principal = authentication != null ? authentication.getPrincipal() : null;
+        UUID userId = null;
+        if (principal instanceof CustomUserDetails) {
+            CustomUserDetails cud = (CustomUserDetails) principal;
+            userId = cud.getUserId() != null ? UUID.fromString(cud.getUserId()) : null;
+        }
+        
+        NovelDetailResponseDTO dto = novelService.submitForReview(id, userId);
+        return ApiResponse.success("Novel submitted for review", dto);
+    }
+
+    @PostMapping("/{id}/approve")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<NovelDetailResponseDTO> approveNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.approveNovel(id);
+        return ApiResponse.success("Novel approved and published", dto);
+    }
+
+    @PostMapping("/{id}/reject")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<NovelDetailResponseDTO> rejectNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.rejectNovel(id);
+        return ApiResponse.success("Novel rejected and returned to draft", dto);
+    }
+
+    @PostMapping("/{id}/hide")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<NovelDetailResponseDTO> hideNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.hideNovel(id);
+        return ApiResponse.success("Novel hidden", dto);
+    }
+
+    @GetMapping("/admin/under-review")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PageResponseDTO<NovelDetailResponseDTO>> getNovelsUnderReview(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size) {
+        PageResponseDTO<NovelDetailResponseDTO> novels = novelService.getNovelsUnderReview(page, size);
+        return ApiResponse.success("Novels under review retrieved", novels);
     }
 }
