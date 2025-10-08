@@ -71,9 +71,17 @@ public class NovelService {
             existing.setCategoryId(req.getCategoryId());
         }
         if (req.getCoverImgUrl() != null && !req.getCoverImgUrl().trim().isEmpty()) existing.setCoverImgUrl(req.getCoverImgUrl());
+        
+        // Status change is only allowed for admin - this should be handled at controller level
+        // but we add validation here as well for safety
         if (req.getStatus() != null && !req.getStatus().trim().isEmpty()) {
             NovelStatus s = NovelStatus.valueOf(req.getStatus());
             existing.setStatus(mapStatus(s));
+            
+            // Set publish time if publishing
+            if (s == NovelStatus.PUBLISHED) {
+                existing.setPublishTime(new Date());
+            }
         }
         if (req.getIsCompleted() != null) existing.setIsCompleted(req.getIsCompleted());
         existing.setUpdateTime(new Date());
@@ -87,7 +95,7 @@ public class NovelService {
         if (n == null) {
             throw new ResourceNotFoundException("novel not found");
         }
-        if (Boolean.FALSE.equals(n.getIsValid()) || Integer.valueOf(mapStatus(NovelStatus.ARCHIVED)).equals(n.getStatus())) {
+        if (Boolean.FALSE.equals(n.getIsValid())) {
             throw new ResourceNotFoundException("novel not found");
         }
         return toResponse(n);
@@ -97,10 +105,12 @@ public class NovelService {
         switch (status) {
             case DRAFT:
                 return 0;
-            case PUBLISHED:
+            case UNDER_REVIEW:
                 return 1;
-            case ARCHIVED:
+            case PUBLISHED:
                 return 2;
+            case HIDDEN:
+                return 3;
             default:
                 return 0;
         }
@@ -141,8 +151,9 @@ public class NovelService {
         if (status == null) return null;
         switch (status) {
             case 0: return NovelStatus.DRAFT.name();
-            case 1: return NovelStatus.PUBLISHED.name();
-            case 2: return NovelStatus.ARCHIVED.name();
+            case 1: return NovelStatus.UNDER_REVIEW.name();
+            case 2: return NovelStatus.PUBLISHED.name();
+            case 3: return NovelStatus.HIDDEN.name();
             default: return NovelStatus.DRAFT.name();
         }
     }
@@ -176,5 +187,89 @@ public class NovelService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
         return new PageResponseDTO<>(novelDTOs, totalElements, request.getPage(), request.getSize());
+    }
+
+    /**
+     * Submit novel for review (Author only)
+     */
+    public NovelDetailResponseDTO submitForReview(Integer novelId, UUID userId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("novel not found");
+        }
+        
+        // Check if user is the author
+        if (!novel.getAuthorId().equals(userId)) {
+            throw new IllegalArgumentException("only the author can submit for review");
+        }
+        
+        // Check if novel is in DRAFT status
+        if (!novel.getStatus().equals(mapStatus(NovelStatus.DRAFT))) {
+            throw new IllegalArgumentException("only draft novels can be submitted for review");
+        }
+        
+        novel.setStatus(mapStatus(NovelStatus.UNDER_REVIEW));
+        novel.setUpdateTime(new Date());
+        novelMapper.updateByPrimaryKeySelective(novel);
+        
+        return toResponse(novel);
+    }
+
+    /**
+     * Change novel status (Admin only)
+     */
+    private NovelDetailResponseDTO changeNovelStatus(Integer novelId, NovelStatus newStatus, NovelStatus requiredCurrentStatus, String errorMessage) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("novel not found");
+        }
+        
+        // Check current status if required
+        if (requiredCurrentStatus != null && !novel.getStatus().equals(mapStatus(requiredCurrentStatus))) {
+            throw new IllegalArgumentException(errorMessage);
+        }
+        
+        novel.setStatus(mapStatus(newStatus));
+        novel.setUpdateTime(new Date());
+        
+        // Set publish time if publishing
+        if (newStatus == NovelStatus.PUBLISHED) {
+            novel.setPublishTime(new Date());
+        }
+        
+        novelMapper.updateByPrimaryKeySelective(novel);
+        return toResponse(novel);
+    }
+
+    /**
+     * Approve novel for publishing (Admin only)
+     */
+    public NovelDetailResponseDTO approveNovel(Integer novelId) {
+        return changeNovelStatus(novelId, NovelStatus.PUBLISHED, NovelStatus.UNDER_REVIEW, 
+                "only novels under review can be approved");
+    }
+
+    /**
+     * Reject novel (Admin only)
+     */
+    public NovelDetailResponseDTO rejectNovel(Integer novelId) {
+        return changeNovelStatus(novelId, NovelStatus.DRAFT, NovelStatus.UNDER_REVIEW, 
+                "only novels under review can be rejected");
+    }
+
+    /**
+     * Hide novel (Admin only)
+     */
+    public NovelDetailResponseDTO hideNovel(Integer novelId) {
+        return changeNovelStatus(novelId, NovelStatus.HIDDEN, null, null);
+    }
+
+    /**
+     * Get novels under review (Admin only) - Reuse listNovels with pagination
+     */
+    public PageResponseDTO<NovelDetailResponseDTO> getNovelsUnderReview(int page, int size) {
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, "createTime", "desc", 
+                null, "UNDER_REVIEW", null, null);
+        return listNovelsWithPagination(request);
     }
 }

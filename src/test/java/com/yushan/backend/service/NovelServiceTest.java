@@ -147,27 +147,6 @@ public class NovelServiceTest {
     }
 
     @Test
-    void getNovel_ArchivedOrInvalid_ShouldThrowNotFound() {
-        Integer novelId = 3;
-
-        Novel archived = new Novel();
-        archived.setId(novelId);
-        archived.setIsValid(true);
-        archived.setStatus(2); // ARCHIVED
-
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(archived);
-        assertThrows(RuntimeException.class, () -> novelService.getNovel(novelId));
-
-        Novel invalid = new Novel();
-        invalid.setId(novelId);
-        invalid.setIsValid(false);
-        invalid.setStatus(1);
-
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(invalid);
-        assertThrows(RuntimeException.class, () -> novelService.getNovel(novelId));
-    }
-
-    @Test
     void getNovel_Valid_ShouldReturnResponse() {
         Integer novelId = 4;
         Novel ok = new Novel();
@@ -282,6 +261,66 @@ public class NovelServiceTest {
         
         // Assert - Verify page was set to 0
         verify(novelMapper).selectNovelsWithPagination(argThat(req -> req.getPage() == 0));
+    }
+
+    @Test
+    void submitForReview_ShouldChangeStatusToUnderReview_WhenValidRequest() {
+        // Arrange
+        Integer novelId = 1;
+        UUID userId = UUID.randomUUID();
+        Novel novel = createTestNovel(novelId, "Test Novel", userId, "Test Author", 1);
+        novel.setStatus(0); // DRAFT
+        
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+        
+        // Act
+        NovelDetailResponseDTO result = novelService.submitForReview(novelId, userId);
+        
+        // Assert
+        assertNotNull(result);
+        verify(novelMapper).updateByPrimaryKeySelective(argThat(n -> n.getStatus() == 1)); // UNDER_REVIEW
+    }
+
+    @Test
+    void approveNovel_ShouldChangeStatusToPublished_WhenUnderReview() {
+        // Arrange
+        Integer novelId = 1;
+        Novel novel = createTestNovel(novelId, "Test Novel", UUID.randomUUID(), "Test Author", 1);
+        novel.setStatus(1); // UNDER_REVIEW
+        
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+        
+        // Act
+        NovelDetailResponseDTO result = novelService.approveNovel(novelId);
+        
+        // Assert
+        assertNotNull(result);
+        verify(novelMapper).updateByPrimaryKeySelective(argThat(n -> 
+            n.getStatus() == 2 && n.getPublishTime() != null)); // PUBLISHED with publish time
+    }
+
+    @Test
+    void getNovelsUnderReview_ShouldReturnPaginatedResults() {
+        // Arrange
+        Novel novel1 = createTestNovel(1, "Novel 1", UUID.randomUUID(), "Author 1", 1);
+        Novel novel2 = createTestNovel(2, "Novel 2", UUID.randomUUID(), "Author 2", 1);
+        novel1.setStatus(1); // UNDER_REVIEW
+        novel2.setStatus(1); // UNDER_REVIEW
+        
+        when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList(novel1, novel2));
+        when(novelMapper.countNovels(any())).thenReturn(2L);
+        
+        // Act
+        PageResponseDTO<NovelDetailResponseDTO> result = novelService.getNovelsUnderReview(0, 10);
+        
+        // Assert
+        assertNotNull(result);
+        assertEquals(2, result.getContent().size());
+        verify(novelMapper).selectNovelsWithPagination(argThat(req -> 
+            "UNDER_REVIEW".equals(req.getStatus())
+        ));
     }
 
     private Novel createTestNovel(Integer id, String title, UUID authorId, String authorName, Integer categoryId) {

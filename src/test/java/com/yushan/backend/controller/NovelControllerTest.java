@@ -302,6 +302,75 @@ public class NovelControllerTest {
         dto.setPublishTime(new java.util.Date());
         return dto;
     }
+
+    @Test
+    void submitForReview_ShouldReturnSuccess_WhenAuthorSubmitsDraftNovel() throws Exception {
+        // Arrange
+        Integer novelId = 1;
+        NovelDetailResponseDTO responseDTO = createTestNovelDetailResponseDTO(novelId, "Test Novel", "Test Author");
+        responseDTO.setStatus("UNDER_REVIEW");
+        
+        when(novelService.submitForReview(eq(novelId), any())).thenReturn(responseDTO);
+        
+        // Act & Assert
+        mockMvc.perform(post("/api/novels/{id}/submit-review", novelId)
+                .with(user("testuser").roles("AUTHOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.status").value("UNDER_REVIEW"));
+    }
+
+    @Test
+    void approveNovel_ShouldReturnSuccess_WhenAdminApprovesNovel() throws Exception {
+        // Arrange
+        Integer novelId = 1;
+        NovelDetailResponseDTO responseDTO = createTestNovelDetailResponseDTO(novelId, "Test Novel", "Test Author");
+        responseDTO.setStatus("PUBLISHED");
+        
+        when(novelService.approveNovel(novelId)).thenReturn(responseDTO);
+        
+        // Act & Assert
+        mockMvc.perform(post("/api/novels/{id}/approve", novelId)
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+    }
+
+    @Test
+    void getNovelsUnderReview_ShouldReturnPaginatedResults_WhenAdminRequests() throws Exception {
+        // Arrange
+        NovelDetailResponseDTO novel1 = createTestNovelDetailResponseDTO(1, "Novel 1", "Author 1");
+        NovelDetailResponseDTO novel2 = createTestNovelDetailResponseDTO(2, "Novel 2", "Author 2");
+        novel1.setStatus("UNDER_REVIEW");
+        novel2.setStatus("UNDER_REVIEW");
+        
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(
+            Arrays.asList(novel1, novel2), 2L, 0, 10);
+        
+        when(novelService.getNovelsUnderReview(0, 10)).thenReturn(pageResponse);
+        
+        // Act & Assert
+        mockMvc.perform(get("/api/novels/admin/under-review")
+                .with(user("admin").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.content.length()").value(2));
+    }
+
+    @Test
+    void updateNovel_ShouldRejectStatusChange_WhenAuthorTriesToChangeStatus() throws Exception {
+        // Arrange
+        Integer novelId = 1;
+        NovelUpdateRequestDTO updateRequest = new NovelUpdateRequestDTO();
+        updateRequest.setStatus("PUBLISHED");
+        
+        // Act & Assert
+        mockMvc.perform(put("/api/novels/{id}", novelId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updateRequest))
+                .with(user("testuser").roles("AUTHOR")))
+                .andExpect(status().isUnauthorized());
+    }
 }
 
 
