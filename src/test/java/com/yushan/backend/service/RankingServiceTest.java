@@ -16,6 +16,7 @@ import org.mockito.MockitoAnnotations;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -127,9 +128,13 @@ class RankingServiceTest {
         user.setUuid(id);
         user.setUuid(UUID.randomUUID());
         user.setUsername("testuser" + id);
+        user.setEmailVerified(true);
+        user.setAvatarUrl("avatar.jpg");
+        user.setGender(1);
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
         user.setExp(100f);
         user.setLevel(1);
-        user.setAvatarUrl("avatar.jpg");
         return user;
     }
 }

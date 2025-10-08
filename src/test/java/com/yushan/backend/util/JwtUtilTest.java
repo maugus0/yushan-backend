@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +32,11 @@ public class JwtUtilTest {
         testUser.setUuid(UUID.randomUUID());
         testUser.setEmail("test@example.com");
         testUser.setUsername("testuser");
+        testUser.setEmailVerified(true);
+        testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setGender(1);
+        testUser.setLastLogin(new Date());
+        testUser.setLastActive(new Date());
         testUser.setIsAuthor(true);
     }
 
@@ -90,6 +96,11 @@ public class JwtUtilTest {
         User differentUser = new User();
         differentUser.setUuid(UUID.randomUUID());
         differentUser.setEmail("different@example.com");
+        differentUser.setEmailVerified(true);
+        differentUser.setAvatarUrl("https://example.com/avatar.jpg");
+        differentUser.setGender(1);
+        differentUser.setLastLogin(new Date());
+        differentUser.setLastActive(new Date());
         
         assertFalse(jwtUtil.validateToken(token, differentUser), "Token with wrong user should fail validation");
     }
