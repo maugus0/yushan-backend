@@ -23,7 +23,7 @@ public class RankingService {
     @Autowired
     private UserMapper userMapper;
 
-    private final int MAX_TOTAL_RECORDS = 100;
+    private static final int MAX_TOTAL_RECORDS = 100;
 
     /**
      * @param page
