@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -31,6 +32,11 @@ public class JwtDemoTest {
         user.setUuid(UUID.randomUUID());
         user.setEmail("demo@example.com");
         user.setUsername("demo_user");
+        user.setEmailVerified(true);
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setGender(1);
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
         user.setIsAuthor(true);
 
         // Test token generation
@@ -66,6 +72,11 @@ public class JwtDemoTest {
         user.setUuid(UUID.randomUUID());
         user.setEmail("structure@example.com");
         user.setUsername("structure_user");
+        user.setEmailVerified(true);
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setGender(1);
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
         user.setIsAuthor(false);
 
         String token = jwtUtil.generateAccessToken(user);
@@ -87,12 +98,22 @@ public class JwtDemoTest {
         user1.setUuid(UUID.randomUUID());
         user1.setEmail("user1@example.com");
         user1.setUsername("user1");
+        user1.setEmailVerified(true);
+        user1.setAvatarUrl("https://example.com/avatar1.jpg");
+        user1.setGender(1);
+        user1.setLastLogin(new Date());
+        user1.setLastActive(new Date());
         user1.setIsAuthor(true);
 
         User user2 = new User();
         user2.setUuid(UUID.randomUUID());
         user2.setEmail("user2@example.com");
         user2.setUsername("user2");
+        user2.setEmailVerified(true);
+        user2.setAvatarUrl("https://example.com/avatar2.jpg");
+        user2.setGender(1);
+        user2.setLastLogin(new Date());
+        user2.setLastActive(new Date());
         user2.setIsAuthor(false);
 
         // Generate tokens for both users
@@ -124,6 +145,10 @@ public class JwtDemoTest {
         adminUser.setUsername("AdminUser");
         adminUser.setHashPassword("hashedpassword");
         adminUser.setEmailVerified(true);
+        adminUser.setAvatarUrl("https://example.com/admin-avatar.jpg");
+        adminUser.setGender(1);
+        adminUser.setLastLogin(new Date());
+        adminUser.setLastActive(new Date());
         adminUser.setStatus(1);
         adminUser.setIsAuthor(true);
         adminUser.setIsAdmin(true);  // Admin user
@@ -139,6 +164,10 @@ public class JwtDemoTest {
         normalUser.setUsername("NormalUser");
         normalUser.setHashPassword("hashedpassword");
         normalUser.setEmailVerified(true);
+        normalUser.setAvatarUrl("https://example.com/normal-avatar.jpg");
+        normalUser.setGender(1);
+        normalUser.setLastLogin(new Date());
+        normalUser.setLastActive(new Date());
         normalUser.setStatus(1);
         normalUser.setIsAuthor(false);
         normalUser.setIsAdmin(false);  // Normal user

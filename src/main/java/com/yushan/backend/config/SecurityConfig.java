@@ -126,6 +126,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
                 .requestMatchers("/api/reviews/**").authenticated()
+                .requestMatchers("/api/ranking/**").authenticated()
 
                 // Admin endpoints - require admin role
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")

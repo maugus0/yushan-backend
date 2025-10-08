@@ -37,12 +37,33 @@
     from users
     where uuid = #{uuid,jdbcType=OTHER}
   </select>
+
   <select id="selectByEmail" parameterType="java.lang.String" resultMap="BaseResultMap">
     select
     <include refid="Base_Column_List" />
     from users
     where email = #{email,jdbcType=VARCHAR}
   </select>
+
+    <select id="selectUsersByRanking" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM users
+        WHERE is_admin = false
+        ORDER BY exp DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAllUsers" resultType="long">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="countAllAuthors" resultType="long">
+        SELECT COUNT(*)
+        FROM users
+        WHERE is_author = true
+    </select>
+
   <delete id="deleteByPrimaryKey" parameterType="java.util.UUID">
     delete from users
     where uuid = #{uuid,jdbcType=OTHER}

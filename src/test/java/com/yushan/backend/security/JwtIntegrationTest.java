@@ -22,6 +22,7 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Date;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -113,6 +114,11 @@ public class JwtIntegrationTest {
         testUser.setEmail("testuser@example.com");
         testUser.setUsername("testuser");
         testUser.setHashPassword(passwordEncoder.encode("password123"));
+        testUser.setEmailVerified(true);
+        testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setGender(1);
+        testUser.setLastLogin(new Date());
+        testUser.setLastActive(new Date());
         testUser.setIsAuthor(false);
         userMapper.insert(testUser);
 
@@ -122,6 +128,11 @@ public class JwtIntegrationTest {
         authorUser.setEmail("author@example.com");
         authorUser.setUsername("author");
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
+        authorUser.setEmailVerified(true);
+        authorUser.setAvatarUrl("https://example.com/author-avatar.jpg");
+        authorUser.setGender(1);
+        authorUser.setLastLogin(new Date());
+        authorUser.setLastActive(new Date());
         authorUser.setIsAuthor(true);
         userMapper.insert(authorUser);
 
@@ -140,6 +151,10 @@ public class JwtIntegrationTest {
         user.setUsername(username);
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setGender(1);
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
         user.setStatus(1);
         user.setIsAuthor(isAuthor);
         user.setIsAdmin(isAdmin);

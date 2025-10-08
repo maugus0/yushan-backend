@@ -30,6 +30,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.anyString;
@@ -60,6 +61,11 @@ class AuthorControllerTest {
             user.setEmail(annotation.email());
             user.setUsername("testuser");
             user.setHashPassword("password");
+            user.setEmailVerified(true);
+            user.setAvatarUrl("https://example.com/avatar.jpg");
+            user.setGender(1);
+            user.setLastLogin(new Date());
+            user.setLastActive(new Date());
             user.setIsAuthor(false);
             user.setIsAdmin(false);
 
@@ -107,6 +113,11 @@ class AuthorControllerTest {
         testUser.setUuid(UUID.randomUUID());
         testUser.setEmail(testEmail);
         testUser.setUsername("testuser");
+        testUser.setEmailVerified(true);
+        testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setGender(1);
+        testUser.setLastLogin(new Date());
+        testUser.setLastActive(new Date());
         testUser.setIsAuthor(false);
         testUser.setIsAdmin(false);
     }

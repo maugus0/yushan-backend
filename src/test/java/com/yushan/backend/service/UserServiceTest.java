@@ -59,9 +59,12 @@ public class UserServiceTest {
         existing.setUuid(id);
         existing.setEmail("old@example.com");
         existing.setUsername("oldname");
+        existing.setEmailVerified(true);
         existing.setAvatarUrl("old.png");
         existing.setProfileDetail("old profile");
         existing.setGender(1);
+        existing.setLastLogin(new Date());
+        existing.setLastActive(new Date());
         existing.setReadTime(10.5f);
         existing.setReadBookNum(5);
 
@@ -71,9 +74,12 @@ public class UserServiceTest {
         after.setUuid(id);
         after.setEmail("old@example.com");
         after.setUsername("newname");
+        after.setEmailVerified(true);
         after.setAvatarUrl("new.png");
         after.setProfileDetail("new profile");
         after.setGender(2);
+        after.setLastLogin(new Date());
+        after.setLastActive(new Date());
         after.setReadTime(10.5f);
         after.setReadBookNum(5);
         after.setUpdateTime(new Date());
@@ -118,6 +124,11 @@ public class UserServiceTest {
         User existing = new User();
         existing.setUuid(id);
         existing.setEmail("old@example.com");
+        existing.setEmailVerified(true);
+        existing.setAvatarUrl("https://example.com/avatar.jpg");
+        existing.setGender(1);
+        existing.setLastLogin(new Date());
+        existing.setLastActive(new Date());
         when(userMapper.selectByPrimaryKey(id)).thenReturn(existing);
 
         UserProfileUpdateRequestDTO req = new UserProfileUpdateRequestDTO();
@@ -133,6 +144,11 @@ public class UserServiceTest {
         User existing = new User();
         existing.setUuid(id);
         existing.setEmail("old@example.com");
+        existing.setEmailVerified(true);
+        existing.setAvatarUrl("https://example.com/avatar.jpg");
+        existing.setGender(1);
+        existing.setLastLogin(new Date());
+        existing.setLastActive(new Date());
         when(userMapper.selectByPrimaryKey(id)).thenReturn(existing);
 
         when(mailService.verifyEmail("new@example.com", "000000")).thenReturn(false);
@@ -151,11 +167,21 @@ public class UserServiceTest {
         User existing = new User();
         existing.setUuid(id);
         existing.setEmail("old@example.com");
+        existing.setEmailVerified(true);
+        existing.setAvatarUrl("https://example.com/avatar.jpg");
+        existing.setGender(1);
+        existing.setLastLogin(new Date());
+        existing.setLastActive(new Date());
 
         User after = new User();
         after.setUuid(id);
         after.setEmail("new@example.com");
         after.setUsername("same");
+        after.setEmailVerified(true);
+        after.setAvatarUrl("https://example.com/avatar.jpg");
+        after.setGender(1);
+        after.setLastLogin(new Date());
+        after.setLastActive(new Date());
 
         when(userMapper.selectByPrimaryKey(id)).thenReturn(existing, after);
         when(userMapper.selectByEmail("new@example.com")).thenReturn(null);
@@ -196,6 +222,11 @@ public class UserServiceTest {
         adminUser.setUuid(id);
         adminUser.setEmail("admin@example.com");
         adminUser.setUsername("AdminUser");
+        adminUser.setEmailVerified(true);
+        adminUser.setAvatarUrl("https://example.com/admin-avatar.jpg");
+        adminUser.setGender(1);
+        adminUser.setLastLogin(new Date());
+        adminUser.setLastActive(new Date());
         adminUser.setIsAuthor(true);
         adminUser.setIsAdmin(true);  // Admin user
         adminUser.setLevel(5);
@@ -226,6 +257,11 @@ public class UserServiceTest {
         normalUser.setUuid(id);
         normalUser.setEmail("normal@example.com");
         normalUser.setUsername("NormalUser");
+        normalUser.setEmailVerified(true);
+        normalUser.setAvatarUrl("https://example.com/normal-avatar.jpg");
+        normalUser.setGender(1);
+        normalUser.setLastLogin(new Date());
+        normalUser.setLastActive(new Date());
         normalUser.setIsAuthor(false);
         normalUser.setIsAdmin(false);  // Normal user
         normalUser.setLevel(1);
