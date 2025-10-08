@@ -38,6 +38,8 @@ public class UserRegistrationResponseDTO {
     private String tokenType;
     private long expiresIn;
 
+    private boolean isFirstLoginToday;
+
     public Date getBirthday() {
         return birthday != null ? new Date(birthday.getTime()) : null;
     }
