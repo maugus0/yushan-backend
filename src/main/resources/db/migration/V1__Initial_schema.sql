@@ -1,7 +1,7 @@
 -- Initial database schema for Yushan Backend
 -- This migration creates all the basic tables
 
-CREATE TABLE users if not exists(
+CREATE TABLE IF NOT EXISTS users(
     uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     email VARCHAR(255) NOT NULL UNIQUE,
     username VARCHAR(100) NOT NULL,
@@ -15,18 +15,18 @@ CREATE TABLE users if not exists(
     is_author BOOLEAN NOT NULL DEFAULT FALSE,
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     level INTEGER NOT NULL DEFAULT 1,
-    exp DOUBLE NOT NULL PRECISION DEFAULT 0.0,
-    yuan DOUBLE NOT NULL PRECISION DEFAULT 0.0,
-    read_time DOUBLE NOT NULL PRECISION DEFAULT 0.0,
+    exp DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    yuan DOUBLE PRECISION NOT NULL DEFAULT 0.0,
+    read_time DOUBLE PRECISION NOT NULL DEFAULT 0.0,
     read_book_num INTEGER NOT NULL DEFAULT 0,
     create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_login TIMESTAMP NOT NULL,
-    last_active TIMESTAMP NOT NULL
+    last_login TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    last_active TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Category table (required by novel.category_id FK)
-CREATE TABLE category if not exists (
+CREATE TABLE IF NOT EXISTS category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
@@ -37,7 +37,7 @@ CREATE TABLE category if not exists (
 );
 
 -- Novel table
-CREATE TABLE novel if not exists(
+CREATE TABLE IF NOT EXISTS novel(
     id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL DEFAULT gen_random_uuid(),
     title VARCHAR(255) NOT NULL,
@@ -63,7 +63,7 @@ CREATE TABLE novel if not exists(
     CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
-CREATE TABLE library if not exists(
+CREATE TABLE IF NOT EXISTS library(
     id SERIAL PRIMARY KEY,
     uuid UUID NOT NULL,
     user_id UUID NOT NULL,
@@ -71,7 +71,7 @@ CREATE TABLE library if not exists(
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE novel_library if not exists (
+CREATE TABLE IF NOT EXISTS novel_library (
    id SERIAL PRIMARY KEY,
    library_id INTEGER NOT NULL,
    novel_id INTEGER NOT NULL,
