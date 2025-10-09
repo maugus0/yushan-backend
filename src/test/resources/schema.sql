@@ -16,9 +16,9 @@ CREATE TABLE IF NOT EXISTS users (
     is_author BOOLEAN DEFAULT FALSE,
     is_admin BOOLEAN DEFAULT FALSE,
     level INTEGER DEFAULT 1,
-    exp FLOAT DEFAULT 0.0,
-    yuan FLOAT DEFAULT 0.0,
-    read_time FLOAT DEFAULT 0.0,
+    exp DOUBLE DEFAULT 0.0,
+    yuan DOUBLE DEFAULT 0.0,
+    read_time DOUBLE DEFAULT 0.0,
     read_book_num INTEGER DEFAULT 0,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS category (
     id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     description VARCHAR(255),
-    slug VARCHAR(100),
+    slug VARCHAR(100) UNIQUE NOT NULL,
     is_active BOOLEAN DEFAULT TRUE,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -57,7 +57,9 @@ CREATE TABLE IF NOT EXISTS novel (
     yuan_cnt REAL DEFAULT 0.0,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    publish_time TIMESTAMP
+    publish_time TIMESTAMP,
+    CONSTRAINT fk_novel_author FOREIGN KEY (author_id) REFERENCES users(uuid),
+    CONSTRAINT fk_novel_category FOREIGN KEY (category_id) REFERENCES category(id)
 );
 
 CREATE TABLE IF NOT EXISTS library (

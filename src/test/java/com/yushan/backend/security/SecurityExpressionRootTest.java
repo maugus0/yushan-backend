@@ -12,6 +12,7 @@ import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +39,11 @@ public class SecurityExpressionRootTest {
         regularUser.setUuid(UUID.randomUUID());
         regularUser.setEmail("regular@example.com");
         regularUser.setUsername("regular");
+        regularUser.setEmailVerified(true);
+        regularUser.setAvatarUrl("https://example.com/avatar.jpg");
+        regularUser.setGender(1);
+        regularUser.setLastLogin(new Date());
+        regularUser.setLastActive(new Date());
         regularUser.setIsAuthor(false);
 
         // Create author user
@@ -45,6 +51,11 @@ public class SecurityExpressionRootTest {
         authorUser.setUuid(UUID.randomUUID());
         authorUser.setEmail("author@example.com");
         authorUser.setUsername("author");
+        authorUser.setEmailVerified(true);
+        authorUser.setAvatarUrl("https://example.com/avatar.jpg");
+        authorUser.setGender(1);
+        authorUser.setLastLogin(new Date());
+        authorUser.setLastActive(new Date());
         authorUser.setIsAuthor(true);
 
         // Create verified author user
@@ -52,6 +63,11 @@ public class SecurityExpressionRootTest {
         verifiedAuthorUser.setUuid(UUID.randomUUID());
         verifiedAuthorUser.setEmail("verified@example.com");
         verifiedAuthorUser.setUsername("verified");
+        verifiedAuthorUser.setEmailVerified(true);
+        verifiedAuthorUser.setAvatarUrl("https://example.com/avatar.jpg");
+        verifiedAuthorUser.setGender(1);
+        verifiedAuthorUser.setLastLogin(new Date());
+        verifiedAuthorUser.setLastActive(new Date());
         verifiedAuthorUser.setIsAuthor(true);
 
         // Create admin user
@@ -59,6 +75,11 @@ public class SecurityExpressionRootTest {
         adminUser.setUuid(UUID.randomUUID());
         adminUser.setEmail("admin@example.com");
         adminUser.setUsername("admin");
+        adminUser.setEmailVerified(true);
+        adminUser.setAvatarUrl("https://example.com/avatar.jpg");
+        adminUser.setGender(1);
+        adminUser.setLastLogin(new Date());
+        adminUser.setLastActive(new Date());
         adminUser.setIsAuthor(false);
         adminUser.setIsAdmin(true);
     }
