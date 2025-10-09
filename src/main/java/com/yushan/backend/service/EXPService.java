@@ -23,7 +23,9 @@ public class EXPService{
      */
     public void addExp(UUID uuid, Float addExp) {
         User user = userMapper.selectByPrimaryKey(uuid);
-        user.setExp(user.getExp() + addExp);
+        Float newExp = user.getExp() + addExp;
+        user.setExp(newExp);
+        user.setLevel(checkLevel(newExp));
         userMapper.updateByPrimaryKey(user);
     }
 

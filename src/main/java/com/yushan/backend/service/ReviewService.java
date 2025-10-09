@@ -25,6 +25,11 @@ public class ReviewService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EXPService expService;
+
+    private static final Float REVIEW_EXP = 5f;
+
     /**
      * Create a new review
      * Checks if user already reviewed the novel
@@ -62,6 +67,9 @@ public class ReviewService {
 
         // Update novel rating and review count
         updateNovelRatingAndCount(request.getNovelId());
+
+        // add exp
+        expService.addExp(userId, REVIEW_EXP);
 
         return toResponseDTO(review);
     }

@@ -145,13 +145,6 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        // Prepare user info (without sensitive data)
-        UserRegistrationResponseDTO responseDTO = createUserResponse(user);
-        responseDTO.setAccessToken(accessToken);
-        responseDTO.setRefreshToken(refreshToken);
-        responseDTO.setTokenType("Bearer");
-        responseDTO.setExpiresIn(accessTokenExpiration);
-
         // get last login time
         Date lastLogin = user.getLastLogin();
 
@@ -169,8 +162,6 @@ public class AuthService {
             isFirstLoginToday = true;
         }
 
-        responseDTO.setFirstLoginToday(isFirstLoginToday);
-
         if(isFirstLoginToday) {
             // add exp
             Float newExp = user.getExp() + DAILY_LOGIN_EXP;
@@ -180,6 +171,14 @@ public class AuthService {
 
         user.setLastLogin(new Date());
         user.setLastActive(new Date());
+
+        // Prepare user info (without sensitive data)
+        UserRegistrationResponseDTO responseDTO = createUserResponse(user);
+        responseDTO.setAccessToken(accessToken);
+        responseDTO.setRefreshToken(refreshToken);
+        responseDTO.setTokenType("Bearer");
+        responseDTO.setExpiresIn(accessTokenExpiration);
+        responseDTO.setFirstLoginToday(isFirstLoginToday);
 
         userMapper.updateByPrimaryKeySelective(user);
         return responseDTO;
