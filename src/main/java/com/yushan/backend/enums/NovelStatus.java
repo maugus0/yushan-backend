@@ -4,7 +4,8 @@ public enum NovelStatus {
     DRAFT,
     UNDER_REVIEW,
     PUBLISHED,
-    HIDDEN
+    HIDDEN,
+    ARCHIVED
 }
 
 

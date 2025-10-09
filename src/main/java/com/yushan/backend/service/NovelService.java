@@ -121,6 +121,8 @@ public class NovelService {
                 return 2;
             case HIDDEN:
                 return 3;
+            case ARCHIVED:
+                return 4;
             default:
                 return 0;
         }
@@ -166,6 +168,7 @@ public class NovelService {
             case 1: return NovelStatus.UNDER_REVIEW.name();
             case 2: return NovelStatus.PUBLISHED.name();
             case 3: return NovelStatus.HIDDEN.name();
+            case 4: return NovelStatus.ARCHIVED.name();
             default: return NovelStatus.DRAFT.name();
         }
     }
@@ -339,6 +342,23 @@ public class NovelService {
         // Update timestamp
         novel.setUpdateTime(new Date());
         novelMapper.updateByPrimaryKeySelective(novel);
+    }
+
+    public NovelDetailResponseDTO archiveNovel(Integer id) {
+        Novel existing = novelMapper.selectByPrimaryKey(id);
+        if (existing == null) {
+            throw new ResourceNotFoundException("Novel not found with id: " + id);
+        }
+        if (!existing.getIsValid()) {
+            throw new ResourceNotFoundException("Novel not found with id: " + id);
+        }
+
+        existing.setStatus(mapStatus(NovelStatus.ARCHIVED));
+        existing.setIsValid(false);  // Soft delete - hide from all views
+        existing.setUpdateTime(new Date());
+        novelMapper.updateByPrimaryKeySelective(existing);
+
+        return toResponse(existing);
     }
 
     /**

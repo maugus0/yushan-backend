@@ -4,6 +4,7 @@ import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -346,6 +347,43 @@ public class NovelServiceTest {
         novel.setUpdateTime(new Date());
         novel.setPublishTime(new Date());
         return novel;
+    }
+
+    @Test
+    void archiveNovel_ShouldSetStatusToArchivedAndIsValidFalse() {
+        // Arrange
+        Integer novelId = 123;
+        Novel existingNovel = new Novel();
+        existingNovel.setId(novelId);
+        existingNovel.setTitle("Test Novel");
+        existingNovel.setIsValid(true);
+        existingNovel.setStatus(0); // DRAFT
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(existingNovel);
+        when(novelMapper.updateByPrimaryKeySelective(any(Novel.class))).thenReturn(1);
+
+        // Act
+        NovelDetailResponseDTO result = novelService.archiveNovel(novelId);
+
+        // Assert
+        verify(novelMapper).updateByPrimaryKeySelective(argThat(novel -> {
+            return novel.getStatus() == 4 && // ARCHIVED
+                   !novel.getIsValid() &&
+                   novel.getUpdateTime() != null;
+        }));
+        assertNotNull(result);
+    }
+
+    @Test
+    void archiveNovel_NovelNotFound_ThrowsException() {
+        // Arrange
+        Integer novelId = 123;
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            novelService.archiveNovel(novelId);
+        });
     }
 }
 

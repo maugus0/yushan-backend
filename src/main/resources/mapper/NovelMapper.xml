@@ -290,6 +290,43 @@
       <if test="req.categoryId != null and req.categoryId > 0">
         and category_id = #{req.categoryId,jdbcType=INTEGER}
       </if>
+            <if test="req.status != null and req.status != ''">
+              <choose>
+                <when test="req.status == 'DRAFT'">
+                  and status = 0
+                </when>
+                <when test="req.status == 'UNDER_REVIEW'">
+                  and status = 1
+                </when>
+                <when test="req.status == 'PUBLISHED'">
+                  and status = 2
+                </when>
+                <when test="req.status == 'HIDDEN'">
+                  and status = 3
+                </when>
+                <when test="req.status == 'ARCHIVED'">
+                  and status = 4
+                </when>
+              </choose>
+            </if>
+      <if test="req.search != null and req.search != ''">
+        <bind name="searchPattern" value="'%' + req.search + '%'" />
+        and (title ILIKE #{searchPattern} or synopsis ILIKE #{searchPattern})
+      </if>
+      <if test="req.authorName != null and req.authorName != ''">
+        and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
+      </if>
+    </where>
+  </sql>
+
+  <!-- Public WHERE clause - excludes ARCHIVED novels -->
+  <sql id="Novel_Public_Where">
+    <where>
+      is_valid = true
+      and status != 4  <!-- Exclude ARCHIVED novels -->
+      <if test="req.categoryId != null and req.categoryId > 0">
+        and category_id = #{req.categoryId,jdbcType=INTEGER}
+      </if>
       <if test="req.status != null and req.status != ''">
         <choose>
           <when test="req.status == 'DRAFT'">
@@ -324,7 +361,7 @@
     select 
     <include refid="Base_Column_List" />
     from novel
-    <include refid="Novel_Where" />
+    <include refid="Novel_Public_Where" />
     <choose>
       <when test="req.sort == 'title'">
         <choose>
@@ -383,7 +420,7 @@
   <select id="countNovels" resultType="long" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
     select count(*)
     from novel
-    <include refid="Novel_Where" />
+    <include refid="Novel_Public_Where" />
   </select>
 
   <update id="incrementVoteCount">
