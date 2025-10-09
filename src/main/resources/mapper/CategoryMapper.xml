@@ -144,4 +144,14 @@
         where slug = #{slug,jdbcType=VARCHAR}
     </select>
 
+    <select id="selectByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from category
+        where id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>

@@ -43,4 +43,6 @@ public interface NovelMapper {
     List<AuthorResponseDTO> selectAuthorsByRanking(@Param("sortType") String sortType,
                                                    @Param("offset") int offset,
                                                    @Param("limit") int limit);
+
+    List<Novel> selectByIds(List<Integer> ids);
 }

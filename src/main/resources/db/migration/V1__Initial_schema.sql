@@ -110,3 +110,13 @@ CREATE TABLE vote (
     CONSTRAINT fk_vote_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
     CONSTRAINT unique_user_novel_vote UNIQUE (user_id, novel_id)
 );
+
+CREATE TABLE history (
+  id SERIAL PRIMARY KEY,
+  uuid UUID NOT NULL,
+  user_id UUID NOT NULL,
+  novel_id INTEGER NOT NULL,
+  chapter_id INTEGER NOT NULL,
+  create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);

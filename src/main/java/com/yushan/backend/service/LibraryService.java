@@ -14,8 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -115,23 +114,36 @@ public class LibraryService {
     @Transactional(readOnly = true)
     public PageResponseDTO<LibraryResponseDTO> getUserLibrary(UUID userId, int page, int size, String sort, String order) {
         int offset = page * size;
-
         long totalElements = novelLibraryMapper.countByUserId(userId);
+
+        if (totalElements == 0) {
+            return new PageResponseDTO<>(Collections.emptyList(), 0L, page, size);
+        }
 
         String safeSort = "updateTime".equalsIgnoreCase(sort) ? "update_time" : "create_time";
         String safeOrder = "asc".equalsIgnoreCase(order) ? "ASC" : "DESC";
+        List<NovelLibrary> novelLibraries = novelLibraryMapper.selectByUserIdWithPagination(userId, offset, size, safeSort, safeOrder);
 
-        List<NovelLibrary> novelLibraries = novelLibraryMapper.selectByUserIdWithPagination(
-                userId, offset, size, safeSort, safeOrder);
+        if (novelLibraries.isEmpty()) {
+            return new PageResponseDTO<>(Collections.emptyList(), totalElements, page, size);
+        }
 
-        // convert to DTO
-        List<LibraryResponseDTO> dtos = novelLibraries.stream()
-                .map(this::convertToDTO)
+        List<Integer> novelIds = novelLibraries.stream()
+                .map(NovelLibrary::getNovelId)
+                .distinct()
                 .collect(Collectors.toList());
 
-        int totalPages = (int) Math.ceil((double) totalElements / size);
-        return new PageResponseDTO<>(dtos, totalElements, totalPages, page, size,
-                page == 0, page >= totalPages - 1, page < totalPages - 1, page > 0);
+        Map<Integer, Novel> novelMap = novelMapper.selectByIds(novelIds).stream()
+                .collect(Collectors.toMap(Novel::getId, novel -> novel));
+
+        List<LibraryResponseDTO> dtos = novelLibraries.stream()
+                .map(novelLibrary -> {
+                    Novel novel = novelMap.get(novelLibrary.getNovelId());
+                    return convertToDTO(novelLibrary, novel);
+                })
+                .collect(Collectors.toList());
+
+        return new PageResponseDTO<>(dtos, totalElements, page, size);
     }
 
     /**
@@ -206,6 +218,47 @@ public class LibraryService {
         if (novel != null && progress > novel.getChapterCnt() && progress < 1) {
             throw new ValidationException("progress cannot bigger than totalChapterNum");
         }
+    }
+
+    /**
+     * Batch check if a list of novels are in the user's library.
+     * @param userId
+     * @param novelIds
+     * @return A Map where the key is the novelId and the value is true if it's in the library, false otherwise.
+     */
+    public Map<Integer, Boolean> checkNovelsInLibrary(UUID userId, List<Integer> novelIds) {
+        if (novelIds == null || novelIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // Find all library entries that match the user and novel IDs
+        Set<Integer> novelsInLibrary = novelLibraryMapper.selectByUserIdAndNovelIds(userId, novelIds)
+                .stream()
+                .map(NovelLibrary::getNovelId)
+                .collect(Collectors.toSet());
+
+        // Build the result map
+        return novelIds.stream()
+                .collect(Collectors.toMap(
+                        novelId -> novelId,      // Key is the novelId
+                        novelsInLibrary::contains // Value is true if the set contains the novelId
+                ));
+    }
+
+    private LibraryResponseDTO convertToDTO(NovelLibrary novelLibrary, Novel novel) {
+        LibraryResponseDTO dto = new LibraryResponseDTO();
+        dto.setId(novelLibrary.getId());
+        dto.setNovelId(novelLibrary.getNovelId());
+        dto.setProgress(novelLibrary.getProgress());
+        dto.setCreateTime(novelLibrary.getCreateTime());
+        dto.setUpdateTime(novelLibrary.getUpdateTime());
+
+        if (novel != null) {
+            dto.setNovelTitle(novel.getTitle());
+            dto.setNovelAuthor(novel.getAuthorName());
+            dto.setNovelCover(novel.getCoverImgUrl());
+        }
+        return dto;
     }
 
     protected LibraryResponseDTO convertToDTO(NovelLibrary novelLibrary) {

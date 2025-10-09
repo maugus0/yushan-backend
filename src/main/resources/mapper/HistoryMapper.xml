@@ -116,4 +116,32 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+    <select id="selectByUserAndNovel" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from history
+        where user_id = #{userId,jdbcType=OTHER}
+        and novel_id = #{novelId,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByUserIdWithPagination" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from history
+        where user_id = #{userId,jdbcType=OTHER}
+        order by update_time desc
+        limit #{size,jdbcType=INTEGER} offset #{offset}
+    </select>
+
+    <select id="countByUserId" resultType="long">
+        select count(*)
+        from history
+        where user_id = #{userId,jdbcType=OTHER}
+    </select>
+
+    <delete id="deleteByUserId" parameterType="java.util.UUID">
+        delete from history
+        where user_id = #{userId,jdbcType=OTHER}
+    </delete>
 </mapper>
