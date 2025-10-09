@@ -22,6 +22,7 @@ public class NovelSearchRequestDTO {
     private String status;
     private String search;
     private String authorName;
+    private String authorId;
     
     public NovelSearchRequestDTO() {
         this.page = 0;
@@ -31,7 +32,7 @@ public class NovelSearchRequestDTO {
     }
     
     public NovelSearchRequestDTO(Integer page, Integer size, String sort, String order, 
-                               Integer categoryId, String status, String search, String authorName) {
+                               Integer categoryId, String status, String search, String authorName, String authorId) {
         this.page = page != null ? page : 0;
         this.size = size != null ? size : 10;
         this.sort = sort != null ? sort : "createTime";
@@ -40,6 +41,7 @@ public class NovelSearchRequestDTO {
         this.status = status;
         this.search = search;
         this.authorName = authorName;
+        this.authorId = authorId;
     }
     
     public boolean hasCategoryFilter() {
@@ -56,6 +58,10 @@ public class NovelSearchRequestDTO {
     
     public boolean hasAuthorFilter() {
         return authorName != null && !authorName.trim().isEmpty();
+    }
+    
+    public boolean hasAuthorIdFilter() {
+        return authorId != null && !authorId.trim().isEmpty();
     }
     
     public boolean isAscending() {

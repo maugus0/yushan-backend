@@ -209,7 +209,23 @@ public class NovelControllerTest {
     }
 
     @Test
-    void listNovels_WithAuthorFilter_ReturnsAuthorNovels() throws Exception {
+    void listNovels_WithAuthorNameFilter_ReturnsAuthorNovels() throws Exception {
+        // Arrange
+        String authorName = "Author Name";
+        NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Author's Novel", authorName);
+        PageResponseDTO<NovelDetailResponseDTO> pageResponse = PageResponseDTO.of(Arrays.asList(novel), 1L, 0, 10);
+        
+        when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
+        
+        // Act & Assert
+        mockMvc.perform(get("/api/novels?authorName=" + authorName))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.content.length()").value(1));
+    }
+
+    @Test
+    void listNovels_WithAuthorIdFilter_ReturnsAuthorNovels() throws Exception {
         // Arrange
         String authorId = "123e4567-e89b-12d3-a456-426614174000";
         NovelDetailResponseDTO novel = createTestNovelDetailResponseDTO(1, "Author's Novel", "Author Name");
@@ -218,7 +234,7 @@ public class NovelControllerTest {
         when(novelService.listNovelsWithPagination(any(NovelSearchRequestDTO.class))).thenReturn(pageResponse);
         
         // Act & Assert
-        mockMvc.perform(get("/api/novels?author=" + authorId))
+        mockMvc.perform(get("/api/novels?authorId=" + authorId))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.content.length()").value(1));

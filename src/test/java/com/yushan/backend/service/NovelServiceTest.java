@@ -164,7 +164,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldReturnPaginatedResults() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null, null);
         
         Novel novel1 = createTestNovel(1, "Novel 1", UUID.randomUUID(), "Author 1", 1);
         Novel novel2 = createTestNovel(2, "Novel 2", UUID.randomUUID(), "Author 2", 1);
@@ -192,7 +192,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldHandleEmptyResults() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(request)).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(request)).thenReturn(0L);
@@ -216,7 +216,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldValidateAndSetDefaults() {
         // Arrange - Test with null values
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(null, null, null, null, null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(null, null, null, null, null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);
@@ -236,7 +236,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldLimitMaxSize() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 200, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 200, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);
@@ -251,7 +251,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldHandleNegativePage() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(-1, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(-1, 10, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);

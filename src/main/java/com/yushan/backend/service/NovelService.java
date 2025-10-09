@@ -369,7 +369,7 @@ public class NovelService {
      */
     public PageResponseDTO<NovelDetailResponseDTO> getNovelsUnderReview(int page, int size) {
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, "createTime", "desc", 
-                null, "UNDER_REVIEW", null, null);
+                null, "UNDER_REVIEW", null, null, null);
         return listNovelsWithPagination(request);
     }
 

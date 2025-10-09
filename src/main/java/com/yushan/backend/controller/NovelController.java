@@ -72,11 +72,12 @@ public class NovelController {
             @RequestParam(value = "category", required = false) Integer categoryId,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "authorName", required = false) String authorName) {
+            @RequestParam(value = "authorName", required = false) String authorName,
+            @RequestParam(value = "authorId", required = false) String authorId) {
         
         // Create request DTO from query parameters
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
-                                                              categoryId, status, search, authorName);
+                                                              categoryId, status, search, authorName, authorId);
         
         PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         return ApiResponse.success("Novels retrieved successfully", response);

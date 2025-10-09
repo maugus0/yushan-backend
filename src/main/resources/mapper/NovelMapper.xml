@@ -350,6 +350,9 @@
       <if test="req.authorName != null and req.authorName != ''">
         and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
       </if>
+        <if test="req.authorId != null and req.authorId != ''">
+          and author_id = #{req.authorId,jdbcType=OTHER}::uuid
+        </if>
     </where>
   </sql>
 
