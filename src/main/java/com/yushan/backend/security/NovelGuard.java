@@ -39,7 +39,49 @@ public class NovelGuard {
         if (novel == null || novel.getAuthorId() == null) {
             return false;
         }
-        return userId.equals(novel.getAuthorId());
+        
+        // Check if user is the author
+        if (!userId.equals(novel.getAuthorId())) {
+            return false;
+        }
+        
+        // Only allow editing if novel is in DRAFT or PUBLISHED status
+        int status = novel.getStatus();
+        return status == 0 || status == 2; // 0 = DRAFT, 2 = PUBLISHED
+    }
+
+    public boolean canHideOrUnhide(Integer novelId, Authentication authentication) {
+        if (authentication == null || !authentication.isAuthenticated()) {
+            return false;
+        }
+
+        // Admin can always hide/unhide
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .anyMatch(a -> a.equals("ROLE_ADMIN"));
+        if (isAdmin) return true;
+
+        Object principal = authentication.getPrincipal();
+        if (!(principal instanceof CustomUserDetails)) {
+            return false;
+        }
+        String userIdStr = ((CustomUserDetails) principal).getUserId();
+        if (userIdStr == null) return false;
+        UUID userId = UUID.fromString(userIdStr);
+
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null || novel.getAuthorId() == null) {
+            return false;
+        }
+        
+        // Check if user is the author
+        if (!userId.equals(novel.getAuthorId())) {
+            return false;
+        }
+        
+        // Allow hide/unhide for PUBLISHED or HIDDEN novels
+        int status = novel.getStatus();
+        return status == 2 || status == 3; // 2 = PUBLISHED, 3 = HIDDEN
     }
 }
 

@@ -72,11 +72,12 @@ public class NovelController {
             @RequestParam(value = "category", required = false) Integer categoryId,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "authorName", required = false) String authorName) {
+            @RequestParam(value = "authorName", required = false) String authorName,
+            @RequestParam(value = "authorId", required = false) String authorId) {
         
         // Create request DTO from query parameters
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
-                                                              categoryId, status, search, authorName);
+                                                              categoryId, status, search, authorName, authorId);
         
         PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
         return ApiResponse.success("Novels retrieved successfully", response);
@@ -114,10 +115,24 @@ public class NovelController {
     }
 
     @PostMapping("/{id}/hide")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
     public ApiResponse<NovelDetailResponseDTO> hideNovel(@PathVariable Integer id) {
         NovelDetailResponseDTO dto = novelService.hideNovel(id);
         return ApiResponse.success("Novel hidden", dto);
+    }
+
+    @PostMapping("/{id}/unhide")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
+    public ApiResponse<NovelDetailResponseDTO> unhideNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.unhideNovel(id);
+        return ApiResponse.success("Novel unhidden and published", dto);
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canEdit(#id, authentication)")
+    public ApiResponse<NovelDetailResponseDTO> archiveNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.archiveNovel(id);
+        return ApiResponse.success("Novel archived", dto);
     }
 
     @GetMapping("/admin/under-review")
