@@ -79,3 +79,34 @@ CREATE TABLE IF NOT EXISTS novel_library (
    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+-- Review table for novel reviews
+CREATE TABLE review (
+    id SERIAL PRIMARY KEY,
+    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL,
+    novel_id INTEGER NOT NULL,
+    rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
+    title VARCHAR(255),
+    content TEXT,
+    like_cnt INTEGER DEFAULT 0,
+    is_spoiler BOOLEAN DEFAULT FALSE,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_review_user FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE,
+    CONSTRAINT fk_review_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
+    CONSTRAINT unique_user_novel_review UNIQUE (user_id, novel_id)
+);
+
+-- Create vote table
+CREATE TABLE vote (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    novel_id INTEGER NOT NULL,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE, -- Soft delete flag
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_vote_user FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE,
+    CONSTRAINT fk_vote_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
+    CONSTRAINT unique_user_novel_vote UNIQUE (user_id, novel_id)
+);

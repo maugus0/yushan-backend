@@ -163,4 +163,91 @@
       update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
+
+  <select id="selectByUuid" resultMap="BaseResultMap" parameterType="java.util.UUID">
+    select 
+    <include refid="Base_Column_List" />
+    from review
+    where uuid = #{uuid,jdbcType=OTHER}
+  </select>
+
+  <select id="selectByUserAndNovel" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from review
+    where user_id = #{userId,jdbcType=OTHER} and novel_id = #{novelId,jdbcType=INTEGER}
+  </select>
+
+  <select id="selectByNovelId" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+    select 
+    <include refid="Base_Column_List" />
+    from review
+    where novel_id = #{novelId,jdbcType=INTEGER}
+    order by create_time desc
+  </select>
+
+  <select id="selectByUserId" resultMap="BaseResultMap" parameterType="java.util.UUID">
+    select 
+    <include refid="Base_Column_List" />
+    from review
+    where user_id = #{userId,jdbcType=OTHER}
+    order by create_time desc
+  </select>
+
+  <select id="selectReviewsWithPagination" resultMap="BaseResultMap" parameterType="com.yushan.backend.dto.ReviewSearchRequestDTO">
+    select 
+    <include refid="Base_Column_List" />
+    from review
+    <where>
+      <if test="novelId != null">
+        and novel_id = #{novelId,jdbcType=INTEGER}
+      </if>
+      <if test="rating != null">
+        and rating = #{rating,jdbcType=INTEGER}
+      </if>
+      <if test="isSpoiler != null">
+        and is_spoiler = #{isSpoiler,jdbcType=BIT}
+      </if>
+      <if test="search != null and search != ''">
+        and (title like concat('%', #{search}, '%') or content like concat('%', #{search}, '%'))
+      </if>
+    </where>
+    <choose>
+      <when test="sort != null and sort == 'rating'">
+        order by rating ${order}
+      </when>
+      <when test="sort != null and sort == 'likeCnt'">
+        order by like_cnt ${order}
+      </when>
+      <otherwise>
+        order by create_time ${order}
+      </otherwise>
+    </choose>
+    limit #{size} offset #{page} * #{size}
+  </select>
+
+  <select id="countReviews" resultType="long" parameterType="com.yushan.backend.dto.ReviewSearchRequestDTO">
+    select count(*)
+    from review
+    <where>
+      <if test="novelId != null">
+        and novel_id = #{novelId,jdbcType=INTEGER}
+      </if>
+      <if test="rating != null">
+        and rating = #{rating,jdbcType=INTEGER}
+      </if>
+      <if test="isSpoiler != null">
+        and is_spoiler = #{isSpoiler,jdbcType=BIT}
+      </if>
+      <if test="search != null and search != ''">
+        and (title like concat('%', #{search}, '%') or content like concat('%', #{search}, '%'))
+      </if>
+    </where>
+  </select>
+
+  <update id="updateLikeCount">
+    update review
+    set like_cnt = like_cnt + #{increment,jdbcType=INTEGER}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
 </mapper>

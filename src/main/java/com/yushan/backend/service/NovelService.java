@@ -1,14 +1,13 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Novel;
-import com.yushan.backend.entity.Category;
 import com.yushan.backend.enums.NovelStatus;
 import com.yushan.backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 import java.util.List;
@@ -22,10 +21,16 @@ public class NovelService {
     private NovelMapper novelMapper;
 
     @Autowired
-    private CategoryMapper categoryMapper;
+    private CategoryService categoryService;
 
     public NovelDetailResponseDTO createNovel(UUID userId, String authorName, NovelCreateRequestDTO req) {
-        if (req.getCategoryId() == null || categoryMapper.selectByPrimaryKey(req.getCategoryId()) == null) {
+        if (req.getCategoryId() == null) {
+            throw new IllegalArgumentException("category not found");
+        }
+        
+        try {
+            categoryService.getCategoryById(req.getCategoryId());
+        } catch (Exception e) {
             throw new IllegalArgumentException("category not found");
         }
 
@@ -65,7 +70,7 @@ public class NovelService {
         if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) existing.setTitle(req.getTitle());
         if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) existing.setSynopsis(req.getSynopsis());
         if (req.getCategoryId() != null && req.getCategoryId() > 0) {
-            if (categoryMapper.selectByPrimaryKey(req.getCategoryId()) == null) {
+            if (categoryService.getCategoryById(req.getCategoryId()) == null) {
                 throw new IllegalArgumentException("category not found");
             }
             existing.setCategoryId(req.getCategoryId());
@@ -125,9 +130,11 @@ public class NovelService {
         dto.setAuthorUsername(n.getAuthorName());
         dto.setCategoryId(n.getCategoryId());
         if (n.getCategoryId() != null) {
-            Category c = categoryMapper.selectByPrimaryKey(n.getCategoryId());
-            if (c != null) {
-                dto.setCategoryName(c.getName());
+            try {
+                var category = categoryService.getCategoryById(n.getCategoryId());
+                dto.setCategoryName(category.getName());
+            } catch (Exception e) {
+                dto.setCategoryName(null);
             }
         }
         dto.setSynopsis(n.getSynopsis());
@@ -187,6 +194,42 @@ public class NovelService {
                 .map(this::toResponse)
                 .collect(Collectors.toList());
         return new PageResponseDTO<>(novelDTOs, totalElements, request.getPage(), request.getSize());
+    }
+
+    /**
+     * Get vote statistics for a novel
+     */
+    public Integer getNovelVoteCount(Integer novelId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("Novel not found");
+        }
+        return novel.getVoteCnt();
+    }
+
+    /**
+     * Get novel entity by ID (for internal use by other services)
+     */
+    public Novel getNovelEntity(Integer novelId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("Novel not found");
+        }
+        return novel;
+    }
+
+    /**
+     * Increment vote count for a novel
+     */
+    public void incrementVoteCount(Integer novelId) {
+        novelMapper.incrementVoteCount(novelId);
+    }
+
+    /**
+     * Decrement vote count for a novel
+     */
+    public void decrementVoteCount(Integer novelId) {
+        novelMapper.decrementVoteCount(novelId);
     }
 
     /**
@@ -271,5 +314,25 @@ public class NovelService {
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, "createTime", "desc", 
                 null, "UNDER_REVIEW", null, null);
         return listNovelsWithPagination(request);
+    }
+
+    /**
+     * Update novel's average rating and review count
+     * This method is called by ReviewService when reviews are created/updated/deleted
+     */
+    @Transactional
+    public void updateNovelRatingAndCount(Integer novelId, float avgRating, int reviewCount) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            return; // Novel not found, skip update
+        }
+
+        // Update novel statistics with provided values
+        novel.setAvgRating(avgRating);
+        novel.setReviewCnt(reviewCount);
+        
+        // Update timestamp
+        novel.setUpdateTime(new Date());
+        novelMapper.updateByPrimaryKeySelective(novel);
     }
 }

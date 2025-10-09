@@ -1,6 +1,5 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Category;
@@ -23,13 +22,13 @@ import static org.mockito.Mockito.*;
 public class NovelServiceTest {
 
     private NovelMapper novelMapper;
-    private CategoryMapper categoryMapper;
+    private CategoryService categoryService;
     private NovelService novelService;
 
     @BeforeEach
     void setUp() {
         novelMapper = Mockito.mock(NovelMapper.class);
-        categoryMapper = Mockito.mock(CategoryMapper.class);
+        categoryService = Mockito.mock(CategoryService.class);
 
         novelService = new NovelService();
         try {
@@ -37,9 +36,9 @@ public class NovelServiceTest {
             f1.setAccessible(true);
             f1.set(novelService, novelMapper);
 
-            java.lang.reflect.Field f2 = NovelService.class.getDeclaredField("categoryMapper");
+            java.lang.reflect.Field f2 = NovelService.class.getDeclaredField("categoryService");
             f2.setAccessible(true);
-            f2.set(novelService, categoryMapper);
+            f2.set(novelService, categoryService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -57,7 +56,7 @@ public class NovelServiceTest {
         req.setSynopsis("synopsis");
         req.setIsCompleted(true);
 
-        when(categoryMapper.selectByPrimaryKey(10)).thenReturn(new Category());
+        when(categoryService.getCategoryById(10)).thenReturn(new Category());
         when(novelMapper.insertSelective(any(Novel.class))).thenReturn(1);
 
         // Act
@@ -94,9 +93,9 @@ public class NovelServiceTest {
         req.setTitle("My Title");
         req.setCategoryId(999);
 
-        when(categoryMapper.selectByPrimaryKey(999)).thenReturn(null);
+        when(categoryService.getCategoryById(999)).thenThrow(new RuntimeException("Category not found"));
 
-        assertThrows(RuntimeException.class, () -> novelService.createNovel(userId, "A", req));
+        assertThrows(IllegalArgumentException.class, () -> novelService.createNovel(userId, "A", req));
         verify(novelMapper, never()).insertSelective(any());
     }
 
@@ -113,7 +112,7 @@ public class NovelServiceTest {
 
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(existing);
         when(novelMapper.updateByPrimaryKeySelective(any(Novel.class))).thenReturn(1);
-        when(categoryMapper.selectByPrimaryKey(20)).thenReturn(new Category());
+        when(categoryService.getCategoryById(20)).thenReturn(new Category());
 
         NovelUpdateRequestDTO req = new NovelUpdateRequestDTO();
         req.setTitle("New Title");
@@ -140,7 +139,7 @@ public class NovelServiceTest {
 
         NovelUpdateRequestDTO req = new NovelUpdateRequestDTO();
         req.setCategoryId(999);
-        when(categoryMapper.selectByPrimaryKey(999)).thenReturn(null);
+        when(categoryService.getCategoryById(999)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> novelService.updateNovel(novelId, req));
         verify(novelMapper, never()).updateByPrimaryKeySelective(any());
