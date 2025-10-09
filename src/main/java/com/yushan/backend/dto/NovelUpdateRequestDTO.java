@@ -1,7 +1,7 @@
 package com.yushan.backend.dto;
 
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import org.hibernate.validator.constraints.URL;
 
 import lombok.Data;
 
@@ -17,9 +17,10 @@ public class NovelUpdateRequestDTO {
     // New category ID (optional)
     private Integer categoryId; // optional
 
-    // New cover image URL (optional)
-    @URL(message = "coverImgUrl must be a valid URL")
-    private String coverImgUrl; // optional
+    // New cover image as Base64 data URL (optional)
+    @Pattern(regexp = "^data:image/(jpeg|jpg|png|gif|webp);base64,[A-Za-z0-9+/]+=*$", 
+             message = "coverImgBase64 must be a valid Base64 data URL for image")
+    private String coverImgBase64; // optional
 
     // New status string value (DRAFT/PUBLISHED/ARCHIVED) (optional)
     private String status; // optional, map to NovelStatus

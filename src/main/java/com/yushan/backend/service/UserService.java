@@ -137,5 +137,16 @@ public class UserService {
         // Send verification code to new email
         mailService.sendVerificationCode(newEmail);
     }
+
+    /**
+     * Get username by user ID
+     */
+    public String getUsernameById(UUID userId) {
+        User user = userMapper.selectByPrimaryKey(userId);
+        if (user == null) {
+            return null;
+        }
+        return user.getUsername();
+    }
 }
 

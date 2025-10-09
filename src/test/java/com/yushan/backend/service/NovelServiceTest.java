@@ -1,10 +1,10 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,13 +23,13 @@ import static org.mockito.Mockito.*;
 public class NovelServiceTest {
 
     private NovelMapper novelMapper;
-    private CategoryMapper categoryMapper;
+    private CategoryService categoryService;
     private NovelService novelService;
 
     @BeforeEach
     void setUp() {
         novelMapper = Mockito.mock(NovelMapper.class);
-        categoryMapper = Mockito.mock(CategoryMapper.class);
+        categoryService = Mockito.mock(CategoryService.class);
 
         novelService = new NovelService();
         try {
@@ -37,9 +37,9 @@ public class NovelServiceTest {
             f1.setAccessible(true);
             f1.set(novelService, novelMapper);
 
-            java.lang.reflect.Field f2 = NovelService.class.getDeclaredField("categoryMapper");
+            java.lang.reflect.Field f2 = NovelService.class.getDeclaredField("categoryService");
             f2.setAccessible(true);
-            f2.set(novelService, categoryMapper);
+            f2.set(novelService, categoryService);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -53,11 +53,11 @@ public class NovelServiceTest {
         NovelCreateRequestDTO req = new NovelCreateRequestDTO();
         req.setTitle("My Title");
         req.setCategoryId(10);
-        req.setCoverImgUrl("http://img");
+        req.setCoverImgBase64("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD");
         req.setSynopsis("synopsis");
         req.setIsCompleted(true);
 
-        when(categoryMapper.selectByPrimaryKey(10)).thenReturn(new Category());
+        when(categoryService.getCategoryById(10)).thenReturn(new Category());
         when(novelMapper.insertSelective(any(Novel.class))).thenReturn(1);
 
         // Act
@@ -94,9 +94,9 @@ public class NovelServiceTest {
         req.setTitle("My Title");
         req.setCategoryId(999);
 
-        when(categoryMapper.selectByPrimaryKey(999)).thenReturn(null);
+        when(categoryService.getCategoryById(999)).thenThrow(new RuntimeException("Category not found"));
 
-        assertThrows(RuntimeException.class, () -> novelService.createNovel(userId, "A", req));
+        assertThrows(IllegalArgumentException.class, () -> novelService.createNovel(userId, "A", req));
         verify(novelMapper, never()).insertSelective(any());
     }
 
@@ -113,7 +113,7 @@ public class NovelServiceTest {
 
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(existing);
         when(novelMapper.updateByPrimaryKeySelective(any(Novel.class))).thenReturn(1);
-        when(categoryMapper.selectByPrimaryKey(20)).thenReturn(new Category());
+        when(categoryService.getCategoryById(20)).thenReturn(new Category());
 
         NovelUpdateRequestDTO req = new NovelUpdateRequestDTO();
         req.setTitle("New Title");
@@ -140,7 +140,7 @@ public class NovelServiceTest {
 
         NovelUpdateRequestDTO req = new NovelUpdateRequestDTO();
         req.setCategoryId(999);
-        when(categoryMapper.selectByPrimaryKey(999)).thenReturn(null);
+        when(categoryService.getCategoryById(999)).thenReturn(null);
 
         assertThrows(RuntimeException.class, () -> novelService.updateNovel(novelId, req));
         verify(novelMapper, never()).updateByPrimaryKeySelective(any());
@@ -164,7 +164,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldReturnPaginatedResults() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null, null);
         
         Novel novel1 = createTestNovel(1, "Novel 1", UUID.randomUUID(), "Author 1", 1);
         Novel novel2 = createTestNovel(2, "Novel 2", UUID.randomUUID(), "Author 2", 1);
@@ -192,7 +192,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldHandleEmptyResults() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 10, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(request)).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(request)).thenReturn(0L);
@@ -216,7 +216,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldValidateAndSetDefaults() {
         // Arrange - Test with null values
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(null, null, null, null, null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(null, null, null, null, null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);
@@ -236,7 +236,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldLimitMaxSize() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 200, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(0, 200, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);
@@ -251,7 +251,7 @@ public class NovelServiceTest {
     @Test
     void listNovelsWithPagination_ShouldHandleNegativePage() {
         // Arrange
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(-1, 10, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(-1, 10, "createTime", "desc", null, null, null, null, null);
         
         when(novelMapper.selectNovelsWithPagination(any())).thenReturn(Arrays.asList());
         when(novelMapper.countNovels(any())).thenReturn(0L);
@@ -347,6 +347,43 @@ public class NovelServiceTest {
         novel.setUpdateTime(new Date());
         novel.setPublishTime(new Date());
         return novel;
+    }
+
+    @Test
+    void archiveNovel_ShouldSetStatusToArchivedAndIsValidFalse() {
+        // Arrange
+        Integer novelId = 123;
+        Novel existingNovel = new Novel();
+        existingNovel.setId(novelId);
+        existingNovel.setTitle("Test Novel");
+        existingNovel.setIsValid(true);
+        existingNovel.setStatus(0); // DRAFT
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(existingNovel);
+        when(novelMapper.updateByPrimaryKeySelective(any(Novel.class))).thenReturn(1);
+
+        // Act
+        NovelDetailResponseDTO result = novelService.archiveNovel(novelId);
+
+        // Assert
+        verify(novelMapper).updateByPrimaryKeySelective(argThat(novel -> {
+            return novel.getStatus() == 4 && // ARCHIVED
+                   !novel.getIsValid() &&
+                   novel.getUpdateTime() != null;
+        }));
+        assertNotNull(result);
+    }
+
+    @Test
+    void archiveNovel_NovelNotFound_ThrowsException() {
+        // Arrange
+        Integer novelId = 123;
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(null);
+
+        // Act & Assert
+        assertThrows(ResourceNotFoundException.class, () -> {
+            novelService.archiveNovel(novelId);
+        });
     }
 }
 
