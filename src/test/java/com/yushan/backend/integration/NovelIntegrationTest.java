@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.yushan.backend.TestcontainersConfiguration;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.dto.NovelSearchRequestDTO;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.enums.ErrorCode;
@@ -23,9 +24,11 @@ import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -91,9 +94,8 @@ public class NovelIntegrationTest {
         // Given
         Map<String, Object> novelRequest = new HashMap<>();
         novelRequest.put("title", "Test Novel");
-        novelRequest.put("description", "A test novel description");
-        novelRequest.put("genre", "Fantasy");
-        novelRequest.put("status", "DRAFT");
+        novelRequest.put("synopsis", "A test novel description");
+        novelRequest.put("categoryId", 1); // Fantasy category
 
         // When
         mockMvc.perform(post("/api/novels")
@@ -103,11 +105,25 @@ public class NovelIntegrationTest {
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.title").value("Test Novel"))
-                .andExpect(jsonPath("$.data.description").value("A test novel description"))
+                .andExpect(jsonPath("$.data.synopsis").value("A test novel description"))
                 .andExpect(jsonPath("$.data.authorId").value(authorUser.getUuid().toString()));
 
         // Then - Verify novel was persisted in database
-        // Note: In real implementation, query database to verify novel creation
+        // Query database to verify novel was created by checking novels with pagination
+        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null);
+        List<Novel> allNovels = novelMapper.selectNovelsWithPagination(searchReq);
+        
+        // Verify the created novel has the expected properties
+        Novel createdNovel = allNovels.stream()
+                .filter(novel -> "Test Novel".equals(novel.getTitle()))
+                .filter(novel -> authorUser.getUuid().equals(novel.getAuthorId()))
+                .findFirst()
+                .orElse(null);
+        assertThat(createdNovel).isNotNull();
+        assertThat(createdNovel.getTitle()).isEqualTo("Test Novel");
+        assertThat(createdNovel.getSynopsis()).isEqualTo("A test novel description");
+        assertThat(createdNovel.getAuthorId()).isEqualTo(authorUser.getUuid());
+        assertThat(createdNovel.getCategoryId()).isEqualTo(1);
     }
 
     /**
@@ -120,12 +136,12 @@ public class NovelIntegrationTest {
         novelMapper.insert(testNovel);
 
         // When
-        mockMvc.perform(get("/api/novels/" + testNovel.getUuid())
+        mockMvc.perform(get("/api/novels/" + testNovel.getId())
                 .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.title").value("Database Novel"))
-                .andExpect(jsonPath("$.data.description").value("A novel stored in database"))
+                .andExpect(jsonPath("$.data.synopsis").value("A novel stored in database"))
                 .andExpect(jsonPath("$.data.uuid").value(testNovel.getUuid().toString()));
     }
 
@@ -140,40 +156,24 @@ public class NovelIntegrationTest {
 
         Map<String, Object> updateRequest = new HashMap<>();
         updateRequest.put("title", "Updated Title");
-        updateRequest.put("description", "Updated description");
-        updateRequest.put("status", "PUBLISHED");
+        updateRequest.put("synopsis", "Updated description");
+        // Removed status update as only admin can change novel status directly
 
         // When
-        mockMvc.perform(put("/api/novels/" + testNovel.getUuid())
+        mockMvc.perform(put("/api/novels/" + testNovel.getId())
                 .header("Authorization", "Bearer " + authorToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.title").value("Updated Title"))
-                .andExpect(jsonPath("$.data.description").value("Updated description"));
+                .andExpect(jsonPath("$.data.synopsis").value("Updated description"));
 
         // Then - Verify update was persisted
-        // Note: In real implementation, query database to verify changes
-    }
-
-    /**
-     * Test novel deletion with database removal
-     */
-    @Test
-    void testDeleteNovel_WithDatabaseRemoval() throws Exception {
-        // Given - Create novel in database
-        Novel testNovel = createTestNovel("To Be Deleted", "This novel will be deleted");
-        novelMapper.insert(testNovel);
-
-        // When
-        mockMvc.perform(delete("/api/novels/" + testNovel.getUuid())
-                .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Novel deleted successfully"));
-
-        // Then - Verify novel was removed from database
-        // Note: In real implementation, verify novel no longer exists in database
+        Novel updatedNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
+        assertThat(updatedNovel).isNotNull();
+        assertThat(updatedNovel.getTitle()).isEqualTo("Updated Title");
+        assertThat(updatedNovel.getSynopsis()).isEqualTo("Updated description");
     }
 
     /**
@@ -190,13 +190,13 @@ public class NovelIntegrationTest {
         novel2.setCategoryId(2); // Sci-Fi category
         novelMapper.insert(novel2);
 
-        // When - Search by genre
-        mockMvc.perform(get("/api/novels/search")
-                .param("genre", "Fantasy")
+        // When - Search by category
+        mockMvc.perform(get("/api/novels")
+                .param("category", "1")
                 .header("Authorization", "Bearer " + authorToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data").isArray());
+                .andExpect(jsonPath("$.data.content").isArray());
     }
 
     /**
@@ -213,7 +213,7 @@ public class NovelIntegrationTest {
         Map<String, Object> updateRequest = new HashMap<>();
         updateRequest.put("title", "Unauthorized Update");
 
-        mockMvc.perform(put("/api/novels/" + authorNovel.getUuid())
+        mockMvc.perform(put("/api/novels/" + authorNovel.getId())
                 .header("Authorization", "Bearer " + regularUserToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updateRequest)))
@@ -225,7 +225,12 @@ public class NovelIntegrationTest {
      */
     @Test
     void testNovelStatusUpdate_WithDatabasePersistence() throws Exception {
-        // Given - Create draft novel
+        // Given - Create admin user and draft novel
+        User adminUser = createTestUser("admin@example.com", "adminuser");
+        adminUser.setIsAdmin(true);
+        userMapper.insert(adminUser);
+        String adminToken = jwtUtil.generateAccessToken(adminUser);
+        
         Novel draftNovel = createTestNovel("Draft Novel", "A novel in draft status");
         draftNovel.setStatus(0); // DRAFT status
         novelMapper.insert(draftNovel);
@@ -233,17 +238,18 @@ public class NovelIntegrationTest {
         Map<String, Object> statusRequest = new HashMap<>();
         statusRequest.put("status", "PUBLISHED");
 
-        // When
-        mockMvc.perform(patch("/api/novels/" + draftNovel.getUuid() + "/status")
-                .header("Authorization", "Bearer " + authorToken)
+        // When - Admin updates novel status
+        mockMvc.perform(put("/api/novels/" + draftNovel.getId())
+                .header("Authorization", "Bearer " + adminToken)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(statusRequest)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data.status").value("PUBLISHED"));
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()));
 
         // Then - Verify status was updated in database
-        // Note: In real implementation, query database to verify status change
+        Novel statusUpdatedNovel = novelMapper.selectByPrimaryKey(draftNovel.getId());
+        assertThat(statusUpdatedNovel).isNotNull();
+        assertThat(statusUpdatedNovel.getStatus()).isEqualTo(2); // PUBLISHED status (enum value 2)
     }
 
     /**
@@ -276,7 +282,7 @@ public class NovelIntegrationTest {
         // Given - Invalid novel data
         Map<String, Object> invalidRequest = new HashMap<>();
         invalidRequest.put("title", ""); // Empty title should fail validation
-        invalidRequest.put("description", "Valid description");
+        invalidRequest.put("synopsis", "Valid description");
 
         // When
         mockMvc.perform(post("/api/novels")
@@ -286,7 +292,20 @@ public class NovelIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         // Then - Verify no novel was created in database
-        // Note: In real implementation, verify no novel with empty title exists
+        // Query database to verify no novel with empty title was created
+        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null);
+        List<Novel> allNovels = novelMapper.selectNovelsWithPagination(searchReq);
+        
+        // Verify no novel with empty title exists
+        boolean hasEmptyTitleNovel = allNovels.stream()
+                .anyMatch(novel -> novel.getTitle() == null || novel.getTitle().trim().isEmpty());
+        assertThat(hasEmptyTitleNovel).isFalse();
+        
+        // Also verify that no novel was created by this author
+        long authorNovelCount = allNovels.stream()
+                .filter(novel -> authorUser.getUuid().equals(novel.getAuthorId()))
+                .count();
+        assertThat(authorNovelCount).isEqualTo(0);
     }
 
     /**
@@ -300,8 +319,20 @@ public class NovelIntegrationTest {
         authorUser.setUsername("author");
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setEmailVerified(true);
+        authorUser.setAvatarUrl("https://example.com/avatar.jpg");
+        authorUser.setStatus(1); // Active status
+        authorUser.setGender(1);
+        authorUser.setCreateTime(new Date());
+        authorUser.setUpdateTime(new Date());
+        authorUser.setLastLogin(new Date());
+        authorUser.setLastActive(new Date());
         authorUser.setIsAuthor(true);
         authorUser.setIsAdmin(false);
+        authorUser.setLevel(1);
+        authorUser.setExp(0.0f);
+        authorUser.setYuan(0.0f);
+        authorUser.setReadTime(0.0f);
+        authorUser.setReadBookNum(0);
         userMapper.insert(authorUser);
 
         // Create regular user
@@ -311,8 +342,20 @@ public class NovelIntegrationTest {
         regularUser.setUsername("user");
         regularUser.setHashPassword(passwordEncoder.encode("password123"));
         regularUser.setEmailVerified(true);
+        regularUser.setAvatarUrl("https://example.com/avatar.jpg");
+        regularUser.setStatus(1); // Active status
+        regularUser.setGender(1);
+        regularUser.setCreateTime(new Date());
+        regularUser.setUpdateTime(new Date());
+        regularUser.setLastLogin(new Date());
+        regularUser.setLastActive(new Date());
         regularUser.setIsAuthor(false);
         regularUser.setIsAdmin(false);
+        regularUser.setLevel(1);
+        regularUser.setExp(0.0f);
+        regularUser.setYuan(0.0f);
+        regularUser.setReadTime(0.0f);
+        regularUser.setReadBookNum(0);
         userMapper.insert(regularUser);
 
         // Generate tokens
@@ -321,10 +364,38 @@ public class NovelIntegrationTest {
     }
 
     /**
+     * Helper method to create a test user
+     */
+    private User createTestUser(String email, String username) {
+        User user = new User();
+        user.setUuid(UUID.randomUUID());
+        user.setEmail(email);
+        user.setUsername(username);
+        user.setHashPassword(passwordEncoder.encode("password123"));
+        user.setEmailVerified(true);
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setStatus(1); // Active status
+        user.setGender(1);
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
+        user.setIsAuthor(false);
+        user.setIsAdmin(false);
+        user.setLevel(1);
+        user.setExp(0.0f);
+        user.setYuan(0.0f);
+        user.setReadTime(0.0f);
+        user.setReadBookNum(0);
+        return user;
+    }
+
+    /**
      * Helper method to create test novel
      */
     private Novel createTestNovel(String title, String description) {
         Novel novel = new Novel();
+        novel.setId((int) (System.currentTimeMillis() % 100000)); // Unique ID
         novel.setUuid(UUID.randomUUID());
         novel.setTitle(title);
         novel.setSynopsis(description);

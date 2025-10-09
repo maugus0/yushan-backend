@@ -79,8 +79,16 @@ class IntegrationTest {
         testUser.setUsername("basictest");
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setEmailVerified(true);
+        testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setStatus(1); // Active status
+        testUser.setGender(1);
         testUser.setIsAuthor(false);
         testUser.setIsAdmin(false);
+        testUser.setLevel(1);
+        testUser.setExp(0.0f);
+        testUser.setYuan(0.0f);
+        testUser.setReadTime(0.0f);
+        testUser.setReadBookNum(0);
         testUser.setCreateTime(new Date());
         testUser.setUpdateTime(new Date());
         testUser.setLastLogin(new Date());

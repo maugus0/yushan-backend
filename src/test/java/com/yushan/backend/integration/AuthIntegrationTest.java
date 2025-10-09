@@ -26,11 +26,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -92,11 +94,14 @@ public class AuthIntegrationTest {
     @Test
     void testUserRegistration_WithDatabasePersistence() throws Exception {
         // Given
-        Map<String, String> registerRequest = new HashMap<>();
+        when(mailService.verifyEmail("newuser@example.com", "123456")).thenReturn(true);
+        
+        Map<String, Object> registerRequest = new HashMap<>();
         registerRequest.put("email", "newuser@example.com");
         registerRequest.put("username", "newuser");
         registerRequest.put("password", "password123");
         registerRequest.put("code", "123456");
+        registerRequest.put("gender", 1);
 
         // When
         mockMvc.perform(post("/api/auth/register")
@@ -109,7 +114,13 @@ public class AuthIntegrationTest {
                 .andExpect(jsonPath("$.data.email").value("newuser@example.com"));
 
         // Then - Verify user was persisted in database
-        // Note: In real implementation, query database to verify user creation
+        User registeredUser = userMapper.selectByEmail("newuser@example.com");
+        assertThat(registeredUser).isNotNull();
+        assertThat(registeredUser.getUsername()).isEqualTo("newuser");
+        assertThat(registeredUser.getEmail()).isEqualTo("newuser@example.com");
+        assertThat(registeredUser.getEmailVerified()).isTrue();
+        assertThat(registeredUser.getStatus()).isEqualTo(1); // Active status
+        assertThat(registeredUser.getGender()).isEqualTo(1);
     }
 
     /**
@@ -137,7 +148,12 @@ public class AuthIntegrationTest {
                 .andExpect(jsonPath("$.data.username").value("testuser"));
 
         // Then - Verify user data from database
-        // Note: In real implementation, verify user login time was updated
+        User loggedInUser = userMapper.selectByEmail("testuser@example.com");
+        assertThat(loggedInUser).isNotNull();
+        assertThat(loggedInUser.getLastLogin()).isNotNull();
+        assertThat(loggedInUser.getLastActive()).isNotNull();
+        assertThat(loggedInUser.getEmail()).isEqualTo("testuser@example.com");
+        assertThat(loggedInUser.getUsername()).isEqualTo("testuser");
     }
 
     /**
@@ -191,7 +207,12 @@ public class AuthIntegrationTest {
                 .andExpect(jsonPath("$.data.refreshToken").exists());
 
         // Then - Verify new tokens are generated
-        // Note: In real implementation, verify new tokens are different
+        User refreshedUser = userMapper.selectByEmail("refreshuser@example.com");
+        assertThat(refreshedUser).isNotNull();
+        assertThat(refreshedUser.getLastLogin()).isNotNull();
+        assertThat(refreshedUser.getLastActive()).isNotNull();
+        assertThat(refreshedUser.getEmail()).isEqualTo("refreshuser@example.com");
+        assertThat(refreshedUser.getUsername()).isEqualTo("refreshuser");
     }
 
     /**
@@ -199,14 +220,12 @@ public class AuthIntegrationTest {
      */
     @Test
     void testEmailVerification_WithDatabaseUpdate() throws Exception {
-        // Given - Create unverified user
-        User unverifiedUser = createTestUser("unverified@example.com", "unverified", "password123");
-        unverifiedUser.setEmailVerified(false);
-        userMapper.insert(unverifiedUser);
+        // Given - Use a new email that doesn't exist in database
+        String newEmail = "newuser@example.com";
 
         // When - Send verification email
         Map<String, String> sendEmailRequest = new HashMap<>();
-        sendEmailRequest.put("email", "unverified@example.com");
+        sendEmailRequest.put("email", newEmail);
 
         mockMvc.perform(post("/api/auth/send-email")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -229,10 +248,15 @@ public class AuthIntegrationTest {
         userMapper.insert(testUser);
 
         // When - Retrieve user from database
-        // Note: In real implementation, query database to verify password encryption
-
+        User passwordUser = userMapper.selectByEmail("passworduser@example.com");
+        assertThat(passwordUser).isNotNull();
+        
         // Then - Verify password is encrypted
-        // Note: In real implementation, verify password is properly encrypted
+        assertThat(passwordUser.getHashPassword()).isNotEqualTo("password123");
+        assertThat(passwordUser.getHashPassword()).startsWith("$2a$");
+        assertThat(passwordUser.getEmail()).isEqualTo("passworduser@example.com");
+        assertThat(passwordUser.getUsername()).isEqualTo("passworduser");
+        assertThat(passwordUser.getEmailVerified()).isTrue();
     }
 
     /**
@@ -251,7 +275,7 @@ public class AuthIntegrationTest {
         String accessToken = jwtUtil.generateAccessToken(testUser);
 
         // When
-        mockMvc.perform(post("/api/users/me")
+        mockMvc.perform(get("/api/users/me")
                 .header("Authorization", "Bearer " + accessToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
@@ -267,11 +291,14 @@ public class AuthIntegrationTest {
     @Test
     void testDatabaseTransactionRollback_OnRegistrationError() throws Exception {
         // Given - Invalid registration data
-        Map<String, String> invalidRequest = new HashMap<>();
+        when(mailService.verifyEmail("invalid-email", "123456")).thenReturn(true);
+        
+        Map<String, Object> invalidRequest = new HashMap<>();
         invalidRequest.put("email", "invalid-email"); // Invalid email format
         invalidRequest.put("username", "testuser");
         invalidRequest.put("password", "password123");
         invalidRequest.put("code", "123456");
+        invalidRequest.put("gender", 1);
 
         // When
         mockMvc.perform(post("/api/auth/register")
@@ -280,7 +307,12 @@ public class AuthIntegrationTest {
                 .andExpect(status().isBadRequest());
 
         // Then - Verify no user was created in database
-        // Note: In real implementation, verify no invalid user exists in database
+        User invalidUser = userMapper.selectByEmail("invalid@example.com");
+        assertThat(invalidUser).isNull();
+        
+        // Also verify no user with empty email exists
+        User emptyEmailUser = userMapper.selectByEmail("");
+        assertThat(emptyEmailUser).isNull();
     }
 
     /**
@@ -294,13 +326,17 @@ public class AuthIntegrationTest {
         user.setHashPassword(passwordEncoder.encode(password));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setStatus(1); // Active status
         user.setGender(1);
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
         user.setLastLogin(new Date());
         user.setLastActive(new Date());
         user.setIsAuthor(false);
         user.setIsAdmin(false);
         user.setLevel(1);
         user.setExp(0.0f);
+        user.setYuan(0.0f);
         user.setReadTime(0.0f);
         user.setReadBookNum(0);
         return user;
