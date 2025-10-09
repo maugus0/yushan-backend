@@ -110,7 +110,7 @@ public class NovelIntegrationTest {
 
         // Then - Verify novel was persisted in database
         // Query database to verify novel was created by checking novels with pagination
-        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null, null);
         List<Novel> allNovels = novelMapper.selectNovelsWithPagination(searchReq);
         
         // Verify the created novel has the expected properties
@@ -293,7 +293,7 @@ public class NovelIntegrationTest {
 
         // Then - Verify no novel was created in database
         // Query database to verify no novel with empty title was created
-        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null);
+        NovelSearchRequestDTO searchReq = new NovelSearchRequestDTO(0, 100, "createTime", "desc", null, null, null, null, null);
         List<Novel> allNovels = novelMapper.selectNovelsWithPagination(searchReq);
         
         // Verify no novel with empty title exists
@@ -306,6 +306,174 @@ public class NovelIntegrationTest {
                 .filter(novel -> authorUser.getUuid().equals(novel.getAuthorId()))
                 .count();
         assertThat(authorNovelCount).isEqualTo(0);
+    }
+
+    /**
+     * Test novel rating and review count updates
+     */
+    @Test
+    void testNovelRatingAndReviewCount_WithDatabaseUpdates() throws Exception {
+        // Given - Create novel
+        Novel testNovel = createTestNovel("Rating Test Novel", "A novel for testing ratings");
+        testNovel.setAuthorId(authorUser.getUuid());
+        novelMapper.insert(testNovel);
+
+        // When - Create review (this should update novel rating and review count)
+        Map<String, Object> reviewRequest = new HashMap<>();
+        reviewRequest.put("novelId", testNovel.getId());
+        reviewRequest.put("rating", 4);
+        reviewRequest.put("title", "Good Novel");
+        reviewRequest.put("content", "This is a good novel with interesting plot.");
+        reviewRequest.put("isSpoiler", false);
+
+        mockMvc.perform(post("/api/reviews")
+                .header("Authorization", "Bearer " + regularUserToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(reviewRequest)))
+                .andExpect(status().isCreated());
+
+        // Then - Verify novel rating and review count were updated
+        Novel updatedNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
+        assertThat(updatedNovel).isNotNull();
+        assertThat(updatedNovel.getAvgRating()).isEqualTo(4.0f);
+        assertThat(updatedNovel.getReviewCnt()).isEqualTo(1);
+    }
+
+    /**
+     * Test novel vote count updates
+     */
+    @Test
+    void testNovelVoteCount_WithDatabaseUpdates() throws Exception {
+        // Given - Create novel
+        Novel testNovel = createTestNovel("Vote Test Novel", "A novel for testing votes");
+        testNovel.setAuthorId(authorUser.getUuid());
+        novelMapper.insert(testNovel);
+
+        // When - Vote for novel
+        mockMvc.perform(post("/api/novels/" + testNovel.getId() + "/vote")
+                .header("Authorization", "Bearer " + regularUserToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.voteCount").value(1));
+
+        // Then - Verify novel vote count was updated
+        Novel votedNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
+        assertThat(votedNovel).isNotNull();
+        assertThat(votedNovel.getVoteCnt()).isEqualTo(1);
+    }
+
+    /**
+     * Test novel search with rating filter
+     */
+    @Test
+    void testNovelSearch_WithRatingFilter() throws Exception {
+        // Given - Create novels with different ratings
+        Novel highRatedNovel = createTestNovel("High Rated Novel", "A highly rated novel");
+        highRatedNovel.setAuthorId(authorUser.getUuid());
+        highRatedNovel.setAvgRating(4.5f);
+        highRatedNovel.setReviewCnt(10);
+        novelMapper.insert(highRatedNovel);
+
+        Novel lowRatedNovel = createTestNovel("Low Rated Novel", "A low rated novel");
+        lowRatedNovel.setAuthorId(authorUser.getUuid());
+        lowRatedNovel.setAvgRating(2.0f);
+        lowRatedNovel.setReviewCnt(5);
+        novelMapper.insert(lowRatedNovel);
+
+        // When - Search by minimum rating
+        mockMvc.perform(get("/api/novels")
+                .param("minRating", "4.0")
+                .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    /**
+     * Test novel statistics with rating and vote data
+     */
+    @Test
+    void testNovelStatistics_WithRatingAndVoteData() throws Exception {
+        // Given - Create novel with statistics
+        Novel statsNovel = createTestNovel("Stats Novel", "A novel with statistics");
+        statsNovel.setAuthorId(authorUser.getUuid());
+        statsNovel.setAvgRating(4.2f);
+        statsNovel.setReviewCnt(15);
+        statsNovel.setVoteCnt(25);
+        statsNovel.setViewCnt(1000L);
+        novelMapper.insert(statsNovel);
+
+        // When - Get novel details
+        mockMvc.perform(get("/api/novels/" + statsNovel.getId())
+                .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.avgRating").value(4.2))
+                .andExpect(jsonPath("$.data.reviewCnt").value(15))
+                .andExpect(jsonPath("$.data.voteCnt").value(25))
+                .andExpect(jsonPath("$.data.viewCnt").value(1000));
+    }
+
+    /**
+     * Test novel ranking by rating and votes
+     */
+    @Test
+    void testNovelRanking_ByRatingAndVotes() throws Exception {
+        // Given - Create novels with different ratings and votes
+        Novel topNovel = createTestNovel("Top Novel", "The best novel");
+        topNovel.setAuthorId(authorUser.getUuid());
+        topNovel.setAvgRating(4.8f);
+        topNovel.setReviewCnt(50);
+        topNovel.setVoteCnt(100);
+        novelMapper.insert(topNovel);
+
+        Novel averageNovel = createTestNovel("Average Novel", "An average novel");
+        averageNovel.setAuthorId(authorUser.getUuid());
+        averageNovel.setAvgRating(3.0f);
+        averageNovel.setReviewCnt(10);
+        averageNovel.setVoteCnt(20);
+        novelMapper.insert(averageNovel);
+
+        // When - Search novels sorted by rating
+        mockMvc.perform(get("/api/novels")
+                .param("sort", "avgRating")
+                .param("order", "desc")
+                .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                .andExpect(jsonPath("$.data.content").isArray());
+    }
+
+    /**
+     * Test novel approval workflow
+     */
+    @Test
+    void testNovelApprovalWorkflow_WithDatabaseUpdates() throws Exception {
+        // Given - Create admin user and draft novel
+        User adminUser = createTestUser("admin@example.com", "adminuser");
+        adminUser.setIsAdmin(true);
+        userMapper.insert(adminUser);
+        String adminToken = jwtUtil.generateAccessToken(adminUser);
+        
+        Novel draftNovel = createTestNovel("Draft Novel", "A novel in draft status");
+        draftNovel.setStatus(0); // DRAFT status
+        novelMapper.insert(draftNovel);
+
+        // When - Author submits for review
+        mockMvc.perform(post("/api/novels/" + draftNovel.getId() + "/submit-review")
+                .header("Authorization", "Bearer " + authorToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()));
+
+        // Then - Admin approves novel
+        mockMvc.perform(post("/api/novels/" + draftNovel.getId() + "/approve")
+                .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()));
+
+        // Verify novel status was updated
+        Novel approvedNovel = novelMapper.selectByPrimaryKey(draftNovel.getId());
+        assertThat(approvedNovel).isNotNull();
+        assertThat(approvedNovel.getStatus()).isEqualTo(2); // PUBLISHED status
     }
 
     /**
