@@ -8,6 +8,7 @@ import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.entity.Vote;
 import com.yushan.backend.enums.ErrorCode;
+import com.yushan.backend.service.NovelService;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -64,6 +65,9 @@ public class VoteIntegrationTest {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
+    private NovelService novelService;
+
 
     private MockMvc mockMvc;
 
@@ -119,6 +123,7 @@ public class VoteIntegrationTest {
         // Given - User has already voted
         Vote existingVote = createTestVote(testUser.getUuid(), testNovel.getId(), true);
         voteMapper.insertSelective(existingVote);
+        novelService.incrementVoteCount(testNovel.getId());
 
         // When - Toggle vote (should unvote)
         mockMvc.perform(post("/api/novels/" + testNovel.getId() + "/vote")
@@ -144,19 +149,21 @@ public class VoteIntegrationTest {
      */
     @Test
     void testGetVoteStats_WithDatabaseAggregation() throws Exception {
-        // Given - Create multiple votes for the novel
+        // Given - Create multiple votes for the novel using service to update vote count
         Vote vote1 = createTestVote(testUser.getUuid(), testNovel.getId(), true);
         voteMapper.insertSelective(vote1);
+        novelService.incrementVoteCount(testNovel.getId());
 
         Vote vote2 = createTestVote(anotherUser.getUuid(), testNovel.getId(), true);
         voteMapper.insertSelective(vote2);
+        novelService.incrementVoteCount(testNovel.getId());
 
         // When
         mockMvc.perform(get("/api/novels/" + testNovel.getId() + "/vote/stats"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.voteCount").value(2));
+                .andExpect(jsonPath("$.data.totalVotes").value(2));
 
         // Then - Verify statistics are calculated from database
         Novel updatedNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
@@ -178,8 +185,8 @@ public class VoteIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.userVoted").value(true))
-                .andExpect(jsonPath("$.data.voteTime").exists());
+                .andExpect(jsonPath("$.data.hasVoted").value(true))
+                .andExpect(jsonPath("$.data.votedAt").exists());
     }
 
     /**
@@ -281,6 +288,7 @@ public class VoteIntegrationTest {
         novel.setSynopsis(description);
         novel.setCategoryId(1); // Fantasy category
         novel.setStatus(2); // PUBLISHED status
+        novel.setVoteCnt(0); // Initialize vote count to 0
         novel.setCreateTime(new Date());
         novel.setUpdateTime(new Date());
         return novel;

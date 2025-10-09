@@ -571,6 +571,7 @@ public class NovelIntegrationTest {
         novel.setAuthorId(authorUser.getUuid());
         novel.setCategoryId(1); // Fantasy category
         novel.setStatus(0); // DRAFT status
+        novel.setVoteCnt(0); // Initialize vote count to 0
         novel.setCreateTime(new Date());
         novel.setUpdateTime(new Date());
         return novel;
