@@ -377,7 +377,7 @@ public class NovelControllerTest {
         NovelDetailResponseDTO response = new NovelDetailResponseDTO();
         response.setId(123);
         when(novelService.hideNovel(123)).thenReturn(response);
-        when(novelGuard.canEdit(eq(123), any())).thenReturn(true);
+        when(novelGuard.canHideOrUnhide(eq(123), any())).thenReturn(true);
 
         mockMvc.perform(post("/api/novels/123/hide")
                         .with(user("author@example.com").roles("AUTHOR")))
@@ -398,6 +398,33 @@ public class NovelControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(200))
                 .andExpect(jsonPath("$.message").value("Novel archived"));
+    }
+
+    @Test
+    void unhideNovel_AsAuthor_Returns200() throws Exception {
+        NovelDetailResponseDTO response = new NovelDetailResponseDTO();
+        response.setId(123);
+        when(novelService.unhideNovel(123)).thenReturn(response);
+        when(novelGuard.canHideOrUnhide(eq(123), any())).thenReturn(true);
+
+        mockMvc.perform(post("/api/novels/123/unhide")
+                        .with(user("author@example.com").roles("AUTHOR")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("Novel unhidden and published"));
+    }
+
+    @Test
+    void unhideNovel_AsAdmin_Returns200() throws Exception {
+        NovelDetailResponseDTO response = new NovelDetailResponseDTO();
+        response.setId(123);
+        when(novelService.unhideNovel(123)).thenReturn(response);
+
+        mockMvc.perform(post("/api/novels/123/unhide")
+                        .with(user("admin@example.com").roles("ADMIN")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.message").value("Novel unhidden and published"));
     }
 }
 

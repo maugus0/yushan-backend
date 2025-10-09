@@ -70,30 +70,70 @@ public class NovelService {
             throw new ResourceNotFoundException("novel not found");
         }
 
-        if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) existing.setTitle(req.getTitle());
-        if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) existing.setSynopsis(req.getSynopsis());
+        // Check if novel can be edited - only DRAFT or PUBLISHED novels can be edited
+        int currentStatus = existing.getStatus();
+        if (currentStatus != mapStatus(NovelStatus.DRAFT) && currentStatus != mapStatus(NovelStatus.PUBLISHED)) {
+            throw new IllegalArgumentException("only draft or published novels can be edited");
+        }
+
+        boolean hasChanges = false;
+        
+        if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) {
+            if (!req.getTitle().equals(existing.getTitle())) {
+                existing.setTitle(req.getTitle());
+                hasChanges = true;
+            }
+        }
+        if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) {
+            if (!req.getSynopsis().equals(existing.getSynopsis())) {
+                existing.setSynopsis(req.getSynopsis());
+                hasChanges = true;
+            }
+        }
         if (req.getCategoryId() != null && req.getCategoryId() > 0) {
             if (categoryService.getCategoryById(req.getCategoryId()) == null) {
                 throw new IllegalArgumentException("category not found");
             }
-            existing.setCategoryId(req.getCategoryId());
+            if (!req.getCategoryId().equals(existing.getCategoryId())) {
+                existing.setCategoryId(req.getCategoryId());
+                hasChanges = true;
+            }
         }
         if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
-            existing.setCoverImgUrl(convertBase64ToUrl(req.getCoverImgBase64()));
+            String newCoverUrl = convertBase64ToUrl(req.getCoverImgBase64());
+            if (!newCoverUrl.equals(existing.getCoverImgUrl())) {
+                existing.setCoverImgUrl(newCoverUrl);
+                hasChanges = true;
+            }
+        }
+        if (req.getIsCompleted() != null) {
+            if (!req.getIsCompleted().equals(existing.getIsCompleted())) {
+                existing.setIsCompleted(req.getIsCompleted());
+                hasChanges = true;
+            }
         }
         
         // Status change is only allowed for admin - this should be handled at controller level
         // but we add validation here as well for safety
         if (req.getStatus() != null && !req.getStatus().trim().isEmpty()) {
             NovelStatus s = NovelStatus.valueOf(req.getStatus());
-            existing.setStatus(mapStatus(s));
-            
-            // Set publish time if publishing
-            if (s == NovelStatus.PUBLISHED) {
-                existing.setPublishTime(new Date());
+            int newStatus = mapStatus(s);
+            if (newStatus != existing.getStatus()) {
+                existing.setStatus(newStatus);
+                
+                // Set publish time if publishing
+                if (s == NovelStatus.PUBLISHED) {
+                    existing.setPublishTime(new Date());
+                }
+                hasChanges = true;
             }
         }
-        if (req.getIsCompleted() != null) existing.setIsCompleted(req.getIsCompleted());
+        
+        // If editing a published novel and there are actual changes, change status to DRAFT
+        if (currentStatus == mapStatus(NovelStatus.PUBLISHED) && hasChanges) {
+            existing.setStatus(mapStatus(NovelStatus.DRAFT));
+        }
+        
         existing.setUpdateTime(new Date());
 
         novelMapper.updateByPrimaryKeySelective(existing);
@@ -309,10 +349,19 @@ public class NovelService {
     }
 
     /**
-     * Hide novel (Admin only)
+     * Hide novel - only published novels can be hidden
      */
     public NovelDetailResponseDTO hideNovel(Integer novelId) {
-        return changeNovelStatus(novelId, NovelStatus.HIDDEN, null, null);
+        return changeNovelStatus(novelId, NovelStatus.HIDDEN, NovelStatus.PUBLISHED, 
+                "only published novels can be hidden");
+    }
+
+    /**
+     * Unhide novel - only hidden novels can be unhidden, will return to published status
+     */
+    public NovelDetailResponseDTO unhideNovel(Integer novelId) {
+        return changeNovelStatus(novelId, NovelStatus.PUBLISHED, NovelStatus.HIDDEN, 
+                "only hidden novels can be unhidden");
     }
 
     /**

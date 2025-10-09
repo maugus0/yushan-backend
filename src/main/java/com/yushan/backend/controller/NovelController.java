@@ -114,10 +114,17 @@ public class NovelController {
     }
 
     @PostMapping("/{id}/hide")
-    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canEdit(#id, authentication)")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
     public ApiResponse<NovelDetailResponseDTO> hideNovel(@PathVariable Integer id) {
         NovelDetailResponseDTO dto = novelService.hideNovel(id);
         return ApiResponse.success("Novel hidden", dto);
+    }
+
+    @PostMapping("/{id}/unhide")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
+    public ApiResponse<NovelDetailResponseDTO> unhideNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.unhideNovel(id);
+        return ApiResponse.success("Novel unhidden and published", dto);
     }
 
     @PostMapping("/{id}/archive")
