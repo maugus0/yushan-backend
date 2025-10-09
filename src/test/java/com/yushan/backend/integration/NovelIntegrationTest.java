@@ -395,7 +395,8 @@ public class NovelIntegrationTest {
      */
     private Novel createTestNovel(String title, String description) {
         Novel novel = new Novel();
-        novel.setId((int) (System.currentTimeMillis() % 100000)); // Unique ID
+        // Use truly unique ID based on UUID hash to avoid collisions
+        novel.setId(Math.abs(UUID.randomUUID().hashCode()));
         novel.setUuid(UUID.randomUUID());
         novel.setTitle(title);
         novel.setSynopsis(description);
