@@ -52,7 +52,7 @@ public class NovelServiceTest {
         NovelCreateRequestDTO req = new NovelCreateRequestDTO();
         req.setTitle("My Title");
         req.setCategoryId(10);
-        req.setCoverImgUrl("http://img");
+        req.setCoverImgBase64("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD");
         req.setSynopsis("synopsis");
         req.setIsCompleted(true);
 

@@ -41,7 +41,10 @@ public class NovelService {
         novel.setAuthorName(authorName);
         novel.setCategoryId(req.getCategoryId());
         novel.setSynopsis(req.getSynopsis());
-        novel.setCoverImgUrl(req.getCoverImgUrl());
+        // Convert Base64 to URL if provided
+        if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
+            novel.setCoverImgUrl(convertBase64ToUrl(req.getCoverImgBase64()));
+        }
         novel.setStatus(mapStatus(NovelStatus.DRAFT));
         novel.setIsCompleted(Boolean.TRUE.equals(req.getIsCompleted()));
         novel.setIsValid(true);
@@ -75,7 +78,9 @@ public class NovelService {
             }
             existing.setCategoryId(req.getCategoryId());
         }
-        if (req.getCoverImgUrl() != null && !req.getCoverImgUrl().trim().isEmpty()) existing.setCoverImgUrl(req.getCoverImgUrl());
+        if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
+            existing.setCoverImgUrl(convertBase64ToUrl(req.getCoverImgBase64()));
+        }
         
         // Status change is only allowed for admin - this should be handled at controller level
         // but we add validation here as well for safety
@@ -334,5 +339,20 @@ public class NovelService {
         // Update timestamp
         novel.setUpdateTime(new Date());
         novelMapper.updateByPrimaryKeySelective(novel);
+    }
+
+    /**
+     * Convert Base64 data URL to a regular URL
+     * For now, this is a placeholder implementation that returns the Base64 data as-is
+     * In a real application, you would save the image to a file storage service
+     * and return the public URL
+     */
+    private String convertBase64ToUrl(String base64DataUrl) {
+        // For now, we'll store the Base64 data directly as the URL
+        // In production, you should:
+        // 1. Extract the image data from the Base64 string
+        // 2. Save it to a file storage service (AWS S3, Google Cloud Storage, etc.)
+        // 3. Return the public URL
+        return base64DataUrl;
     }
 }

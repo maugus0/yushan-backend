@@ -68,7 +68,7 @@ public class NovelControllerTest {
         body.put("title", "A Title");
         body.put("categoryId", 10);
         body.put("synopsis", "short");
-        body.put("coverImgUrl", "http://img");
+        body.put("coverImgBase64", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEAYABgAAD");
         body.put("isCompleted", false);
 
         com.yushan.backend.dto.NovelDetailResponseDTO resp = new com.yushan.backend.dto.NovelDetailResponseDTO();
