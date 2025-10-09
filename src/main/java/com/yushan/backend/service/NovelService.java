@@ -190,6 +190,42 @@ public class NovelService {
     }
 
     /**
+     * Get vote statistics for a novel
+     */
+    public Integer getNovelVoteCount(Integer novelId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("Novel not found");
+        }
+        return novel.getVoteCnt();
+    }
+
+    /**
+     * Get novel entity by ID (for internal use by other services)
+     */
+    public Novel getNovelEntity(Integer novelId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("Novel not found");
+        }
+        return novel;
+    }
+
+    /**
+     * Increment vote count for a novel
+     */
+    public void incrementVoteCount(Integer novelId) {
+        novelMapper.incrementVoteCount(novelId);
+    }
+
+    /**
+     * Decrement vote count for a novel
+     */
+    public void decrementVoteCount(Integer novelId) {
+        novelMapper.decrementVoteCount(novelId);
+    }
+
+    /**
      * Submit novel for review (Author only)
      */
     public NovelDetailResponseDTO submitForReview(Integer novelId, UUID userId) {

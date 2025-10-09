@@ -386,6 +386,20 @@
     <include refid="Novel_Where" />
   </select>
 
+  <update id="incrementVoteCount">
+    update novel
+    set vote_cnt = vote_cnt + 1,
+        update_time = CURRENT_TIMESTAMP
+    where id = #{novelId,jdbcType=INTEGER}
+  </update>
+
+  <update id="decrementVoteCount">
+    update novel
+    set vote_cnt = vote_cnt - 1,
+        update_time = CURRENT_TIMESTAMP
+    where id = #{novelId,jdbcType=INTEGER}
+  </update>
+
     <select id="selectNovelsByRanking" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List" />

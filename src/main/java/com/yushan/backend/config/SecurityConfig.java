@@ -120,6 +120,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/novels/*").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/novels/*").authenticated()
 
+                // Voting APIs - require authentication
+                .requestMatchers(HttpMethod.POST, "/api/novels/*/vote").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/novels/*/vote/stats").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/novels/*/vote/status").authenticated()
+
                 // Other protected APIs - require authentication
                 .requestMatchers("/api/users/**").authenticated()
                 .requestMatchers("/api/libraries/**").authenticated()
