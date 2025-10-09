@@ -10,6 +10,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -40,6 +41,11 @@ class AdminServiceTest {
         testUser.setUuid(UUID.randomUUID());
         testUser.setEmail(testEmail);
         testUser.setUsername("testuser");
+        testUser.setEmailVerified(true);
+        testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setGender(1);
+        testUser.setLastLogin(new Date());
+        testUser.setLastActive(new Date());
         testUser.setIsAuthor(false);
         testUser.setIsAdmin(false);
 
