@@ -11,6 +11,7 @@ import com.yushan.backend.entity.Chapter;
 import com.yushan.backend.entity.History;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.exception.ResourceNotFoundException;
+import com.yushan.backend.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -45,8 +46,12 @@ public class HistoryService {
         if (novelMapper.selectByPrimaryKey(novelId) == null) {
             throw new ResourceNotFoundException("Novel not found with id: " + novelId);
         }
-        if (chapterMapper.selectByPrimaryKey(chapterId) == null) {
+        Chapter chapter = chapterMapper.selectByPrimaryKey(chapterId);
+        if (chapter == null) {
             throw new ResourceNotFoundException("Chapter not found with id: " + chapterId);
+        }
+        if (chapter.getNovelId() != novelId) {
+            throw new ValidationException("Chapter don't belong with novel id: " + novelId);
         }
 
         History existingHistory = historyMapper.selectByUserAndNovel(userId, novelId);
