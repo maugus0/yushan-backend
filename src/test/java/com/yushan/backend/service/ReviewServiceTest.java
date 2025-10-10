@@ -33,6 +33,9 @@ class ReviewServiceTest {
     @InjectMocks
     private ReviewService reviewService;
 
+    @Mock
+    private EXPService expService;
+
     private UUID userId;
     private Integer novelId;
     private ReviewCreateRequestDTO createRequest;
