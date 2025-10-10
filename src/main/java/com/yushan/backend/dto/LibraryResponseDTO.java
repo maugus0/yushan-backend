@@ -13,7 +13,9 @@ public class LibraryResponseDTO {
     private String novelTitle;
     private String novelAuthor;
     private String novelCover;
+    //chapter_id
     private Integer progress;
+    private Integer chapterNumber;
     private Date createTime;
     private Date updateTime;
 

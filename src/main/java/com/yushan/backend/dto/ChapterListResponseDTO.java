@@ -37,7 +37,7 @@ public class ChapterListResponseDTO {
             this.isPremium = isPremium;
             this.yuanCost = yuanCost;
             this.viewCnt = viewCnt;
-            this.publishTime = publishTime;
+            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
         }
 
         // Getters and Setters
@@ -65,8 +65,12 @@ public class ChapterListResponseDTO {
         public Long getViewCnt() { return viewCnt; }
         public void setViewCnt(Long viewCnt) { this.viewCnt = viewCnt; }
 
-        public Date getPublishTime() { return publishTime; }
-        public void setPublishTime(Date publishTime) { this.publishTime = publishTime; }
+        public Date getPublishTime() { 
+            return publishTime != null ? (Date) publishTime.clone() : null; 
+        }
+        public void setPublishTime(Date publishTime) { 
+            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+        }
     }
 
     // Constructors
@@ -74,7 +78,7 @@ public class ChapterListResponseDTO {
 
     public ChapterListResponseDTO(List<ChapterSummary> chapters, Long totalCount,
                                   Integer currentPage, Integer pageSize, Integer totalPages) {
-        this.chapters = chapters;
+        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null;
         this.totalCount = totalCount;
         this.currentPage = currentPage;
         this.pageSize = pageSize;
@@ -82,8 +86,12 @@ public class ChapterListResponseDTO {
     }
 
     // Getters and Setters
-    public List<ChapterSummary> getChapters() { return chapters; }
-    public void setChapters(List<ChapterSummary> chapters) { this.chapters = chapters; }
+    public List<ChapterSummary> getChapters() { 
+        return chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    }
+    public void setChapters(List<ChapterSummary> chapters) { 
+        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    }
 
     public Long getTotalCount() { return totalCount; }
     public void setTotalCount(Long totalCount) { this.totalCount = totalCount; }

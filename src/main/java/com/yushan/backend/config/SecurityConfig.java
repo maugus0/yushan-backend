@@ -128,7 +128,7 @@ public class SecurityConfig {
 
                 // Other protected APIs - require authentication
                 .requestMatchers("/api/users/**").authenticated()
-                .requestMatchers("/api/libraries/**").authenticated()
+                .requestMatchers("/api/library/**").authenticated()
                 .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
                 

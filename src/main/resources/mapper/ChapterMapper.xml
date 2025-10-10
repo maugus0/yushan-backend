@@ -211,22 +211,32 @@
     </update>
 
     <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Chapter" >
-        update chapter
-        set uuid = #{uuid,jdbcType=OTHER},
-        novel_id = #{novelId,jdbcType=INTEGER},
-        chapter_number = #{chapterNumber,jdbcType=INTEGER},
-        title = #{title,jdbcType=VARCHAR},
-        content = #{content,jdbcType=VARCHAR},
-        word_cnt = #{wordCnt,jdbcType=INTEGER},
-        is_premium = #{isPremium,jdbcType=BIT},
-        yuan_cost = #{yuanCost,jdbcType=REAL},
-        view_cnt = #{viewCnt,jdbcType=BIGINT},
-        is_valid = #{isValid,jdbcType=BIT},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-        publish_time = #{publishTime,jdbcType=TIMESTAMP}
-        where id = #{id,jdbcType=INTEGER}
-    </update>
+    update chapter
+    set uuid = #{uuid,jdbcType=OTHER},
+      novel_id = #{novelId,jdbcType=INTEGER},
+      chapter_number = #{chapterNumber,jdbcType=INTEGER},
+      title = #{title,jdbcType=VARCHAR},
+      content = #{content,jdbcType=VARCHAR},
+      word_cnt = #{wordCnt,jdbcType=INTEGER},
+      is_premium = #{isPremium,jdbcType=BIT},
+      yuan_cost = #{yuanCost,jdbcType=REAL},
+      view_cnt = #{viewCnt,jdbcType=BIGINT},
+      is_valid = #{isValid,jdbcType=BIT},
+      create_time = #{createTime,jdbcType=TIMESTAMP},
+      update_time = #{updateTime,jdbcType=TIMESTAMP},
+      publish_time = #{publishTime,jdbcType=TIMESTAMP}
+    where id = #{id,jdbcType=INTEGER}
+  </update>
+
+    <select id="selectByIds" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where id IN
+        <foreach item="id" collection="list" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
     <!-- ========== NEW METHODS (ADDED DURING CHAPTER API IMPLEMENTATION BY AHAN J) ========== -->
     <!-- UUID-based selection for public APIs -->
     <select id="selectByUuid" resultMap="BaseResultMap" parameterType="java.util.UUID" >

@@ -40,9 +40,9 @@ public class ChapterDetailResponseDTO {
         this.yuanCost = yuanCost;
         this.viewCnt = viewCnt;
         this.isValid = isValid;
-        this.createTime = createTime;
-        this.updateTime = updateTime;
-        this.publishTime = publishTime;
+        this.createTime = createTime != null ? (Date) createTime.clone() : null;
+        this.updateTime = updateTime != null ? (Date) updateTime.clone() : null;
+        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
     }
 
     // Getters and Setters
@@ -76,14 +76,26 @@ public class ChapterDetailResponseDTO {
     public Boolean getIsValid() { return isValid; }
     public void setIsValid(Boolean isValid) { this.isValid = isValid; }
 
-    public Date getCreateTime() { return createTime; }
-    public void setCreateTime(Date createTime) { this.createTime = createTime; }
+    public Date getCreateTime() { 
+        return createTime != null ? (Date) createTime.clone() : null; 
+    }
+    public void setCreateTime(Date createTime) { 
+        this.createTime = createTime != null ? (Date) createTime.clone() : null; 
+    }
 
-    public Date getUpdateTime() { return updateTime; }
-    public void setUpdateTime(Date updateTime) { this.updateTime = updateTime; }
+    public Date getUpdateTime() { 
+        return updateTime != null ? (Date) updateTime.clone() : null; 
+    }
+    public void setUpdateTime(Date updateTime) { 
+        this.updateTime = updateTime != null ? (Date) updateTime.clone() : null; 
+    }
 
-    public Date getPublishTime() { return publishTime; }
-    public void setPublishTime(Date publishTime) { this.publishTime = publishTime; }
+    public Date getPublishTime() { 
+        return publishTime != null ? (Date) publishTime.clone() : null; 
+    }
+    public void setPublishTime(Date publishTime) { 
+        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+    }
 
     public UUID getPreviousChapterUuid() { return previousChapterUuid; }
     public void setPreviousChapterUuid(UUID previousChapterUuid) { this.previousChapterUuid = previousChapterUuid; }

@@ -19,7 +19,7 @@ public class ChapterPublishRequestDTO {
     public ChapterPublishRequestDTO(UUID uuid, Boolean isValid, Date publishTime) {
         this.uuid = uuid;
         this.isValid = isValid;
-        this.publishTime = publishTime;
+        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
     }
 
     // Getters and Setters
@@ -29,6 +29,10 @@ public class ChapterPublishRequestDTO {
     public Boolean getIsValid() { return isValid; }
     public void setIsValid(Boolean isValid) { this.isValid = isValid; }
 
-    public Date getPublishTime() { return publishTime; }
-    public void setPublishTime(Date publishTime) { this.publishTime = publishTime; }
+    public Date getPublishTime() { 
+        return publishTime != null ? (Date) publishTime.clone() : null; 
+    }
+    public void setPublishTime(Date publishTime) { 
+        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+    }
 }

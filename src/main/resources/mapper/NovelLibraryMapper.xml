@@ -139,4 +139,15 @@
             update_time = NOW()
         where id = #{id,jdbcType=INTEGER}
     </update>
+
+    <select id="selectByUserIdAndNovelIds" resultMap="BaseResultMap">
+        SELECT nl.*
+        FROM novel_library nl
+        JOIN library l ON nl.library_id = l.id
+        WHERE l.user_id = #{userId,jdbcType=OTHER}
+        AND nl.novel_id IN
+        <foreach item="novelId" collection="novelIds" open="(" separator="," close=")">
+            #{novelId}
+        </foreach>
+    </select>
 </mapper>

@@ -30,6 +30,15 @@ public class ChapterStatisticsResponseDTO {
             this.viewCnt = viewCnt;
         }
 
+        // Copy constructor
+        public ChapterSummary(ChapterSummary other) {
+            if (other != null) {
+                this.chapterNumber = other.chapterNumber;
+                this.title = other.title;
+                this.viewCnt = other.viewCnt;
+            }
+        }
+
         // Getters and Setters
         public Integer getChapterNumber() { return chapterNumber; }
         public void setChapterNumber(Integer chapterNumber) { this.chapterNumber = chapterNumber; }
@@ -95,9 +104,17 @@ public class ChapterStatisticsResponseDTO {
     public Integer getMaxChapterNumber() { return maxChapterNumber; }
     public void setMaxChapterNumber(Integer maxChapterNumber) { this.maxChapterNumber = maxChapterNumber; }
 
-    public ChapterSummary getLatestChapter() { return latestChapter; }
-    public void setLatestChapter(ChapterSummary latestChapter) { this.latestChapter = latestChapter; }
+    public ChapterSummary getLatestChapter() { 
+        return latestChapter != null ? new ChapterSummary(latestChapter) : null; 
+    }
+    public void setLatestChapter(ChapterSummary latestChapter) { 
+        this.latestChapter = latestChapter != null ? new ChapterSummary(latestChapter) : null; 
+    }
 
-    public ChapterSummary getMostViewedChapter() { return mostViewedChapter; }
-    public void setMostViewedChapter(ChapterSummary mostViewedChapter) { this.mostViewedChapter = mostViewedChapter; }
+    public ChapterSummary getMostViewedChapter() { 
+        return mostViewedChapter != null ? new ChapterSummary(mostViewedChapter) : null; 
+    }
+    public void setMostViewedChapter(ChapterSummary mostViewedChapter) { 
+        this.mostViewedChapter = mostViewedChapter != null ? new ChapterSummary(mostViewedChapter) : null; 
+    }
 }

@@ -17,4 +17,5 @@ public interface CategoryMapper {
     List<Category> selectAll();
     List<Category> selectActiveCategories();
     Category selectBySlug(String slug);
+    List<Category> selectByIds(List<Integer> ids);
 }

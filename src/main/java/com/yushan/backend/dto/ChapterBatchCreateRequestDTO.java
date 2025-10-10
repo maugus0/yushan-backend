@@ -52,7 +52,7 @@ public class ChapterBatchCreateRequestDTO {
             this.isPremium = isPremium;
             this.yuanCost = yuanCost;
             this.isValid = isValid;
-            this.publishTime = publishTime;
+            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
         }
 
         // Getters and Setters
@@ -77,8 +77,12 @@ public class ChapterBatchCreateRequestDTO {
         public Boolean getIsValid() { return isValid; }
         public void setIsValid(Boolean isValid) { this.isValid = isValid; }
 
-        public Date getPublishTime() { return publishTime; }
-        public void setPublishTime(Date publishTime) { this.publishTime = publishTime; }
+        public Date getPublishTime() { 
+            return publishTime != null ? (Date) publishTime.clone() : null; 
+        }
+        public void setPublishTime(Date publishTime) { 
+            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+        }
     }
 
     // Constructors
@@ -86,13 +90,17 @@ public class ChapterBatchCreateRequestDTO {
 
     public ChapterBatchCreateRequestDTO(Integer novelId, List<ChapterData> chapters) {
         this.novelId = novelId;
-        this.chapters = chapters;
+        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null;
     }
 
     // Getters and Setters
     public Integer getNovelId() { return novelId; }
     public void setNovelId(Integer novelId) { this.novelId = novelId; }
 
-    public List<ChapterData> getChapters() { return chapters; }
-    public void setChapters(List<ChapterData> chapters) { this.chapters = chapters; }
+    public List<ChapterData> getChapters() { 
+        return chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    }
+    public void setChapters(List<ChapterData> chapters) { 
+        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    }
 }
