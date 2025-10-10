@@ -1,178 +1,228 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.yushan.backend.dao.ChapterMapper" >
-  <resultMap id="BaseResultMap" type="com.yushan.backend.entity.Chapter" >
-    <constructor >
-      <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
-      <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="chapter_number" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
-      <arg column="content" jdbcType="VARCHAR" javaType="java.lang.String" />
-      <arg column="word_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="is_premium" jdbcType="BIT" javaType="java.lang.Boolean" />
-      <arg column="yuan_cost" jdbcType="REAL" javaType="java.lang.Float" />
-      <arg column="view_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
-      <arg column="is_valid" jdbcType="BIT" javaType="java.lang.Boolean" />
-      <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
-      <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
-      <arg column="publish_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
-    </constructor>
-  </resultMap>
-  <sql id="Base_Column_List" >
-    id, uuid, novel_id, chapter_number, title, content, word_cnt, is_premium, yuan_cost, 
-    view_cnt, is_valid, create_time, update_time, publish_time
-  </sql>
-  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
-    select 
-    <include refid="Base_Column_List" />
-    from chapter
-    where id = #{id,jdbcType=INTEGER}
-  </select>
-  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
-    delete from chapter
-    where id = #{id,jdbcType=INTEGER}
-  </delete>
-  <insert id="insert" parameterType="com.yushan.backend.entity.Chapter" >
-    insert into chapter (id, uuid, novel_id, 
-      chapter_number, title, content, 
-      word_cnt, is_premium, yuan_cost, 
-      view_cnt, is_valid, create_time, 
-      update_time, publish_time)
-    values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{novelId,jdbcType=INTEGER}, 
-      #{chapterNumber,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR}, 
-      #{wordCnt,jdbcType=INTEGER}, #{isPremium,jdbcType=BIT}, #{yuanCost,jdbcType=REAL}, 
-      #{viewCnt,jdbcType=BIGINT}, #{isValid,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP}, 
-      #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP})
-  </insert>
-  <insert id="insertSelective" parameterType="com.yushan.backend.entity.Chapter" >
-    insert into chapter
-    <trim prefix="(" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        id,
-      </if>
-      <if test="uuid != null" >
-        uuid,
-      </if>
-      <if test="novelId != null" >
-        novel_id,
-      </if>
-      <if test="chapterNumber != null" >
-        chapter_number,
-      </if>
-      <if test="title != null" >
-        title,
-      </if>
-      <if test="content != null" >
-        content,
-      </if>
-      <if test="wordCnt != null" >
-        word_cnt,
-      </if>
-      <if test="isPremium != null" >
-        is_premium,
-      </if>
-      <if test="yuanCost != null" >
-        yuan_cost,
-      </if>
-      <if test="viewCnt != null" >
-        view_cnt,
-      </if>
-      <if test="isValid != null" >
-        is_valid,
-      </if>
-      <if test="createTime != null" >
-        create_time,
-      </if>
-      <if test="updateTime != null" >
-        update_time,
-      </if>
-      <if test="publishTime != null" >
-        publish_time,
-      </if>
-    </trim>
-    <trim prefix="values (" suffix=")" suffixOverrides="," >
-      <if test="id != null" >
-        #{id,jdbcType=INTEGER},
-      </if>
-      <if test="uuid != null" >
-        #{uuid,jdbcType=OTHER},
-      </if>
-      <if test="novelId != null" >
-        #{novelId,jdbcType=INTEGER},
-      </if>
-      <if test="chapterNumber != null" >
-        #{chapterNumber,jdbcType=INTEGER},
-      </if>
-      <if test="title != null" >
-        #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="content != null" >
-        #{content,jdbcType=VARCHAR},
-      </if>
-      <if test="wordCnt != null" >
-        #{wordCnt,jdbcType=INTEGER},
-      </if>
-      <if test="isPremium != null" >
-        #{isPremium,jdbcType=BIT},
-      </if>
-      <if test="yuanCost != null" >
-        #{yuanCost,jdbcType=REAL},
-      </if>
-      <if test="viewCnt != null" >
-        #{viewCnt,jdbcType=BIGINT},
-      </if>
-      <if test="isValid != null" >
-        #{isValid,jdbcType=BIT},
-      </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="publishTime != null" >
-        #{publishTime,jdbcType=TIMESTAMP},
-      </if>
-    </trim>
-  </insert>
-  <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Chapter" >
-    update chapter
-    <set >
-      <if test="uuid != null" >
-        uuid = #{uuid,jdbcType=OTHER},
-      </if>
-      <if test="novelId != null" >
+    <resultMap id="BaseResultMap" type="com.yushan.backend.entity.Chapter" >
+        <constructor >
+            <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
+            <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="chapter_number" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="content" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="word_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="is_premium" jdbcType="BIT" javaType="java.lang.Boolean" />
+            <arg column="yuan_cost" jdbcType="REAL" javaType="java.lang.Float" />
+            <arg column="view_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
+            <arg column="is_valid" jdbcType="BIT" javaType="java.lang.Boolean" />
+            <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="publish_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        </constructor>
+    </resultMap>
+    <!-- Result map without full content for list views (performance optimization) -->
+    <resultMap id="ListResultMap" type="com.yushan.backend.entity.Chapter" >
+        <constructor >
+            <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
+            <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="chapter_number" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="title" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="content" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="word_cnt" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="is_premium" jdbcType="BIT" javaType="java.lang.Boolean" />
+            <arg column="yuan_cost" jdbcType="REAL" javaType="java.lang.Float" />
+            <arg column="view_cnt" jdbcType="BIGINT" javaType="java.lang.Long" />
+            <arg column="is_valid" jdbcType="BIT" javaType="java.lang.Boolean" />
+            <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="publish_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+        </constructor>
+    </resultMap>
+    <sql id="Base_Column_List" >
+        id, uuid, novel_id, chapter_number, title, content, word_cnt, is_premium, yuan_cost,
+        view_cnt, is_valid, create_time, update_time, publish_time
+    </sql>
+    <sql id="List_Column_List" >
+        id, uuid, novel_id, chapter_number, title,
+        SUBSTRING(content, 1, 200) as content,
+        word_cnt, is_premium, yuan_cost,
+        view_cnt, is_valid, create_time, update_time, publish_time
+    </sql>
+    <!-- ========== ORIGINAL METHODS (UNCHANGED) ========== -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from chapter
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.yushan.backend.entity.Chapter" >
+        insert into chapter (id, uuid, novel_id,
+        chapter_number, title, content,
+        word_cnt, is_premium, yuan_cost,
+        view_cnt, is_valid, create_time,
+        update_time, publish_time)
+        values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{novelId,jdbcType=INTEGER},
+        #{chapterNumber,jdbcType=INTEGER}, #{title,jdbcType=VARCHAR}, #{content,jdbcType=VARCHAR},
+        #{wordCnt,jdbcType=INTEGER}, #{isPremium,jdbcType=BIT}, #{yuanCost,jdbcType=REAL},
+        #{viewCnt,jdbcType=BIGINT}, #{isValid,jdbcType=BIT}, #{createTime,jdbcType=TIMESTAMP},
+        #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP})
+    </insert>
+    <insert id="insertSelective" parameterType="com.yushan.backend.entity.Chapter" >
+        insert into chapter
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                id,
+            </if>
+            <if test="uuid != null" >
+                uuid,
+            </if>
+            <if test="novelId != null" >
+                novel_id,
+            </if>
+            <if test="chapterNumber != null" >
+                chapter_number,
+            </if>
+            <if test="title != null" >
+                title,
+            </if>
+            <if test="content != null" >
+                content,
+            </if>
+            <if test="wordCnt != null" >
+                word_cnt,
+            </if>
+            <if test="isPremium != null" >
+                is_premium,
+            </if>
+            <if test="yuanCost != null" >
+                yuan_cost,
+            </if>
+            <if test="viewCnt != null" >
+                view_cnt,
+            </if>
+            <if test="isValid != null" >
+                is_valid,
+            </if>
+            <if test="createTime != null" >
+                create_time,
+            </if>
+            <if test="updateTime != null" >
+                update_time,
+            </if>
+            <if test="publishTime != null" >
+                publish_time,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null" >
+                #{id,jdbcType=INTEGER},
+            </if>
+            <if test="uuid != null" >
+                #{uuid,jdbcType=OTHER},
+            </if>
+            <if test="novelId != null" >
+                #{novelId,jdbcType=INTEGER},
+            </if>
+            <if test="chapterNumber != null" >
+                #{chapterNumber,jdbcType=INTEGER},
+            </if>
+            <if test="title != null" >
+                #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="wordCnt != null" >
+                #{wordCnt,jdbcType=INTEGER},
+            </if>
+            <if test="isPremium != null" >
+                #{isPremium,jdbcType=BIT},
+            </if>
+            <if test="yuanCost != null" >
+                #{yuanCost,jdbcType=BIGINT},
+            </if>
+            <if test="viewCnt != null" >
+                #{viewCnt,jdbcType=BIGINT},
+            </if>
+            <if test="isValid != null" >
+                #{isValid,jdbcType=BIT},
+            </if>
+            <if test="createTime != null" >
+                #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="publishTime != null" >
+                #{publishTime,jdbcType=TIMESTAMP},
+            </if>
+        </trim>
+    </insert>
+    <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Chapter" >
+        update chapter
+        <set >
+            <if test="uuid != null" >
+                uuid = #{uuid,jdbcType=OTHER},
+            </if>
+            <if test="novelId != null" >
+                novel_id = #{novelId,jdbcType=INTEGER},
+            </if>
+            <if test="chapterNumber != null" >
+                chapter_number = #{chapterNumber,jdbcType=INTEGER},
+            </if>
+            <if test="title != null" >
+                title = #{title,jdbcType=VARCHAR},
+            </if>
+            <if test="content != null" >
+                content = #{content,jdbcType=VARCHAR},
+            </if>
+            <if test="wordCnt != null" >
+                word_cnt = #{wordCnt,jdbcType=INTEGER},
+            </if>
+            <if test="isPremium != null" >
+                is_premium = #{isPremium,jdbcType=BIT},
+            </if>
+            <if test="yuanCost != null" >
+                yuan_cost = #{yuanCost,jdbcType=REAL},
+            </if>
+            <if test="viewCnt != null" >
+                view_cnt = #{viewCnt,jdbcType=BIGINT},
+            </if>
+            <if test="isValid != null" >
+                is_valid = #{isValid,jdbcType=BIT},
+            </if>
+            <if test="createTime != null" >
+                create_time = #{createTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updateTime != null" >
+                update_time = #{updateTime,jdbcType=TIMESTAMP},
+            </if>
+            <if test="publishTime != null" >
+                publish_time = #{publishTime,jdbcType=TIMESTAMP},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Chapter" >
+        update chapter
+        set uuid = #{uuid,jdbcType=OTHER},
         novel_id = #{novelId,jdbcType=INTEGER},
-      </if>
-      <if test="chapterNumber != null" >
         chapter_number = #{chapterNumber,jdbcType=INTEGER},
-      </if>
-      <if test="title != null" >
         title = #{title,jdbcType=VARCHAR},
-      </if>
-      <if test="content != null" >
         content = #{content,jdbcType=VARCHAR},
-      </if>
-      <if test="wordCnt != null" >
         word_cnt = #{wordCnt,jdbcType=INTEGER},
-      </if>
-      <if test="isPremium != null" >
         is_premium = #{isPremium,jdbcType=BIT},
-      </if>
-      <if test="yuanCost != null" >
         yuan_cost = #{yuanCost,jdbcType=REAL},
-      </if>
-      <if test="viewCnt != null" >
         view_cnt = #{viewCnt,jdbcType=BIGINT},
-      </if>
-      <if test="isValid != null" >
         is_valid = #{isValid,jdbcType=BIT},
-      </if>
-      <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
         update_time = #{updateTime,jdbcType=TIMESTAMP},
       </if>
       <if test="publishTime != null" >
@@ -208,4 +258,172 @@
             #{id}
         </foreach>
     </select>
+    <!-- ========== NEW METHODS (ADDED DURING CHAPTER API IMPLEMENTATION BY AHAN J) ========== -->
+    <!-- UUID-based selection for public APIs -->
+    <select id="selectByUuid" resultMap="BaseResultMap" parameterType="java.util.UUID" >
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where uuid = #{uuid,jdbcType=OTHER}
+    </select>
+    <!-- Novel-specific chapter queries -->
+    <select id="selectByNovelId" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        order by chapter_number asc
+    </select>
+    <select id="selectPublishedByNovelId" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time &lt;= NOW()
+        order by chapter_number asc
+    </select>
+    <select id="selectByNovelIdWithPagination" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        order by chapter_number asc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="selectPublishedByNovelIdWithPagination" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time &lt;= NOW()
+        order by chapter_number asc
+        limit #{limit} offset #{offset}
+    </select>
+    <select id="countByNovelId" resultType="long" >
+        select count(*)
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+    </select>
+    <select id="countPublishedByNovelId" resultType="long" >
+        select count(*)
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time &lt;= NOW()
+    </select>
+    <!-- Chapter navigation -->
+    <select id="selectNextChapter" resultMap="BaseResultMap" >
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and chapter_number > #{chapterNumber,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time &lt;= NOW()
+        order by chapter_number asc
+        limit 1
+    </select>
+    <select id="selectPreviousChapter" resultMap="BaseResultMap" >
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and chapter_number &lt; #{chapterNumber,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time &lt;= NOW()
+        order by chapter_number desc
+        limit 1
+    </select>
+    <select id="selectByNovelIdAndChapterNumber" resultMap="BaseResultMap" >
+        select
+        <include refid="Base_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and chapter_number = #{chapterNumber,jdbcType=INTEGER}
+    </select>
+    <!-- View count management -->
+    <update id="incrementViewCount" >
+        update chapter
+        set view_cnt = view_cnt + 1
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <!-- Chapter existence checks -->
+    <select id="existsByNovelIdAndChapterNumber" resultType="boolean" >
+        select count(*) > 0
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and chapter_number = #{chapterNumber,jdbcType=INTEGER}
+    </select>
+    <!-- Get max chapter number -->
+    <select id="selectMaxChapterNumberByNovelId" resultType="java.lang.Integer" >
+        select max(chapter_number)
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+    </select>
+    <!-- Batch operations -->
+    <insert id="batchInsert" parameterType="java.util.List" >
+        insert into chapter (uuid, novel_id, chapter_number, title, content,
+        word_cnt, is_premium, yuan_cost, view_cnt, is_valid, create_time,
+        update_time, publish_time)
+        values
+        <foreach collection="chapters" item="chapter" separator="," >
+            (#{chapter.uuid,jdbcType=OTHER}, #{chapter.novelId,jdbcType=INTEGER},
+            #{chapter.chapterNumber,jdbcType=INTEGER}, #{chapter.title,jdbcType=VARCHAR},
+            #{chapter.content,jdbcType=VARCHAR}, #{chapter.wordCnt,jdbcType=INTEGER},
+            #{chapter.isPremium,jdbcType=BIT}, #{chapter.yuanCost,jdbcType=REAL},
+            #{chapter.viewCnt,jdbcType=BIGINT}, #{chapter.isValid,jdbcType=BIT},
+            #{chapter.createTime,jdbcType=TIMESTAMP}, #{chapter.updateTime,jdbcType=TIMESTAMP},
+            #{chapter.publishTime,jdbcType=TIMESTAMP})
+        </foreach>
+    </insert>
+    <!-- Soft delete -->
+    <update id="softDeleteByPrimaryKey" >
+        update chapter
+        set is_valid = false,
+        update_time = NOW()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="softDeleteByUuid" >
+        update chapter
+        set is_valid = false,
+        update_time = NOW()
+        where uuid = #{uuid,jdbcType=OTHER}
+    </update>
+    <!-- Author/Admin queries -->
+    <select id="selectDraftsByNovelId" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = false
+        order by chapter_number asc
+    </select>
+    <select id="selectScheduledByNovelId" resultMap="ListResultMap" >
+        select
+        <include refid="List_Column_List" />
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = true
+        and publish_time > NOW()
+        order by publish_time asc
+    </select>
+    <!-- Statistics -->
+    <select id="sumWordCountByNovelId" resultType="long" >
+        select COALESCE(sum(word_cnt), 0)
+        from chapter
+        where novel_id = #{novelId,jdbcType=INTEGER}
+        and is_valid = true
+    </select>
+    <!-- Bulk status updates -->
+    <update id="updatePublishStatusByIds" >
+        update chapter
+        set is_valid = #{isValid,jdbcType=BIT},
+        update_time = NOW()
+        where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")" >
+            #{id}
+        </foreach>
+    </update>
 </mapper>
