@@ -16,6 +16,9 @@ public interface ChapterMapper {
     Chapter selectByPrimaryKey(Integer id);
     int updateByPrimaryKeySelective(Chapter record);
     int updateByPrimaryKey(Chapter record);
+
+    List<Chapter> selectByIds(List<Integer> ids);
+    
     // UUID-based selection for public APIs
     Chapter selectByUuid(@Param("uuid") UUID uuid);
     // Novel-specific chapter queries

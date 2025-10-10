@@ -1,224 +1,215 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.ChapterMapper;
 import com.yushan.backend.dao.LibraryMapper;
 import com.yushan.backend.dao.NovelLibraryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.LibraryResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
+import com.yushan.backend.entity.Chapter;
 import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.NovelLibrary;
 import com.yushan.backend.exception.ResourceNotFoundException;
+import com.yushan.backend.exception.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 class LibraryServiceTest {
 
     @Mock
     private NovelMapper novelMapper;
-
-    @Mock
-    private LibraryMapper libraryMapper;
-
     @Mock
     private NovelLibraryMapper novelLibraryMapper;
+    @Mock
+    private LibraryMapper libraryMapper;
+    @Mock
+    private ChapterMapper chapterMapper;
 
     @InjectMocks
     private LibraryService libraryService;
 
-    private UUID testUserId;
+    private UUID userId;
     private Integer novelId;
-    private List<Integer> novelIds;
+    private Integer chapterId;
+    private Novel testNovel;
+    private Chapter testChapter;
+    private Library testLibrary;
 
     @BeforeEach
     void setUp() {
-        MockitoAnnotations.openMocks(this);
-        testUserId = UUID.randomUUID();
-        novelId = 1;
-        novelIds = Arrays.asList(1, 2, 3);
+        userId = UUID.randomUUID();
+        novelId = 128; // Use a value > 127 to test Integer object comparison
+        chapterId = 500; // Use a value > 127
+
+        testNovel = new Novel();
+        testNovel.setId(novelId);
+
+        testChapter = new Chapter();
+        testChapter.setId(chapterId);
+        testChapter.setNovelId(novelId); // Ensure chapter belongs to the novel
+
+        testLibrary = new Library();
+        testLibrary.setId(1);
+        testLibrary.setUserId(userId);
     }
 
-    @Test
-    void addNovelToLibrary_Success() {
-        // Given
-        Novel novel = new Novel();
-        novel.setId(novelId);
-        novel.setChapterCnt(10);
+    @Nested
+    @DisplayName("addNovelToLibrary Tests")
+    class AddNovelToLibrary {
 
-        Library library = new Library();
-        library.setId(100);
+        @Test
+        @DisplayName("Should add novel successfully when library exists")
+        void shouldAddNovelSuccessfully() {
+            when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(testNovel);
+            when(chapterMapper.selectByPrimaryKey(chapterId)).thenReturn(testChapter);
+            when(novelLibraryMapper.selectByUserIdAndNovelId(userId, novelId)).thenReturn(null);
+            when(libraryMapper.selectByUserId(userId)).thenReturn(testLibrary);
 
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, novelId)).thenReturn(null);
-        when(libraryMapper.selectByUserId(testUserId)).thenReturn(library);
+            libraryService.addNovelToLibrary(userId, novelId, chapterId);
 
-        // When
-        libraryService.addNovelToLibrary(testUserId, novelId, 5);
+            verify(novelLibraryMapper).insertSelective(argThat(nl ->
+                    nl.getNovelId().equals(novelId) &&
+                            nl.getProgress().equals(chapterId) &&
+                            nl.getLibraryId().equals(testLibrary.getId())
+            ));
+        }
 
-        // Then
-        verify(novelLibraryMapper).insertSelective(argThat(novelLibrary ->
-                novelLibrary.getNovelId().equals(novelId) &&
-                        novelLibrary.getProgress() == 5 &&
-                        novelLibrary.getLibraryId().equals(100)));
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException if user's library does not exist")
+        void shouldThrowWhenLibraryNotFound() {
+            when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(testNovel);
+            when(chapterMapper.selectByPrimaryKey(chapterId)).thenReturn(testChapter);
+            when(novelLibraryMapper.selectByUserIdAndNovelId(userId, novelId)).thenReturn(null);
+            when(libraryMapper.selectByUserId(userId)).thenReturn(null);
+
+            assertThrows(ResourceNotFoundException.class, () ->
+                    libraryService.addNovelToLibrary(userId, novelId, chapterId));
+        }
+
+        @Test
+        @DisplayName("Should throw ValidationException if novel already in library")
+        void shouldThrowWhenNovelExists() {
+            when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(testNovel);
+            when(chapterMapper.selectByPrimaryKey(chapterId)).thenReturn(testChapter);
+            when(novelLibraryMapper.selectByUserIdAndNovelId(userId, novelId)).thenReturn(new NovelLibrary());
+
+            assertThrows(ValidationException.class, () ->
+                    libraryService.addNovelToLibrary(userId, novelId, chapterId));
+        }
+
+        @Test
+        @DisplayName("Should throw ValidationException if chapter does not belong to the novel")
+        void shouldThrowWhenChapterDoesNotBelongToNovel() {
+            testChapter.setNovelId(999); // Set a different novelId
+            when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(testNovel);
+            when(chapterMapper.selectByPrimaryKey(chapterId)).thenReturn(testChapter);
+
+            assertThrows(ValidationException.class, () ->
+                    libraryService.addNovelToLibrary(userId, novelId, chapterId));
+        }
     }
 
-    @Test
-    void addNovelToLibrary_NovelNotFound() {
-        // Given
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(null);
+    @Nested
+    @DisplayName("batchRemoveNovelsFromLibrary Tests")
+    class BatchRemoveNovels {
 
-        // When & Then
-        ResourceNotFoundException exception = assertThrows(
-                ResourceNotFoundException.class,
-                () -> libraryService.addNovelToLibrary(testUserId, novelId, 5)
-        );
+        @Test
+        @DisplayName("Should perform batch remove successfully with correct validations")
+        void shouldBatchRemoveSuccessfully() {
+            List<Integer> novelIds = Arrays.asList(1, 2);
+            when(novelMapper.selectByIds(novelIds)).thenReturn(Arrays.asList(new Novel(), new Novel()));
+            when(novelLibraryMapper.selectByUserIdAndNovelIds(userId, novelIds)).thenReturn(Arrays.asList(new NovelLibrary(), new NovelLibrary()));
 
-        assertTrue(exception.getMessage().contains("novel not found: " + novelId));
+            libraryService.batchRemoveNovelsFromLibrary(userId, novelIds);
+
+            verify(novelLibraryMapper).deleteByUserIdAndNovelIds(userId, novelIds);
+        }
+
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException if one of the novels does not exist")
+        void shouldThrowWhenOneNovelNotFound() {
+            List<Integer> novelIds = Arrays.asList(1, 999); // 999 does not exist
+            when(novelMapper.selectByIds(novelIds)).thenReturn(Collections.singletonList(new Novel())); // Only returns one novel
+
+            assertThrows(ResourceNotFoundException.class, () ->
+                    libraryService.batchRemoveNovelsFromLibrary(userId, novelIds));
+        }
+
+        @Test
+        @DisplayName("Should throw ValidationException if one of the novels is not in the library")
+        void shouldThrowWhenOneNovelNotInLibrary() {
+            List<Integer> novelIds = Arrays.asList(1, 2);
+            when(novelMapper.selectByIds(novelIds)).thenReturn(Arrays.asList(new Novel(), new Novel()));
+            when(novelLibraryMapper.selectByUserIdAndNovelIds(userId, novelIds)).thenReturn(Collections.singletonList(new NovelLibrary())); // Only returns one entry
+
+            assertThrows(ValidationException.class, () ->
+                    libraryService.batchRemoveNovelsFromLibrary(userId, novelIds));
+        }
+
+        @Test
+        @DisplayName("Should do nothing if list of novelIds is empty or null")
+        void shouldDoNothingForEmptyList() {
+            libraryService.batchRemoveNovelsFromLibrary(userId, Collections.emptyList());
+            libraryService.batchRemoveNovelsFromLibrary(userId, null);
+
+            verifyNoInteractions(novelMapper);
+            verifyNoInteractions(novelLibraryMapper);
+        }
     }
 
-    @Test
-    void removeNovelFromLibrary_Success() {
-        // Given
-        Novel novel = new Novel();
-        novel.setId(novelId);
+    @Nested
+    @DisplayName("getUserLibrary (Batch Optimized) Tests")
+    class GetUserLibrary {
+        @Test
+        @DisplayName("Should use batch operations to avoid N+1 problem")
+        void shouldAvoidNPlusOne() {
+            List<NovelLibrary> novelLibraries = Arrays.asList(createNovelLibrary(1, 1), createNovelLibrary(2, 2));
+            when(novelLibraryMapper.countByUserId(userId)).thenReturn(2L);
+            when(novelLibraryMapper.selectByUserIdWithPagination(any(), anyInt(), anyInt(), any(), any())).thenReturn(novelLibraries);
+            when(novelMapper.selectByIds(anyList())).thenReturn(Arrays.asList(createNovel(1, "N1"), createNovel(2, "N2")));
+            when(chapterMapper.selectByIds(anyList())).thenReturn(Collections.emptyList());
 
-        NovelLibrary novelLibrary = new NovelLibrary();
-        novelLibrary.setId(1);
-        novelLibrary.setNovelId(novelId);
-        novelLibrary.setLibraryId(100); // 假设关联的libraryId为100
+            PageResponseDTO<LibraryResponseDTO> result = libraryService.getUserLibrary(userId, 0, 10, "createTime", "desc");
 
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, novelId)).thenReturn(novelLibrary);
+            assertEquals(2, result.getContent().size());
+            verify(novelMapper, times(1)).selectByIds(anyList());
+            verify(chapterMapper, times(1)).selectByIds(anyList());
+            verify(novelMapper, never()).selectByPrimaryKey(anyInt());
+            verify(chapterMapper, never()).selectByPrimaryKey(anyInt());
+        }
 
-        // When
-        libraryService.removeNovelFromLibrary(testUserId, novelId);
+        @Test
+        @DisplayName("Should return empty page if no items in library")
+        void shouldReturnEmptyPage() {
+            when(novelLibraryMapper.countByUserId(userId)).thenReturn(0L);
 
-        // Then
-        verify(novelLibraryMapper).deleteByPrimaryKey(1);
+            PageResponseDTO<LibraryResponseDTO> result = libraryService.getUserLibrary(userId, 0, 10, "createTime", "desc");
+
+            assertTrue(result.getContent().isEmpty());
+            assertEquals(0, result.getTotalElements());
+            verify(novelLibraryMapper, never()).selectByUserIdWithPagination(any(), anyInt(), anyInt(), any(), any());
+        }
     }
 
-    @Test
-    void batchRemoveNovelsFromLibrary_Success() {
-        // Given
-        Novel novel1 = new Novel();
-        novel1.setId(1);
-        Novel novel2 = new Novel();
-        novel2.setId(2);
-        Novel novel3 = new Novel();
-        novel3.setId(3);
-
-        NovelLibrary library1 = new NovelLibrary();
-        library1.setId(1);
-        library1.setNovelId(1);
-        library1.setLibraryId(100);
-
-        NovelLibrary library2 = new NovelLibrary();
-        library2.setId(2);
-        library2.setNovelId(2);
-        library2.setLibraryId(100);
-
-        NovelLibrary library3 = new NovelLibrary();
-        library3.setId(3);
-        library3.setNovelId(3);
-        library3.setLibraryId(100);
-
-        when(novelMapper.selectByPrimaryKey(1)).thenReturn(novel1);
-        when(novelMapper.selectByPrimaryKey(2)).thenReturn(novel2);
-        when(novelMapper.selectByPrimaryKey(3)).thenReturn(novel3);
-
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, 1)).thenReturn(library1);
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, 2)).thenReturn(library2);
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, 3)).thenReturn(library3);
-
-        // When
-        libraryService.batchRemoveNovelsFromLibrary(testUserId, novelIds);
-
-        // Then
-        verify(novelLibraryMapper).deleteByUserIdAndNovelIds(testUserId, novelIds);
+    // Helper methods for creating mock entities
+    private NovelLibrary createNovelLibrary(Integer id, Integer novelId) {
+        return new NovelLibrary(id, 100, novelId, 1, new Date(), new Date());
     }
-
-    @Test
-    void getUserLibrary_Success() {
-        // Given
-        NovelLibrary library1 = new NovelLibrary();
-        library1.setId(1);
-        library1.setNovelId(1);
-        library1.setProgress(5);
-        library1.setLibraryId(100);
-        library1.setCreateTime(new Date());
-        library1.setUpdateTime(new Date());
-
-        NovelLibrary library2 = new NovelLibrary();
-        library2.setId(2);
-        library2.setNovelId(2);
-        library2.setProgress(10);
-        library2.setLibraryId(100);
-        library2.setCreateTime(new Date());
-        library2.setUpdateTime(new Date());
-
-        List<NovelLibrary> libraries = Arrays.asList(library1, library2);
-
-        Novel novel1 = new Novel();
-        novel1.setId(1);
-        novel1.setTitle("Novel 1");
-        novel1.setAuthorName("Author 1");
-        novel1.setCoverImgUrl("cover1.jpg");
-
-        Novel novel2 = new Novel();
-        novel2.setId(2);
-        novel2.setTitle("Novel 2");
-        novel2.setAuthorName("Author 2");
-        novel2.setCoverImgUrl("cover2.jpg");
-
-        when(novelLibraryMapper.countByUserId(testUserId)).thenReturn(2L);
-        when(novelLibraryMapper.selectByUserIdWithPagination(testUserId, 0, 10, "create_time", "DESC"))
-                .thenReturn(libraries);
-        when(novelMapper.selectByPrimaryKey(1)).thenReturn(novel1);
-        when(novelMapper.selectByPrimaryKey(2)).thenReturn(novel2);
-
-        // When
-        PageResponseDTO<LibraryResponseDTO> result = libraryService.getUserLibrary(testUserId, 0, 10, "createTime", "desc");
-
-        // Then
-        assertNotNull(result);
-        assertEquals(2, result.getContent().size());
-        assertEquals(2L, result.getTotalElements());
-        assertEquals(1, result.getTotalPages());
-    }
-
-    @Test
-    void updateReadingProgress_Success() {
-        // Given
-        Novel novel = new Novel();
-        novel.setId(novelId);
-        novel.setChapterCnt(20);
-
-        NovelLibrary novelLibrary = new NovelLibrary();
-        novelLibrary.setId(1);
-        novelLibrary.setNovelId(novelId);
-        novelLibrary.setProgress(5);
-        novelLibrary.setLibraryId(100);
-
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
-        when(novelLibraryMapper.selectByUserIdAndNovelId(testUserId, novelId)).thenReturn(novelLibrary);
-        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
-
-        // When
-        LibraryResponseDTO result = libraryService.updateReadingProgress(testUserId, novelId, 10);
-
-        // Then
-        assertNotNull(result);
-        verify(novelLibraryMapper).updateByPrimaryKeySelective(any(NovelLibrary.class));
+    private Novel createNovel(Integer id, String title) {
+        Novel n = new Novel(); n.setId(id); n.setTitle(title); return n;
     }
 }

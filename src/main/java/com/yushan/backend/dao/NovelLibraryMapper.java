@@ -33,4 +33,7 @@ public interface NovelLibraryMapper {
     long countByUserId(@Param("userId") UUID userId);
 
     int deleteByUserIdAndNovelIds(@Param("userId") UUID userId, @Param("novelIds") List<Integer> novelIds);
+
+    List<NovelLibrary> selectByUserIdAndNovelIds(@Param("userId") UUID userId,
+                                                 @Param("novelIds") List<Integer> novelIds);
 }
