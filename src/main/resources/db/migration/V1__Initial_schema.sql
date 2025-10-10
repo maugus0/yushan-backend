@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS users(
     username VARCHAR(100) NOT NULL,
     hash_password VARCHAR(255) NOT NULL,
     email_verified BOOLEAN NOT NULL DEFAULT FALSE,
-    avatar_url VARCHAR(500) NOT NULL,
+    avatar_url TEXT NOT NULL,
     profile_detail TEXT,
     birthday DATE,
     gender INTEGER NOT NULL,
@@ -45,7 +45,7 @@ CREATE TABLE IF NOT EXISTS novel(
     author_name VARCHAR(100),
     category_id INTEGER NOT NULL,
     synopsis TEXT,
-    cover_img_url VARCHAR(500),
+    cover_img_url TEXT,
     status INTEGER NOT NULL DEFAULT 0,
     is_completed BOOLEAN DEFAULT FALSE,
     is_valid BOOLEAN DEFAULT TRUE,
@@ -78,6 +78,40 @@ CREATE TABLE IF NOT EXISTS novel_library (
    progress INTEGER NOT NULL,
    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Chapter table
+CREATE TABLE IF NOT EXISTS chapter (
+    id SERIAL PRIMARY KEY,
+    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    novel_id INTEGER NOT NULL,
+    chapter_number INTEGER NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    content TEXT,
+    word_cnt INTEGER DEFAULT 0,
+    is_premium BOOLEAN DEFAULT FALSE,
+    yuan_cost REAL DEFAULT 0.0,
+    view_cnt BIGINT DEFAULT 0,
+    is_valid BOOLEAN DEFAULT TRUE,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    publish_time TIMESTAMP,
+    CONSTRAINT fk_chapter_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
+    CONSTRAINT unique_novel_chapter_number UNIQUE (novel_id, chapter_number)
+);
+
+-- Comment table
+CREATE TABLE IF NOT EXISTS comment (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    content TEXT NOT NULL,
+    like_cnt INTEGER DEFAULT 0,
+    is_spoiler BOOLEAN DEFAULT FALSE,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE,
+    CONSTRAINT fk_comment_chapter FOREIGN KEY (chapter_id) REFERENCES chapter(id) ON DELETE CASCADE
 );
 
 -- Review table for novel reviews

@@ -4,7 +4,7 @@ FROM eclipse-temurin:21-jdk-alpine AS builder
 # Set working directory
 WORKDIR /app
 
-# Copy Maven wrapper and pom.xml
+# Copy Maven wrapper and pom.xml first for better caching
 COPY mvnw .
 COPY .mvn .mvn
 COPY pom.xml .
@@ -12,14 +12,16 @@ COPY pom.xml .
 # Make mvnw executable
 RUN chmod +x ./mvnw
 
-# Download dependencies (this layer will be cached if pom.xml doesn't change)
-RUN ./mvnw dependency:go-offline -B
+# Download dependencies and plugins (this layer will be cached if pom.xml doesn't change)
+RUN --mount=type=cache,target=/app/.m2/repository \
+    ./mvnw dependency:go-offline -B
 
 # Copy source code
 COPY src src
 
-# Build the application
-RUN ./mvnw clean package -DskipTests
+# Build the application with Maven cache
+RUN --mount=type=cache,target=/app/.m2/repository \
+    ./mvnw clean package -DskipTests
 
 # Runtime stage
 FROM eclipse-temurin:21-jre-alpine
