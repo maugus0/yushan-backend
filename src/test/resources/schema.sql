@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS category (
 
 CREATE TABLE IF NOT EXISTS novel (
     id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL,
+    uuid UUID NOT NULL DEFAULT RANDOM_UUID(),
     title VARCHAR(255) NOT NULL,
     author_id UUID NOT NULL,
     author_name VARCHAR(100),
@@ -64,7 +64,7 @@ CREATE TABLE IF NOT EXISTS novel (
 
 CREATE TABLE IF NOT EXISTS chapter (
     id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    uuid UUID NOT NULL DEFAULT RANDOM_UUID(),
     novel_id INTEGER NOT NULL,
     chapter_number INTEGER NOT NULL,
     title VARCHAR(255) NOT NULL,
@@ -97,7 +97,7 @@ CREATE TABLE IF NOT EXISTS comment (
 
 CREATE TABLE IF NOT EXISTS library (
     id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL,
+    uuid UUID NOT NULL DEFAULT RANDOM_UUID(),
     user_id UUID NOT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS novel_library (
 
 CREATE TABLE review (
     id SERIAL PRIMARY KEY,
-    uuid UUID NOT NULL DEFAULT gen_random_uuid(),
+    uuid UUID NOT NULL DEFAULT RANDOM_UUID(),
     user_id UUID NOT NULL,
     novel_id INTEGER NOT NULL,
     rating INTEGER NOT NULL CHECK (rating >= 1 AND rating <= 5),
