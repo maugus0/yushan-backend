@@ -169,8 +169,9 @@ public class AuthService {
             user.setLevel(expService.checkLevel(newExp));
         }
 
-        user.setLastLogin(new Date());
-        user.setLastActive(new Date());
+        Date now = new Date();
+        user.setLastLogin(now);
+        user.setLastActive(now);
 
         // Prepare user info (without sensitive data)
         UserRegistrationResponseDTO responseDTO = createUserResponse(user);
