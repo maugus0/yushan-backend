@@ -27,6 +27,11 @@ public class CommentService {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private EXPService expService;
+
+    private static final Float COMMENT_EXP = 5f;
+
     /**
      * Create a new comment
      * Users can only have one comment per chapter
@@ -57,6 +62,8 @@ public class CommentService {
         comment.setUpdateTime(now);
 
         commentMapper.insertSelective(comment);
+
+        expService.addExp(userId, COMMENT_EXP);
 
         return toResponseDTO(comment, userId);
     }
