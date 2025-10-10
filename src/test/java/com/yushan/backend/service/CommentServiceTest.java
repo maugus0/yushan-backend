@@ -34,6 +34,9 @@ class CommentServiceTest {
     @InjectMocks
     private CommentService commentService;
 
+    @Mock
+    private EXPService expService;
+
     private UUID testUserId;
     private Integer testChapterId;
     private Integer testCommentId;
@@ -91,6 +94,7 @@ class CommentServiceTest {
         when(commentMapper.insertSelective(any(Comment.class))).thenReturn(1);
         when(userService.getUsernameById(testUserId)).thenReturn("testuser");
 
+        doNothing().when(expService).addExp(any(UUID.class), any(Float.class));
         // Act
         CommentResponseDTO result = commentService.createComment(testUserId, createRequest);
 
@@ -107,6 +111,7 @@ class CommentServiceTest {
         verify(chapterMapper, times(2)).selectByPrimaryKey(testChapterId); // Called in createComment and toResponseDTO
         verify(commentMapper).existsByUserAndChapter(testUserId, testChapterId);
         verify(commentMapper).insertSelective(any(Comment.class));
+        verify(expService).addExp(testUserId, 5f);
     }
 
     @Test
