@@ -145,9 +145,6 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
-        user.setLastLogin(new Date());
-        user.setLastActive(new Date());
-
         // get last login time
         Date lastLogin = user.getLastLogin();
 
@@ -172,6 +169,8 @@ public class AuthService {
             user.setLevel(expService.checkLevel(newExp));
         }
 
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
 
         // Prepare user info (without sensitive data)
         UserRegistrationResponseDTO responseDTO = createUserResponse(user);
