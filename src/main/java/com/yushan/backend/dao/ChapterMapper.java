@@ -7,8 +7,6 @@ import org.apache.ibatis.annotations.Param;
 import java.util.List;
 import java.util.UUID;
 
-import java.util.List;
-
 @Mapper
 public interface ChapterMapper {
     // Basic CRUD operations, already existing from Yan's initial setup.

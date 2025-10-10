@@ -211,27 +211,6 @@
     </update>
 
     <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Chapter" >
-        update chapter
-        set uuid = #{uuid,jdbcType=OTHER},
-        novel_id = #{novelId,jdbcType=INTEGER},
-        chapter_number = #{chapterNumber,jdbcType=INTEGER},
-        title = #{title,jdbcType=VARCHAR},
-        content = #{content,jdbcType=VARCHAR},
-        word_cnt = #{wordCnt,jdbcType=INTEGER},
-        is_premium = #{isPremium,jdbcType=BIT},
-        yuan_cost = #{yuanCost,jdbcType=REAL},
-        view_cnt = #{viewCnt,jdbcType=BIGINT},
-        is_valid = #{isValid,jdbcType=BIT},
-        create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="publishTime != null" >
-        publish_time = #{publishTime,jdbcType=TIMESTAMP},
-      </if>
-    </set>
-    where id = #{id,jdbcType=INTEGER}
-  </update>
-  <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Chapter" >
     update chapter
     set uuid = #{uuid,jdbcType=OTHER},
       novel_id = #{novelId,jdbcType=INTEGER},
