@@ -37,7 +37,7 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 /**
- * Integration tests for JWT authentication and authorization
+ * Unit tests for JWT authentication and authorization
  * 
  * This test class verifies the complete JWT flow including:
  * - Token generation and validation
@@ -51,7 +51,7 @@ import org.mockito.quality.Strictness;
 @ActiveProfiles("test")
 @Transactional
 @MockitoSettings(strictness = Strictness.LENIENT)
-public class JwtIntegrationTest {
+public class JwtAuthenticationTest {
 
     @Autowired
     private WebApplicationContext context;
@@ -116,10 +116,19 @@ public class JwtIntegrationTest {
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setEmailVerified(true);
         testUser.setAvatarUrl("https://example.com/avatar.jpg");
+        testUser.setStatus(1); // Active status
         testUser.setGender(1);
         testUser.setLastLogin(new Date());
         testUser.setLastActive(new Date());
         testUser.setIsAuthor(false);
+        testUser.setIsAdmin(false);
+        testUser.setLevel(1);
+        testUser.setExp(0.0f);
+        testUser.setYuan(0.0f);
+        testUser.setReadTime(0.0f);
+        testUser.setReadBookNum(0);
+        testUser.setCreateTime(new Date());
+        testUser.setUpdateTime(new Date());
         userMapper.insert(testUser);
 
         // Create author user
@@ -130,10 +139,19 @@ public class JwtIntegrationTest {
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setEmailVerified(true);
         authorUser.setAvatarUrl("https://example.com/author-avatar.jpg");
+        authorUser.setStatus(1); // Active status
         authorUser.setGender(1);
         authorUser.setLastLogin(new Date());
         authorUser.setLastActive(new Date());
         authorUser.setIsAuthor(true);
+        authorUser.setIsAdmin(false);
+        authorUser.setLevel(1);
+        authorUser.setExp(0.0f);
+        authorUser.setYuan(0.0f);
+        authorUser.setReadTime(0.0f);
+        authorUser.setReadBookNum(0);
+        authorUser.setCreateTime(new Date());
+        authorUser.setUpdateTime(new Date());
         userMapper.insert(authorUser);
 
         // Generate tokens
@@ -160,8 +178,11 @@ public class JwtIntegrationTest {
         user.setIsAdmin(isAdmin);
         user.setLevel(1);
         user.setExp(0.0f);
+        user.setYuan(0.0f);
         user.setReadTime(0.0f);
         user.setReadBookNum(0);
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
         userMapper.insert(user);
         return user;
     }

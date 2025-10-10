@@ -1,7 +1,6 @@
 package com.yushan.backend.controller;
 
 import com.yushan.backend.dto.*;
-import com.yushan.backend.entity.NovelLibrary;
 import com.yushan.backend.enums.ErrorCode;
 import com.yushan.backend.exception.ResourceNotFoundException;
 import com.yushan.backend.exception.UnauthorizedException;
@@ -14,6 +13,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.security.core.Authentication;
+import org.springframework.test.context.ActiveProfiles;
 
 import java.util.Arrays;
 import java.util.List;
@@ -22,6 +22,7 @@ import java.util.UUID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ActiveProfiles("test")
 class LibraryControllerTest {
 
     @Mock
