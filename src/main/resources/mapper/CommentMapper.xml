@@ -198,10 +198,18 @@
         </if>
         <choose>
             <when test="sort != null and sort == 'likeCnt'">
-                order by c.like_cnt ${order}
+                order by c.like_cnt
+                <choose>
+                    <when test="order == 'ASC'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
             </when>
             <otherwise>
-                order by c.create_time ${order}
+                order by c.create_time
+                <choose>
+                    <when test="order == 'ASC'">ASC</when>
+                    <otherwise>DESC</otherwise>
+                </choose>
             </otherwise>
         </choose>
         limit #{size} offset (#{page} * #{size})
