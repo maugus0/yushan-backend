@@ -204,7 +204,7 @@
                 order by c.create_time ${order}
             </otherwise>
         </choose>
-        limit #{size} offset #{page} * #{size}
+        limit #{size} offset (#{page} * #{size})
     </select>
     <!-- Count Queries -->
     <select id="countComments" resultType="long" parameterType="com.yushan.backend.dto.CommentSearchRequestDTO">
