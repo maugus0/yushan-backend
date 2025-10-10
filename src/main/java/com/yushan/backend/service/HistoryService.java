@@ -50,7 +50,7 @@ public class HistoryService {
         if (chapter == null) {
             throw new ResourceNotFoundException("Chapter not found with id: " + chapterId);
         }
-        if (chapter.getNovelId() != novelId) {
+        if (!chapter.getNovelId().equals(novelId)) {
             throw new ValidationException("Chapter don't belong with novel id: " + novelId);
         }
 

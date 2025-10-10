@@ -1,10 +1,12 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.ChapterMapper;
 import com.yushan.backend.dao.LibraryMapper;
 import com.yushan.backend.dao.NovelLibraryMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.LibraryResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
+import com.yushan.backend.entity.Chapter;
 import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.NovelLibrary;
@@ -25,8 +27,12 @@ public class LibraryService {
 
     @Autowired
     private NovelLibraryMapper novelLibraryMapper;
+
     @Autowired
     private LibraryMapper libraryMapper;
+
+    @Autowired
+    private ChapterMapper chapterMapper;
 
     /**
      * add novel to library
@@ -35,11 +41,7 @@ public class LibraryService {
      * @return
      */
     public void addNovelToLibrary(UUID userId, Integer novelId, Integer progress) {
-        // check if novel exists
-        if (novelMapper.selectByPrimaryKey(novelId) == null) {
-            throw new ResourceNotFoundException("novel not found: " + novelId);
-        }
-
+        checkValidation(novelId, progress);
         // check if already in library
         if (novelFromLibrary(userId, novelId) != null) {
             throw new ValidationException("novel has existed in library");
@@ -50,16 +52,10 @@ public class LibraryService {
 
         Library library = libraryMapper.selectByUserId(userId);
         if (library == null) {
-            // Create library for user if not exists
-            library = new Library();
-            library.setUuid(UUID.randomUUID());
-            library.setUserId(userId);
-            libraryMapper.insertSelective(library);
+            throw new ResourceNotFoundException("User with ID " + userId + " does not have a library");
         }
         novelLibrary.setLibraryId(library.getId());
 
-        //check if progress is valid
-        checkProgreess(novelId, progress);
         novelLibrary.setProgress(progress);
 
         novelLibraryMapper.insertSelective(novelLibrary);
@@ -91,21 +87,20 @@ public class LibraryService {
      * @param novelIds
      */
     public void batchRemoveNovelsFromLibrary(UUID userId, List<Integer> novelIds) {
-        // check if novels exist & in library
-        for (Integer novelId : novelIds) {
-            // check if novel exists
-            if (novelMapper.selectByPrimaryKey(novelId) == null) {
-                throw new ResourceNotFoundException("novel not found: " + novelId);
-            }
-
-            // check if in library
-            NovelLibrary novelLibrary = novelFromLibrary(userId, novelId);
-            if (novelLibrary == null) {
-                throw new ValidationException("novel don't exist in library");
-            }
+        if (novelIds == null || novelIds.isEmpty()) {
+            return;
         }
 
-        // batch remove
+        List<Novel> foundNovels = novelMapper.selectByIds(novelIds);
+        if (foundNovels.size() != novelIds.size()) {
+            throw new ResourceNotFoundException("One or more novels not found.");
+        }
+
+        List<NovelLibrary> libraryEntries = novelLibraryMapper.selectByUserIdAndNovelIds(userId, novelIds);
+        if (libraryEntries.size() != novelIds.size()) {
+            throw new ValidationException("One or more novels are not in your library.");
+        }
+
         novelLibraryMapper.deleteByUserIdAndNovelIds(userId, novelIds);
     }
 
@@ -139,14 +134,21 @@ public class LibraryService {
                 .map(NovelLibrary::getNovelId)
                 .distinct()
                 .collect(Collectors.toList());
+        List<Integer> chapterIds = novelLibraries.stream()
+                .map(NovelLibrary::getProgress)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+
 
         Map<Integer, Novel> novelMap = novelMapper.selectByIds(novelIds).stream()
                 .collect(Collectors.toMap(Novel::getId, novel -> novel));
+        Map<Integer, Chapter> chapterMap = chapterMapper.selectByIds(chapterIds).stream()
+                .collect(Collectors.toMap(Chapter::getId, chapter -> chapter));
 
         List<LibraryResponseDTO> dtos = novelLibraries.stream()
                 .map(novelLibrary -> {
                     Novel novel = novelMap.get(novelLibrary.getNovelId());
-                    return convertToDTO(novelLibrary, novel);
+                    Chapter chapter = chapterMap.get(novelLibrary.getProgress());
+                    return convertToDTO(novelLibrary, novel, chapter);
                 })
                 .collect(Collectors.toList());
 
@@ -161,23 +163,21 @@ public class LibraryService {
      * @return
      */
     public LibraryResponseDTO updateReadingProgress(UUID userId, Integer novelId, Integer progress) {
-        // check if novel exists
-        if (novelMapper.selectByPrimaryKey(novelId) == null) {
-            throw new ResourceNotFoundException("novel not found");
-        }
-
+        checkValidation(novelId, progress);
         // check if not in library
         NovelLibrary novelLibrary = novelFromLibrary(userId, novelId);
         if (novelLibrary == null) {
             throw new ValidationException("novel don't exist in library");
         }
 
-        //check if progress is valid
-        checkProgreess(novelId, progress);
         novelLibrary.setProgress(progress);
 
         novelLibraryMapper.updateByPrimaryKeySelective(novelLibrary);
-        return convertToDTO(novelLibrary);
+
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        Chapter chapter = chapterMapper.selectByPrimaryKey(progress);
+
+        return convertToDTO(novelLibrary, novel, chapter);
     }
 
     /**
@@ -192,7 +192,9 @@ public class LibraryService {
         if (novelLibrary == null) {
             throw new ValidationException("novel don't exist in library");
         }
-        return convertToDTO(novelLibrary);
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        Chapter chapter = chapterMapper.selectByPrimaryKey(novelLibrary.getProgress());
+        return convertToDTO(novelLibrary, novel, chapter);
     }
 
     /**
@@ -213,21 +215,6 @@ public class LibraryService {
      */
     public boolean novelInLibrary(UUID userId, Integer novelId) {
         return novelLibraryMapper.selectByUserIdAndNovelId(userId, novelId) != null;
-    }
-
-    /**
-     * check if progress is valid
-     * @param novelId
-     * @param progress
-     */
-    private void checkProgreess(Integer novelId, Integer progress) {
-        Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel != null && novel.getChapterCnt() != null && progress > novel.getChapterCnt()) {
-            throw new ValidationException("progress cannot bigger than totalChapterNum");
-        }
-        if (progress < 1) {
-            throw new ValidationException("progress must be greater than or equal to 1");
-        }
     }
 
     /**
@@ -255,7 +242,21 @@ public class LibraryService {
                 ));
     }
 
-    private LibraryResponseDTO convertToDTO(NovelLibrary novelLibrary, Novel novel) {
+    private void checkValidation(Integer novelId, Integer progress) {
+        // check if novel exists
+        if (novelMapper.selectByPrimaryKey(novelId) == null) {
+            throw new ResourceNotFoundException("novel not found: " + novelId);
+        }
+        Chapter chapter = chapterMapper.selectByPrimaryKey(progress);
+        if (chapter == null) {
+            throw new ResourceNotFoundException("Chapter not found with id: " + progress);
+        }
+        if (!chapter.getNovelId().equals(novelId)) {
+            throw new ValidationException("Chapter don't belong with novel id: " + novelId);
+        }
+    }
+
+    private LibraryResponseDTO convertToDTO(NovelLibrary novelLibrary, Novel novel, Chapter chapter) {
         LibraryResponseDTO dto = new LibraryResponseDTO();
         dto.setId(novelLibrary.getId());
         dto.setNovelId(novelLibrary.getNovelId());
@@ -268,24 +269,8 @@ public class LibraryService {
             dto.setNovelAuthor(novel.getAuthorName());
             dto.setNovelCover(novel.getCoverImgUrl());
         }
-        return dto;
-    }
-
-    protected LibraryResponseDTO convertToDTO(NovelLibrary novelLibrary) {
-        LibraryResponseDTO dto = new LibraryResponseDTO();
-
-        dto.setId(novelLibrary.getId());
-        dto.setNovelId(novelLibrary.getNovelId());
-        dto.setProgress(novelLibrary.getProgress());
-        dto.setCreateTime(novelLibrary.getCreateTime());
-        dto.setUpdateTime(novelLibrary.getUpdateTime());
-
-        Novel novel = novelMapper.selectByPrimaryKey(novelLibrary.getNovelId());
-        if (novel != null) {
-            // set novel info
-            dto.setNovelTitle(novel.getTitle());
-            dto.setNovelAuthor(novel.getAuthorName());
-            dto.setNovelCover(novel.getCoverImgUrl());
+        if (chapter != null) {
+            dto.setChapterNumber(chapter.getChapterNumber());
         }
         return dto;
     }
