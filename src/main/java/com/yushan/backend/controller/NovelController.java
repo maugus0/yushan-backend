@@ -72,14 +72,10 @@ public class NovelController {
             @RequestParam(value = "category", required = false) Integer categoryId,
             @RequestParam(value = "status", required = false) String status,
             @RequestParam(value = "search", required = false) String search,
-            @RequestParam(value = "authorName", required = false) String authorName) {
+            @RequestParam(value = "authorName", required = false) String authorName,
+            @RequestParam(value = "authorId", required = false) String authorId) {
         
-        // Create request DTO from query parameters
-        NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
-                                                              categoryId, status, search, authorName);
-        
-        PageResponseDTO<NovelDetailResponseDTO> response = novelService.listNovelsWithPagination(request);
-        return ApiResponse.success("Novels retrieved successfully", response);
+        return getNovelsWithFilters(page, size, sort, order, categoryId, status, search, authorName, authorId, false);
     }
 
     // Novel Approval Workflow APIs
@@ -114,10 +110,24 @@ public class NovelController {
     }
 
     @PostMapping("/{id}/hide")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
     public ApiResponse<NovelDetailResponseDTO> hideNovel(@PathVariable Integer id) {
         NovelDetailResponseDTO dto = novelService.hideNovel(id);
         return ApiResponse.success("Novel hidden", dto);
+    }
+
+    @PostMapping("/{id}/unhide")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canHideOrUnhide(#id, authentication)")
+    public ApiResponse<NovelDetailResponseDTO> unhideNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.unhideNovel(id);
+        return ApiResponse.success("Novel unhidden and published", dto);
+    }
+
+    @PostMapping("/{id}/archive")
+    @PreAuthorize("hasRole('ADMIN') or @novelGuard.canEdit(#id, authentication)")
+    public ApiResponse<NovelDetailResponseDTO> archiveNovel(@PathVariable Integer id) {
+        NovelDetailResponseDTO dto = novelService.archiveNovel(id);
+        return ApiResponse.success("Novel archived", dto);
     }
 
     @GetMapping("/admin/under-review")
@@ -127,5 +137,47 @@ public class NovelController {
             @RequestParam(value = "size", defaultValue = "10") Integer size) {
         PageResponseDTO<NovelDetailResponseDTO> novels = novelService.getNovelsUnderReview(page, size);
         return ApiResponse.success("Novels under review retrieved", novels);
+    }
+
+    /**
+     * Get all novels for admin view (including ARCHIVED novels)
+     */
+    @GetMapping("/admin/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PageResponseDTO<NovelDetailResponseDTO>> getAllNovelsAdmin(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "sort", defaultValue = "createTime") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order,
+            @RequestParam(value = "category", required = false) Integer categoryId,
+            @RequestParam(value = "status", required = false) String status,
+            @RequestParam(value = "search", required = false) String search,
+            @RequestParam(value = "authorName", required = false) String authorName,
+            @RequestParam(value = "authorId", required = false) String authorId) {
+        
+        return getNovelsWithFilters(page, size, sort, order, categoryId, status, search, authorName, authorId, true);
+    }
+
+    /**
+     * Helper method to get novels with filters (shared logic)
+     */
+    private ApiResponse<PageResponseDTO<NovelDetailResponseDTO>> getNovelsWithFilters(
+            Integer page, Integer size, String sort, String order,
+            Integer categoryId, String status, String search, String authorName, String authorId,
+            boolean includeArchived) {
+        
+        // Create request DTO from query parameters
+        NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, sort, order, 
+                                                              categoryId, status, search, authorName, authorId);
+        
+        PageResponseDTO<NovelDetailResponseDTO> response = includeArchived 
+            ? novelService.getAllNovelsAdmin(request)
+            : novelService.listNovelsWithPagination(request);
+            
+        String message = includeArchived 
+            ? "All novels retrieved successfully for admin" 
+            : "Novels retrieved successfully";
+            
+        return ApiResponse.success(message, response);
     }
 }

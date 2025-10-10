@@ -30,7 +30,6 @@ public class MailServiceTest {
     private static final String TEST_EMAIL = "test@example.com";
     private static final String VERIFICATION_CODE = "123456";
     private static final String SUBJECT = "Verify Your Code in Yushan";
-    private static final String CONTENT = "Your code is: 123456, valid for 5 minutes.";
 
     @BeforeEach
     void setUp() {

@@ -41,7 +41,10 @@ public class NovelService {
         novel.setAuthorName(authorName);
         novel.setCategoryId(req.getCategoryId());
         novel.setSynopsis(req.getSynopsis());
-        novel.setCoverImgUrl(req.getCoverImgUrl());
+        // Convert Base64 to URL if provided
+        if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
+            novel.setCoverImgUrl(convertBase64ToUrl(req.getCoverImgBase64()));
+        }
         novel.setStatus(mapStatus(NovelStatus.DRAFT));
         novel.setIsCompleted(Boolean.TRUE.equals(req.getIsCompleted()));
         novel.setIsValid(true);
@@ -67,28 +70,70 @@ public class NovelService {
             throw new ResourceNotFoundException("novel not found");
         }
 
-        if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) existing.setTitle(req.getTitle());
-        if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) existing.setSynopsis(req.getSynopsis());
+        // Check if novel can be edited - only DRAFT or PUBLISHED novels can be edited
+        int currentStatus = existing.getStatus();
+        if (currentStatus != mapStatus(NovelStatus.DRAFT) && currentStatus != mapStatus(NovelStatus.PUBLISHED)) {
+            throw new IllegalArgumentException("only draft or published novels can be edited");
+        }
+
+        boolean hasChanges = false;
+        
+        if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) {
+            if (!req.getTitle().equals(existing.getTitle())) {
+                existing.setTitle(req.getTitle());
+                hasChanges = true;
+            }
+        }
+        if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) {
+            if (!req.getSynopsis().equals(existing.getSynopsis())) {
+                existing.setSynopsis(req.getSynopsis());
+                hasChanges = true;
+            }
+        }
         if (req.getCategoryId() != null && req.getCategoryId() > 0) {
             if (categoryService.getCategoryById(req.getCategoryId()) == null) {
                 throw new IllegalArgumentException("category not found");
             }
-            existing.setCategoryId(req.getCategoryId());
+            if (!req.getCategoryId().equals(existing.getCategoryId())) {
+                existing.setCategoryId(req.getCategoryId());
+                hasChanges = true;
+            }
         }
-        if (req.getCoverImgUrl() != null && !req.getCoverImgUrl().trim().isEmpty()) existing.setCoverImgUrl(req.getCoverImgUrl());
+        if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
+            String newCoverUrl = convertBase64ToUrl(req.getCoverImgBase64());
+            if (!newCoverUrl.equals(existing.getCoverImgUrl())) {
+                existing.setCoverImgUrl(newCoverUrl);
+                hasChanges = true;
+            }
+        }
+        if (req.getIsCompleted() != null) {
+            if (!req.getIsCompleted().equals(existing.getIsCompleted())) {
+                existing.setIsCompleted(req.getIsCompleted());
+                hasChanges = true;
+            }
+        }
         
         // Status change is only allowed for admin - this should be handled at controller level
         // but we add validation here as well for safety
         if (req.getStatus() != null && !req.getStatus().trim().isEmpty()) {
             NovelStatus s = NovelStatus.valueOf(req.getStatus());
-            existing.setStatus(mapStatus(s));
-            
-            // Set publish time if publishing
-            if (s == NovelStatus.PUBLISHED) {
-                existing.setPublishTime(new Date());
+            int newStatus = mapStatus(s);
+            if (newStatus != existing.getStatus()) {
+                existing.setStatus(newStatus);
+                
+                // Set publish time if publishing
+                if (s == NovelStatus.PUBLISHED) {
+                    existing.setPublishTime(new Date());
+                }
+                hasChanges = true;
             }
         }
-        if (req.getIsCompleted() != null) existing.setIsCompleted(req.getIsCompleted());
+        
+        // If editing a published novel and there are actual changes, change status to DRAFT
+        if (currentStatus == mapStatus(NovelStatus.PUBLISHED) && hasChanges) {
+            existing.setStatus(mapStatus(NovelStatus.DRAFT));
+        }
+        
         existing.setUpdateTime(new Date());
 
         novelMapper.updateByPrimaryKeySelective(existing);
@@ -116,6 +161,8 @@ public class NovelService {
                 return 2;
             case HIDDEN:
                 return 3;
+            case ARCHIVED:
+                return 4;
             default:
                 return 0;
         }
@@ -161,11 +208,29 @@ public class NovelService {
             case 1: return NovelStatus.UNDER_REVIEW.name();
             case 2: return NovelStatus.PUBLISHED.name();
             case 3: return NovelStatus.HIDDEN.name();
+            case 4: return NovelStatus.ARCHIVED.name();
             default: return NovelStatus.DRAFT.name();
         }
     }
 
     public PageResponseDTO<NovelDetailResponseDTO> listNovelsWithPagination(NovelSearchRequestDTO request) {
+        return getNovelsWithPagination(request, false);
+    }
+
+    /**
+     * Get all novels for admin view (including ARCHIVED novels)
+     */
+    public PageResponseDTO<NovelDetailResponseDTO> getAllNovelsAdmin(NovelSearchRequestDTO request) {
+        return getNovelsWithPagination(request, true);
+    }
+
+    /**
+     * Common method for getting novels with pagination
+     * @param request Search request parameters
+     * @param includeArchived Whether to include ARCHIVED novels
+     * @return Paginated novels
+     */
+    private PageResponseDTO<NovelDetailResponseDTO> getNovelsWithPagination(NovelSearchRequestDTO request, boolean includeArchived) {
         // Validate and set defaults
         if (request.getPage() == null || request.getPage() < 0) {
             request.setPage(0);
@@ -184,10 +249,14 @@ public class NovelService {
         }
 
         // Get novels with pagination
-        List<Novel> novels = novelMapper.selectNovelsWithPagination(request);
+        List<Novel> novels = includeArchived 
+            ? novelMapper.selectAllNovelsWithPagination(request)
+            : novelMapper.selectNovelsWithPagination(request);
         
         // Get total count
-        long totalElements = novelMapper.countNovels(request);
+        long totalElements = includeArchived 
+            ? novelMapper.countAllNovels(request)
+            : novelMapper.countNovels(request);
         
         // Convert to DTOs
         List<NovelDetailResponseDTO> novelDTOs = novels.stream()
@@ -301,10 +370,19 @@ public class NovelService {
     }
 
     /**
-     * Hide novel (Admin only)
+     * Hide novel - only published novels can be hidden
      */
     public NovelDetailResponseDTO hideNovel(Integer novelId) {
-        return changeNovelStatus(novelId, NovelStatus.HIDDEN, null, null);
+        return changeNovelStatus(novelId, NovelStatus.HIDDEN, NovelStatus.PUBLISHED, 
+                "only published novels can be hidden");
+    }
+
+    /**
+     * Unhide novel - only hidden novels can be unhidden, will return to published status
+     */
+    public NovelDetailResponseDTO unhideNovel(Integer novelId) {
+        return changeNovelStatus(novelId, NovelStatus.PUBLISHED, NovelStatus.HIDDEN, 
+                "only hidden novels can be unhidden");
     }
 
     /**
@@ -312,7 +390,7 @@ public class NovelService {
      */
     public PageResponseDTO<NovelDetailResponseDTO> getNovelsUnderReview(int page, int size) {
         NovelSearchRequestDTO request = new NovelSearchRequestDTO(page, size, "createTime", "desc", 
-                null, "UNDER_REVIEW", null, null);
+                null, "UNDER_REVIEW", null, null, null);
         return listNovelsWithPagination(request);
     }
 
@@ -334,5 +412,37 @@ public class NovelService {
         // Update timestamp
         novel.setUpdateTime(new Date());
         novelMapper.updateByPrimaryKeySelective(novel);
+    }
+
+    public NovelDetailResponseDTO archiveNovel(Integer id) {
+        Novel existing = novelMapper.selectByPrimaryKey(id);
+        if (existing == null) {
+            throw new ResourceNotFoundException("Novel not found with id: " + id);
+        }
+        if (!existing.getIsValid()) {
+            throw new ResourceNotFoundException("Novel not found with id: " + id);
+        }
+
+        existing.setStatus(mapStatus(NovelStatus.ARCHIVED));
+        existing.setIsValid(false);  // Soft delete - hide from all views
+        existing.setUpdateTime(new Date());
+        novelMapper.updateByPrimaryKeySelective(existing);
+
+        return toResponse(existing);
+    }
+
+    /**
+     * Convert Base64 data URL to a regular URL
+     * For now, this is a placeholder implementation that returns the Base64 data as-is
+     * In a real application, you would save the image to a file storage service
+     * and return the public URL
+     */
+    private String convertBase64ToUrl(String base64DataUrl) {
+        // For now, we'll store the Base64 data directly as the URL
+        // In production, you should:
+        // 1. Extract the image data from the Base64 string
+        // 2. Save it to a file storage service (AWS S3, Google Cloud Storage, etc.)
+        // 3. Return the public URL
+        return base64DataUrl;
     }
 }
