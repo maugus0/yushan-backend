@@ -369,17 +369,12 @@ public class CommentService {
 
         int deletedCount = 0;
         for (Integer commentId : request.getCommentIds()) {
-            try {
-                Comment comment = commentMapper.selectByPrimaryKey(commentId);
-                if (comment != null) {
-                    int result = commentMapper.deleteByPrimaryKey(commentId);
-                    if (result > 0) {
-                        deletedCount++;
-                    }
+            Comment comment = commentMapper.selectByPrimaryKey(commentId);
+            if (comment != null) {
+                int result = commentMapper.deleteByPrimaryKey(commentId);
+                if (result > 0) {
+                    deletedCount++;
                 }
-            } catch (Exception e) {
-                // Log error but continue with other deletions
-                // In production, you might want to collect failed deletions and return them
             }
         }
 
@@ -411,15 +406,11 @@ public class CommentService {
         }
 
         // Get chapter title from ChapterMapper
-        try {
-            Chapter chapter = chapterMapper.selectByPrimaryKey(comment.getChapterId());
-            if (chapter != null) {
-                dto.setChapterTitle(chapter.getTitle());
-            } else {
-                dto.setChapterTitle("Chapter not found");
-            }
-        } catch (Exception e) {
-            dto.setChapterTitle(null);
+        Chapter chapter = chapterMapper.selectByPrimaryKey(comment.getChapterId());
+        if (chapter != null) {
+            dto.setChapterTitle(chapter.getTitle());
+        } else {
+            dto.setChapterTitle("Chapter not found");
         }
 
         return dto;
