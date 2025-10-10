@@ -50,6 +50,13 @@ public class LibraryService {
         novelLibrary.setNovelId(novelId);
 
         Library library = libraryMapper.selectByUserId(userId);
+        if (library == null) {
+            // Create library for user if not exists
+            library = new Library();
+            library.setUuid(UUID.randomUUID());
+            library.setUserId(userId);
+            libraryMapper.insertSelective(library);
+        }
         novelLibrary.setLibraryId(library.getId());
 
         //check if progress is valid
@@ -203,8 +210,11 @@ public class LibraryService {
      */
     private void checkProgreess(Integer novelId, Integer progress) {
         Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel != null && progress > novel.getChapterCnt() && progress < 1) {
+        if (novel != null && novel.getChapterCnt() != null && progress > novel.getChapterCnt()) {
             throw new ValidationException("progress cannot bigger than totalChapterNum");
+        }
+        if (progress < 1) {
+            throw new ValidationException("progress must be greater than or equal to 1");
         }
     }
 
