@@ -27,6 +27,11 @@ public interface NovelMapper {
     
     long countNovels(@Param("req") NovelSearchRequestDTO req);
     
+    // Admin methods (including ARCHIVED novels)
+    List<Novel> selectAllNovelsWithPagination(@Param("req") NovelSearchRequestDTO req);
+    
+    long countAllNovels(@Param("req") NovelSearchRequestDTO req);
+    
     // Vote count methods
     int incrementVoteCount(@Param("novelId") Integer novelId);
     

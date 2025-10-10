@@ -356,15 +356,8 @@
     </where>
   </sql>
 
-  <!-- Pagination and filtering queries -->
-  <select id="selectNovelsWithPagination" resultMap="BaseResultMap" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
-    <bind name="page" value="req.page != null ? req.page : 0" />
-    <bind name="size" value="req.size != null ? req.size : 10" />
-    <bind name="offset" value="page * size" />
-    select 
-    <include refid="Base_Column_List" />
-    from novel
-    <include refid="Novel_Public_Where" />
+  <!-- Common ORDER BY clause -->
+  <sql id="Novel_Order_By">
     <choose>
       <when test="req.sort == 'title'">
         <choose>
@@ -417,6 +410,18 @@
         </choose>
       </otherwise>
     </choose>
+  </sql>
+
+  <!-- Pagination and filtering queries -->
+  <select id="selectNovelsWithPagination" resultMap="BaseResultMap" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
+    <bind name="page" value="req.page != null ? req.page : 0" />
+    <bind name="size" value="req.size != null ? req.size : 10" />
+    <bind name="offset" value="page * size" />
+    select 
+    <include refid="Base_Column_List" />
+    from novel
+    <include refid="Novel_Public_Where" />
+    <include refid="Novel_Order_By" />
     limit #{size,jdbcType=INTEGER} offset #{offset}
   </select>
 
@@ -424,6 +429,25 @@
     select count(*)
     from novel
     <include refid="Novel_Public_Where" />
+  </select>
+
+  <!-- Admin queries - including ARCHIVED novels -->
+  <select id="selectAllNovelsWithPagination" resultMap="BaseResultMap" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
+    <bind name="page" value="req.page != null ? req.page : 0" />
+    <bind name="size" value="req.size != null ? req.size : 10" />
+    <bind name="offset" value="page * size" />
+    select 
+    <include refid="Base_Column_List" />
+    from novel
+    <include refid="Novel_Where" />
+    <include refid="Novel_Order_By" />
+    limit #{size,jdbcType=INTEGER} offset #{offset}
+  </select>
+
+  <select id="countAllNovels" resultType="long" parameterType="com.yushan.backend.dto.NovelSearchRequestDTO">
+    select count(*)
+    from novel
+    <include refid="Novel_Where" />
   </select>
 
   <update id="incrementVoteCount">

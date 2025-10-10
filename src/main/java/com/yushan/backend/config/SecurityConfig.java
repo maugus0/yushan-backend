@@ -119,6 +119,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/novels").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/novels/*").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/api/novels/*").authenticated()
+                .requestMatchers("/api/novels/admin/**").hasRole("ADMIN")
 
                 // Voting APIs - require authentication
                 .requestMatchers(HttpMethod.POST, "/api/novels/*/vote").authenticated()

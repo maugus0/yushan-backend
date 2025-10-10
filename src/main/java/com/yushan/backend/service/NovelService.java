@@ -214,6 +214,23 @@ public class NovelService {
     }
 
     public PageResponseDTO<NovelDetailResponseDTO> listNovelsWithPagination(NovelSearchRequestDTO request) {
+        return getNovelsWithPagination(request, false);
+    }
+
+    /**
+     * Get all novels for admin view (including ARCHIVED novels)
+     */
+    public PageResponseDTO<NovelDetailResponseDTO> getAllNovelsAdmin(NovelSearchRequestDTO request) {
+        return getNovelsWithPagination(request, true);
+    }
+
+    /**
+     * Common method for getting novels with pagination
+     * @param request Search request parameters
+     * @param includeArchived Whether to include ARCHIVED novels
+     * @return Paginated novels
+     */
+    private PageResponseDTO<NovelDetailResponseDTO> getNovelsWithPagination(NovelSearchRequestDTO request, boolean includeArchived) {
         // Validate and set defaults
         if (request.getPage() == null || request.getPage() < 0) {
             request.setPage(0);
@@ -232,10 +249,14 @@ public class NovelService {
         }
 
         // Get novels with pagination
-        List<Novel> novels = novelMapper.selectNovelsWithPagination(request);
+        List<Novel> novels = includeArchived 
+            ? novelMapper.selectAllNovelsWithPagination(request)
+            : novelMapper.selectNovelsWithPagination(request);
         
         // Get total count
-        long totalElements = novelMapper.countNovels(request);
+        long totalElements = includeArchived 
+            ? novelMapper.countAllNovels(request)
+            : novelMapper.countNovels(request);
         
         // Convert to DTOs
         List<NovelDetailResponseDTO> novelDTOs = novels.stream()
