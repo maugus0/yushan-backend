@@ -10,6 +10,7 @@ import com.yushan.backend.exception.ResourceNotFoundException;
 import com.yushan.backend.exception.ValidationException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 
 import java.util.Date;
@@ -26,11 +27,13 @@ public class VoteServiceTest {
     private VoteMapper voteMapper;
     private NovelService novelService;
     private VoteService voteService;
+    private EXPService expService;
 
     @BeforeEach
     void setUp() {
         voteMapper = Mockito.mock(VoteMapper.class);
         novelService = Mockito.mock(NovelService.class);
+        expService = Mockito.mock(EXPService.class);
         voteService = new VoteService();
         
         // Inject mocks using reflection
@@ -42,7 +45,11 @@ public class VoteServiceTest {
             java.lang.reflect.Field novelServiceField = VoteService.class.getDeclaredField("novelService");
             novelServiceField.setAccessible(true);
             novelServiceField.set(voteService, novelService);
-            
+
+            java.lang.reflect.Field expServiceField = VoteService.class.getDeclaredField("expService");
+            expServiceField.setAccessible(true);
+            expServiceField.set(voteService, expService);
+
         } catch (Exception e) {
             throw new RuntimeException("Failed to inject mocks", e);
         }
