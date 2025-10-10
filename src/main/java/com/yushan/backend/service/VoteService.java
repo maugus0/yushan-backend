@@ -23,6 +23,11 @@ public class VoteService {
     @Autowired
     private NovelService novelService;
 
+    @Autowired
+    private EXPService expService;
+
+    private static final Float EXP_PER_VOTE = 3f;
+
     /**
      * Toggle vote for a novel (vote if not voted, unvote if already voted)
      */
@@ -75,6 +80,9 @@ public class VoteService {
 
         // Get updated vote count
         Integer updatedVoteCount = novelService.getNovelVoteCount(novelId);
+
+        // add exp
+        expService.addExp(userId, EXP_PER_VOTE);
 
         return new VoteResponseDTO(
             novelId,

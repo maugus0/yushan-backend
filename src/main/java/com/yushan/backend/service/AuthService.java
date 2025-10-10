@@ -15,6 +15,7 @@ import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Calendar;
 import java.util.Date;
 import java.util.UUID;
 
@@ -30,8 +31,13 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
+    @Autowired
+    private EXPService expService;
+
     @Value("${jwt.access-token.expiration}")
     private long accessTokenExpiration;
+
+    private static final Float DAILY_LOGIN_EXP = 5f;
 
     /**
      * register a new user
@@ -139,15 +145,42 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(user);
         String refreshToken = jwtUtil.generateRefreshToken(user);
 
+        // get last login time
+        Date lastLogin = user.getLastLogin();
+
+        // check if the first login in the day
+        boolean isFirstLoginToday = false;
+        if (lastLogin != null) {
+            Calendar lastLoginCalendar = Calendar.getInstance();
+            lastLoginCalendar.setTime(lastLogin);
+
+            Calendar todayCalendar = Calendar.getInstance();
+
+            isFirstLoginToday = lastLoginCalendar.get(Calendar.YEAR) != todayCalendar.get(Calendar.YEAR) ||
+                    lastLoginCalendar.get(Calendar.DAY_OF_YEAR) != todayCalendar.get(Calendar.DAY_OF_YEAR);
+        } else {
+            isFirstLoginToday = true;
+        }
+
+        if(isFirstLoginToday) {
+            // add exp
+            Float newExp = user.getExp() + DAILY_LOGIN_EXP;
+            user.setExp(newExp);
+            user.setLevel(expService.checkLevel(newExp));
+        }
+
+        Date now = new Date();
+        user.setLastLogin(now);
+        user.setLastActive(now);
+
         // Prepare user info (without sensitive data)
         UserRegistrationResponseDTO responseDTO = createUserResponse(user);
         responseDTO.setAccessToken(accessToken);
         responseDTO.setRefreshToken(refreshToken);
         responseDTO.setTokenType("Bearer");
         responseDTO.setExpiresIn(accessTokenExpiration);
+        responseDTO.setFirstLoginToday(isFirstLoginToday);
 
-        user.setLastLogin(new Date());
-        user.setLastActive(new Date());
         userMapper.updateByPrimaryKeySelective(user);
         return responseDTO;
     }
