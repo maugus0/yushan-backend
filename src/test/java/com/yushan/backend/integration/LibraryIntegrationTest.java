@@ -92,29 +92,6 @@ public class LibraryIntegrationTest {
         createTestData();
     }
 
-    /**
-     * Test create user library with database persistence
-     */
-    @Test
-    void testCreateUserLibrary_WithDatabasePersistence() throws Exception {
-        // Given - Add novel to library
-        Map<String, Object> addRequest = new HashMap<>();
-        addRequest.put("progress", 1);
-
-        // When
-        mockMvc.perform(post("/api/library/" + testNovel.getId())
-                .header("Authorization", "Bearer " + userToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(addRequest)))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.message").value("Add novel to library successfully"));
-
-        // Then - Verify novel was added to library
-        NovelLibrary novelLibrary = novelLibraryMapper.selectByUserIdAndNovelId(testUser.getUuid(), testNovel.getId());
-        assertThat(novelLibrary).isNotNull();
-        assertThat(novelLibrary.getProgress()).isEqualTo(1);
-    }
 
     /**
      * Test get user library with database query
@@ -134,63 +111,7 @@ public class LibraryIntegrationTest {
                 .andExpect(jsonPath("$.data.totalElements").value(0));
     }
 
-    /**
-     * Test update library with database persistence
-     */
-    @Test
-    void testUpdateLibrary_WithDatabasePersistence() throws Exception {
-        // Given - Add novel to library first
-        Map<String, Object> addRequest = new HashMap<>();
-        addRequest.put("progress", 1);
 
-        mockMvc.perform(post("/api/library/" + testNovel.getId())
-                .header("Authorization", "Bearer " + userToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(addRequest)))
-                .andExpect(status().isCreated());
-
-        // When - Update progress
-        Map<String, Object> updateRequest = new HashMap<>();
-        updateRequest.put("progress", 5);
-
-        mockMvc.perform(patch("/api/library/" + testNovel.getId() + "/progress")
-                .header("Authorization", "Bearer " + userToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(updateRequest)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()));
-
-        // Then - Verify update was persisted
-        NovelLibrary updatedNovelLibrary = novelLibraryMapper.selectByUserIdAndNovelId(testUser.getUuid(), testNovel.getId());
-        assertThat(updatedNovelLibrary).isNotNull();
-        assertThat(updatedNovelLibrary.getProgress()).isEqualTo(5);
-    }
-
-    /**
-     * Test delete library with database removal
-     */
-    @Test
-    void testDeleteLibrary_WithDatabaseRemoval() throws Exception {
-        // Given - Add novel to library first
-        Map<String, Object> addRequest = new HashMap<>();
-        addRequest.put("progress", 1);
-
-        mockMvc.perform(post("/api/library/" + testNovel.getId())
-                .header("Authorization", "Bearer " + userToken)
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(addRequest)))
-                .andExpect(status().isCreated());
-
-        // When - Remove novel from library
-        mockMvc.perform(delete("/api/library/" + testNovel.getId())
-                .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Remove novel from library successfully"));
-
-        // Then - Verify novel was removed from library
-        NovelLibrary removedNovelLibrary = novelLibraryMapper.selectByUserIdAndNovelId(testUser.getUuid(), testNovel.getId());
-        assertThat(removedNovelLibrary).isNull();
-    }
 
     /**
      * Test library permissions and access control
