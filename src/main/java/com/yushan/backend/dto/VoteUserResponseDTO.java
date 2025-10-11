@@ -15,15 +15,11 @@ public class VoteUserResponseDTO {
     private String novelTitle;
     private Date votedTime;
 
-    public static Object builder() {
-        return null;
-    }
-
     public Date getVotedTime() {
         return votedTime != null ? new Date(votedTime.getTime()) : null;
     }
 
-    public void setVotedTime(Date votedAt) {
+    public void setVotedTime(Date votedTime) {
         this.votedTime = votedTime != null ? new Date(votedTime.getTime()) : null;
     }
 }

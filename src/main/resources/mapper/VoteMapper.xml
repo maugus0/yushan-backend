@@ -26,7 +26,7 @@
   <insert id="insert" parameterType="com.yushan.backend.entity.Vote" useGeneratedKeys="true" keyProperty="id">
     insert into vote (id, user_id, novel_id, create_time, update_time)
     values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=OTHER}, #{novelId,jdbcType=INTEGER}, 
-            #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+            NOW(), NOW())
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.Vote" useGeneratedKeys="true" keyProperty="id">
     insert into vote
@@ -40,12 +40,8 @@
       <if test="novelId != null" >
         novel_id,
       </if>
-      <if test="createTime != null" >
         create_time,
-      </if>
-      <if test="updateTime != null" >
         update_time,
-      </if>
     </trim>
     <trim prefix="values (" suffix=")" suffixOverrides="," >
       <if test="id != null" >
@@ -57,12 +53,8 @@
       <if test="novelId != null" >
         #{novelId,jdbcType=INTEGER},
       </if>
-      <if test="createTime != null" >
-        #{createTime,jdbcType=TIMESTAMP},
-      </if>
-      <if test="updateTime != null" >
-        #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+      NOW(),
+      NOW()
     </trim>
   </insert>
   <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Vote" >
@@ -77,9 +69,7 @@
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
-      <if test="updateTime != null" >
-        update_time = #{updateTime,jdbcType=TIMESTAMP},
-      </if>
+        update_time = NOW()
     </set>
     where id = #{id,jdbcType=INTEGER}
   </update>
@@ -88,7 +78,7 @@
     set user_id = #{userId,jdbcType=OTHER},
         novel_id = #{novelId,jdbcType=INTEGER},
         create_time = #{createTime,jdbcType=TIMESTAMP},
-        update_time = #{updateTime,jdbcType=TIMESTAMP}
+        update_time = NOW()
     where id = #{id,jdbcType=INTEGER}
   </update>
 
@@ -96,13 +86,14 @@
   <update id="incrementVoteCount">
     update novel
     set vote_cnt = vote_cnt + 1,
-        update_time = CURRENT_TIMESTAMP
+        update_time = NOW()
     where id = #{novelId,jdbcType=INTEGER}
   </update>
 
   <update id="decrementVoteCount">
     update novel
-    set vote_cnt = vote_cnt - 1
+    set vote_cnt = vote_cnt - 1,
+        update_time = NOW()
     where id = #{novelId,jdbcType=INTEGER}
   </update>
 
