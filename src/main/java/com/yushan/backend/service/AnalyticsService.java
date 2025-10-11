@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class AnalyticsService {
@@ -132,8 +133,9 @@ public class AnalyticsService {
             }
         }
 
+        UUID authorId = request.getAuthorId() != null ? UUID.fromString(request.getAuthorId()) : null;
         List<ReadingActivityResponseDTO.ActivityDataPoint> dataPoints = 
-            analyticsMapper.getReadingActivityTrends(startDate, endDate, period);
+            analyticsMapper.getReadingActivityTrends(startDate, endDate, period, request.getCategoryId(), authorId);
 
         ReadingActivityResponseDTO response = new ReadingActivityResponseDTO();
         response.setPeriod(period);
@@ -143,7 +145,7 @@ public class AnalyticsService {
         
         // Calculate totals and averages
         Long totalActivity = dataPoints.stream()
-            .mapToLong(dp -> dp.getTotalActivity())
+            .mapToLong(dp -> dp.getTotalActivity() != null ? dp.getTotalActivity() : 0L)
             .sum();
         response.setTotalActivity(totalActivity);
         
@@ -152,10 +154,12 @@ public class AnalyticsService {
             
             // Find peak activity
             ReadingActivityResponseDTO.ActivityDataPoint peak = dataPoints.stream()
-                .max((dp1, dp2) -> Long.compare(dp1.getTotalActivity(), dp2.getTotalActivity()))
+                .max((dp1, dp2) -> Long.compare(
+                    dp1.getTotalActivity() != null ? dp1.getTotalActivity() : 0L,
+                    dp2.getTotalActivity() != null ? dp2.getTotalActivity() : 0L))
                 .orElse(null);
             if (peak != null) {
-                response.setPeakActivity(peak.getTotalActivity());
+                response.setPeakActivity(peak.getTotalActivity() != null ? peak.getTotalActivity() : 0L);
                 response.setPeakDate(peak.getPeriodLabel());
             }
         }
@@ -212,10 +216,27 @@ public class AnalyticsService {
         response.setAverageCommentsPerNovel(analyticsMapper.getAverageCommentsPerNovel(startDate, endDate));
         response.setAverageReviewsPerNovel(analyticsMapper.getAverageReviewsPerNovel(startDate, endDate));
 
-        // Get growth rates
-        response.setUserGrowthRate(analyticsMapper.getUserGrowthRate(startDate, endDate));
-        response.setNovelGrowthRate(analyticsMapper.getNovelGrowthRate(startDate, endDate));
-        response.setViewGrowthRate(analyticsMapper.getViewGrowthRate(startDate, endDate));
+        // Calculate growth rates
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(startDate);
+        cal.add(Calendar.DAY_OF_MONTH, -30); // Previous 30 days
+        Date previousStartDate = cal.getTime();
+        Date previousEndDate = new Date(startDate.getTime() - 1);
+        
+        // User growth rate
+        Long previousUsers = analyticsMapper.getNewUsers(previousStartDate, previousEndDate);
+        Long currentUsers = analyticsMapper.getNewUsers(startDate, endDate);
+        response.setUserGrowthRate(calculateGrowthRate(previousUsers, currentUsers));
+        
+        // Novel growth rate
+        Long previousNovels = analyticsMapper.getNewNovels(previousStartDate, previousEndDate);
+        Long currentNovels = analyticsMapper.getNewNovels(startDate, endDate);
+        response.setNovelGrowthRate(calculateGrowthRate(previousNovels, currentNovels));
+        
+        // View growth rate
+        Long previousViews = analyticsMapper.getTotalViews(previousStartDate, previousEndDate);
+        Long currentViews = analyticsMapper.getTotalViews(startDate, endDate);
+        response.setViewGrowthRate(calculateGrowthRate(previousViews, currentViews));
 
         return response;
     }
@@ -258,5 +279,20 @@ public class AnalyticsService {
             .count();
 
         return validPoints > 0 ? totalGrowth / validPoints : 0.0;
+    }
+
+    /**
+     * Calculate growth rate between two periods
+     */
+    private Double calculateGrowthRate(Long previousValue, Long currentValue) {
+        if (previousValue == null || previousValue == 0) {
+            return currentValue != null && currentValue > 0 ? 100.0 : 0.0;
+        }
+        
+        if (currentValue == null) {
+            return -100.0;
+        }
+        
+        return ((currentValue - previousValue) / (double) previousValue) * 100.0;
     }
 }

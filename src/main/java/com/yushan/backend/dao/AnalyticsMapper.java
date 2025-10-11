@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Param;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 @Mapper
 public interface AnalyticsMapper {
@@ -47,7 +48,9 @@ public interface AnalyticsMapper {
     List<ReadingActivityResponseDTO.ActivityDataPoint> getReadingActivityTrends(
             @Param("startDate") Date startDate,
             @Param("endDate") Date endDate,
-            @Param("period") String period);
+            @Param("period") String period,
+            @Param("categoryId") Integer categoryId,
+            @Param("authorId") UUID authorId);
     
     Long getTotalViews(@Param("startDate") Date startDate, @Param("endDate") Date endDate);
     

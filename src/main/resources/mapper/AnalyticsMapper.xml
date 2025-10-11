@@ -107,80 +107,239 @@
         </choose>
     </select>
 
-    <!-- Reading Activity Trends -->
-    <select id="getReadingActivityTrends" resultType="com.yushan.backend.dto.ReadingActivityResponseDTO$ActivityDataPoint">
-        <choose>
-            <when test="period == 'daily'">
-                SELECT 
-                    DATE(activity_date) as date,
-                    TO_CHAR(DATE(activity_date), 'YYYY-MM-DD') as periodLabel,
-                    COALESCE(views, 0) as views,
-                    COALESCE(chapters_read, 0) as chaptersRead,
-                    COALESCE(comments, 0) as comments,
-                    COALESCE(reviews, 0) as reviews,
-                    COALESCE(votes, 0) as votes
-                FROM (
-                    SELECT 
-                        DATE(create_time) as activity_date,
-                        SUM(view_cnt) as views,
-                        COUNT(DISTINCT h.id) as chapters_read,
-                        (SELECT COUNT(*) FROM comment c WHERE DATE(c.create_time) = DATE(n.create_time)) as comments,
-                        (SELECT COUNT(*) FROM review r WHERE DATE(r.create_time) = DATE(n.create_time)) as reviews,
-                        (SELECT COUNT(*) FROM vote v WHERE DATE(v.create_time) = DATE(n.create_time)) as votes
-                    FROM novel n
-                    LEFT JOIN history h ON n.id = h.novel_id
-                    WHERE n.create_time BETWEEN #{startDate} AND #{endDate}
-                    GROUP BY DATE(n.create_time)
-                ) activity_data
-                ORDER BY activity_date
-            </when>
+        <!-- Reading Activity Trends -->
+        <select id="getReadingActivityTrends" resultType="com.yushan.backend.dto.ReadingActivityResponseDTO$ActivityDataPoint">
+            <choose>
+                <when test="period == 'daily'">
+                    WITH novel_activity AS (
+                        SELECT
+                            DATE(n.create_time) as activity_date,
+                            SUM(n.view_cnt) as views,
+                            COUNT(DISTINCT h.id) as chapters_read
+                        FROM novel n
+                        LEFT JOIN history h ON n.id = h.novel_id
+                        WHERE n.create_time BETWEEN #{startDate} AND #{endDate}
+                        <if test="categoryId != null">
+                            AND n.category_id = #{categoryId}
+                        </if>
+                        <if test="authorId != null">
+                            AND n.author_id = #{authorId}
+                        </if>
+                        GROUP BY DATE(n.create_time)
+                    ),
+                    comment_activity AS (
+                        SELECT
+                            DATE(c.create_time) as activity_date,
+                            COUNT(*) as comments
+                        FROM comment c
+                        LEFT JOIN chapter ch ON c.chapter_id = ch.id
+                        LEFT JOIN novel n ON ch.novel_id = n.id
+                        WHERE c.create_time BETWEEN #{startDate} AND #{endDate}
+                        <if test="categoryId != null">
+                            AND n.category_id = #{categoryId}
+                        </if>
+                        <if test="authorId != null">
+                            AND n.author_id = #{authorId}
+                        </if>
+                        GROUP BY DATE(c.create_time)
+                    ),
+                    review_activity AS (
+                        SELECT
+                            DATE(r.create_time) as activity_date,
+                            COUNT(*) as reviews
+                        FROM review r
+                        LEFT JOIN novel n ON r.novel_id = n.id
+                        WHERE r.create_time BETWEEN #{startDate} AND #{endDate}
+                        <if test="categoryId != null">
+                            AND n.category_id = #{categoryId}
+                        </if>
+                        <if test="authorId != null">
+                            AND n.author_id = #{authorId}
+                        </if>
+                        GROUP BY DATE(r.create_time)
+                    ),
+                    vote_activity AS (
+                        SELECT
+                            DATE(v.create_time) as activity_date,
+                            COUNT(*) as votes
+                        FROM vote v
+                        LEFT JOIN novel n ON v.novel_id = n.id
+                        WHERE v.create_time BETWEEN #{startDate} AND #{endDate}
+                        <if test="categoryId != null">
+                            AND n.category_id = #{categoryId}
+                        </if>
+                        <if test="authorId != null">
+                            AND n.author_id = #{authorId}
+                        </if>
+                        GROUP BY DATE(v.create_time)
+                    )
+                    SELECT
+                        na.activity_date as date,
+                        TO_CHAR(na.activity_date, 'YYYY-MM-DD') as periodLabel,
+                        COALESCE(na.views, 0) as views,
+                        COALESCE(na.chapters_read, 0) as chaptersRead,
+                        COALESCE(ca.comments, 0) as comments,
+                        COALESCE(ra.reviews, 0) as reviews,
+                        COALESCE(va.votes, 0) as votes
+                    FROM novel_activity na
+                    LEFT JOIN comment_activity ca ON na.activity_date = ca.activity_date
+                    LEFT JOIN review_activity ra ON na.activity_date = ra.activity_date
+                    LEFT JOIN vote_activity va ON na.activity_date = va.activity_date
+                    ORDER BY na.activity_date
+                </when>
             <when test="period == 'weekly'">
-                SELECT 
-                    DATE_TRUNC('week', activity_date) as date,
-                    TO_CHAR(DATE_TRUNC('week', activity_date), 'YYYY-"W"WW') as periodLabel,
-                    COALESCE(views, 0) as views,
-                    COALESCE(chapters_read, 0) as chaptersRead,
-                    COALESCE(comments, 0) as comments,
-                    COALESCE(reviews, 0) as reviews,
-                    COALESCE(votes, 0) as votes
-                FROM (
-                    SELECT 
-                        DATE_TRUNC('week', create_time) as activity_date,
-                        SUM(view_cnt) as views,
-                        COUNT(DISTINCT h.id) as chapters_read,
-                        (SELECT COUNT(*) FROM comment c WHERE DATE_TRUNC('week', c.create_time) = DATE_TRUNC('week', n.create_time)) as comments,
-                        (SELECT COUNT(*) FROM review r WHERE DATE_TRUNC('week', r.create_time) = DATE_TRUNC('week', n.create_time)) as reviews,
-                        (SELECT COUNT(*) FROM vote v WHERE DATE_TRUNC('week', v.create_time) = DATE_TRUNC('week', n.create_time)) as votes
+                WITH novel_activity AS (
+                    SELECT
+                        DATE_TRUNC('week', n.create_time) as activity_date,
+                        SUM(n.view_cnt) as views,
+                        COUNT(DISTINCT h.id) as chapters_read
                     FROM novel n
                     LEFT JOIN history h ON n.id = h.novel_id
                     WHERE n.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
                     GROUP BY DATE_TRUNC('week', n.create_time)
-                ) activity_data
-                ORDER BY activity_date
+                ),
+                comment_activity AS (
+                    SELECT
+                        DATE_TRUNC('week', c.create_time) as activity_date,
+                        COUNT(*) as comments
+                    FROM comment c
+                    LEFT JOIN chapter ch ON c.chapter_id = ch.id
+                    LEFT JOIN novel n ON ch.novel_id = n.id
+                    WHERE c.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('week', c.create_time)
+                ),
+                review_activity AS (
+                    SELECT
+                        DATE_TRUNC('week', r.create_time) as activity_date,
+                        COUNT(*) as reviews
+                    FROM review r
+                    LEFT JOIN novel n ON r.novel_id = n.id
+                    WHERE r.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('week', r.create_time)
+                ),
+                vote_activity AS (
+                    SELECT
+                        DATE_TRUNC('week', v.create_time) as activity_date,
+                        COUNT(*) as votes
+                    FROM vote v
+                    LEFT JOIN novel n ON v.novel_id = n.id
+                    WHERE v.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('week', v.create_time)
+                )
+                SELECT
+                    na.activity_date as date,
+                    TO_CHAR(na.activity_date, 'YYYY-"W"WW') as periodLabel,
+                    COALESCE(na.views, 0) as views,
+                    COALESCE(na.chapters_read, 0) as chaptersRead,
+                    COALESCE(ca.comments, 0) as comments,
+                    COALESCE(ra.reviews, 0) as reviews,
+                    COALESCE(va.votes, 0) as votes
+                FROM novel_activity na
+                LEFT JOIN comment_activity ca ON na.activity_date = ca.activity_date
+                LEFT JOIN review_activity ra ON na.activity_date = ra.activity_date
+                LEFT JOIN vote_activity va ON na.activity_date = va.activity_date
+                ORDER BY na.activity_date
             </when>
             <when test="period == 'monthly'">
-                SELECT 
-                    DATE_TRUNC('month', activity_date) as date,
-                    TO_CHAR(DATE_TRUNC('month', activity_date), 'YYYY-MM') as periodLabel,
-                    COALESCE(views, 0) as views,
-                    COALESCE(chapters_read, 0) as chaptersRead,
-                    COALESCE(comments, 0) as comments,
-                    COALESCE(reviews, 0) as reviews,
-                    COALESCE(votes, 0) as votes
-                FROM (
-                    SELECT 
-                        DATE_TRUNC('month', create_time) as activity_date,
-                        SUM(view_cnt) as views,
-                        COUNT(DISTINCT h.id) as chapters_read,
-                        (SELECT COUNT(*) FROM comment c WHERE DATE_TRUNC('month', c.create_time) = DATE_TRUNC('month', n.create_time)) as comments,
-                        (SELECT COUNT(*) FROM review r WHERE DATE_TRUNC('month', r.create_time) = DATE_TRUNC('month', n.create_time)) as reviews,
-                        (SELECT COUNT(*) FROM vote v WHERE DATE_TRUNC('month', v.create_time) = DATE_TRUNC('month', n.create_time)) as votes
+                WITH novel_activity AS (
+                    SELECT
+                        DATE_TRUNC('month', n.create_time) as activity_date,
+                        SUM(n.view_cnt) as views,
+                        COUNT(DISTINCT h.id) as chapters_read
                     FROM novel n
                     LEFT JOIN history h ON n.id = h.novel_id
                     WHERE n.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
                     GROUP BY DATE_TRUNC('month', n.create_time)
-                ) activity_data
-                ORDER BY activity_date
+                ),
+                comment_activity AS (
+                    SELECT
+                        DATE_TRUNC('month', c.create_time) as activity_date,
+                        COUNT(*) as comments
+                    FROM comment c
+                    LEFT JOIN chapter ch ON c.chapter_id = ch.id
+                    LEFT JOIN novel n ON ch.novel_id = n.id
+                    WHERE c.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('month', c.create_time)
+                ),
+                review_activity AS (
+                    SELECT
+                        DATE_TRUNC('month', r.create_time) as activity_date,
+                        COUNT(*) as reviews
+                    FROM review r
+                    LEFT JOIN novel n ON r.novel_id = n.id
+                    WHERE r.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('month', r.create_time)
+                ),
+                vote_activity AS (
+                    SELECT
+                        DATE_TRUNC('month', v.create_time) as activity_date,
+                        COUNT(*) as votes
+                    FROM vote v
+                    LEFT JOIN novel n ON v.novel_id = n.id
+                    WHERE v.create_time BETWEEN #{startDate} AND #{endDate}
+                    <if test="categoryId != null">
+                        AND n.category_id = #{categoryId}
+                    </if>
+                    <if test="authorId != null">
+                        AND n.author_id = #{authorId}
+                    </if>
+                    GROUP BY DATE_TRUNC('month', v.create_time)
+                )
+                SELECT
+                    na.activity_date as date,
+                    TO_CHAR(na.activity_date, 'YYYY-MM') as periodLabel,
+                    COALESCE(na.views, 0) as views,
+                    COALESCE(na.chapters_read, 0) as chaptersRead,
+                    COALESCE(ca.comments, 0) as comments,
+                    COALESCE(ra.reviews, 0) as reviews,
+                    COALESCE(va.votes, 0) as votes
+                FROM novel_activity na
+                LEFT JOIN comment_activity ca ON na.activity_date = ca.activity_date
+                LEFT JOIN review_activity ra ON na.activity_date = ra.activity_date
+                LEFT JOIN vote_activity va ON na.activity_date = va.activity_date
+                ORDER BY na.activity_date
             </when>
         </choose>
     </select>
@@ -269,8 +428,8 @@
         previous_period AS (
             SELECT COUNT(*) as previous_count FROM users 
             WHERE create_time BETWEEN 
-                (#{startDate} - INTERVAL '1 day' * (EXTRACT(DAY FROM #{endDate} - #{startDate}) + 1)) 
-                AND #{startDate}
+                (#{previousStartDate}) 
+                AND (#{previousEndDate})
         )
         SELECT 
             CASE 
@@ -289,8 +448,8 @@
         previous_period AS (
             SELECT COUNT(*) as previous_count FROM novel 
             WHERE create_time BETWEEN 
-                (#{startDate} - INTERVAL '1 day' * (EXTRACT(DAY FROM #{endDate} - #{startDate}) + 1)) 
-                AND #{startDate}
+                (#{previousStartDate}) 
+                AND (#{previousEndDate})
         )
         SELECT 
             CASE 
@@ -309,8 +468,8 @@
         previous_period AS (
             SELECT COALESCE(SUM(view_cnt), 0) as previous_views FROM novel 
             WHERE create_time BETWEEN 
-                (#{startDate} - INTERVAL '1 day' * (EXTRACT(DAY FROM #{endDate} - #{startDate}) + 1)) 
-                AND #{startDate}
+                (#{previousStartDate}) 
+                AND (#{previousEndDate})
         )
         SELECT 
             CASE 

@@ -72,7 +72,6 @@ public class ReadingActivityResponseDTO {
         private Long comments;
         private Long reviews;
         private Long votes;
-        
         private Long totalActivity;
         
         public ActivityDataPoint() {}
