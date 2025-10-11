@@ -65,7 +65,7 @@ public class ChapterServiceTest {
         when(chapterMapper.insertSelective(any(Chapter.class))).thenReturn(1);
         
         // Mock updateNovelStatistics dependencies
-        when(chapterMapper.countByNovelId(1)).thenReturn(1L);
+        when(chapterMapper.countPublishedByNovelId(1)).thenReturn(1L);
         when(chapterMapper.sumWordCountByNovelId(1)).thenReturn(100L);
         when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
 
@@ -330,14 +330,14 @@ public class ChapterServiceTest {
         when(chapterMapper.selectByUuid(chapterUuid)).thenReturn(existing);
         when(novelMapper.selectByPrimaryKey(1)).thenReturn(novel);
         when(chapterMapper.softDeleteByUuid(chapterUuid)).thenReturn(1);
-        when(chapterMapper.countByNovelId(1)).thenReturn(5L);
+        when(chapterMapper.countPublishedByNovelId(1)).thenReturn(5L);
         when(chapterMapper.sumWordCountByNovelId(1)).thenReturn(1000L);
         when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
 
         chapterService.deleteChapter(userId, chapterUuid);
 
         verify(chapterMapper, times(1)).softDeleteByUuid(chapterUuid);
-        verify(chapterMapper, times(1)).countByNovelId(1);
+        verify(chapterMapper, times(1)).countPublishedByNovelId(1);
         verify(chapterMapper, times(1)).sumWordCountByNovelId(1);
         verify(novelMapper, times(1)).updateByPrimaryKeySelective(any());
     }

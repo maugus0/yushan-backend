@@ -501,7 +501,8 @@ public class ChapterService {
             return;
         }
 
-        long chapterCount = chapterMapper.countByNovelId(novelId);
+        // Count only valid (non-deleted) chapters
+        long chapterCount = chapterMapper.countPublishedByNovelId(novelId);
         long wordCount = chapterMapper.sumWordCountByNovelId(novelId);
 
         novel.setChapterCnt((int) chapterCount);
