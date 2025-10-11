@@ -8,10 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.text.Normalizer;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class CategoryService {
@@ -189,6 +188,20 @@ public class CategoryService {
 
         int result = categoryMapper.deleteByPrimaryKey(id);
         return result > 0;
+    }
+
+    /**
+     * Batch fetches categories by IDs and returns them as a map.
+     * @param ids List of category IDs.
+     * @return A map where the key is the category ID and the value is the category name.
+     */
+    public Map<Integer, String> getCategoryMapByIds(List<Integer> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return Collections.emptyMap();
+        }
+        List<Category> categories = categoryMapper.selectByIds(ids);
+        return categories.stream()
+                .collect(Collectors.toMap(Category::getId, Category::getName));
     }
 
     /**

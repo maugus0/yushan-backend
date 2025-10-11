@@ -11,10 +11,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -477,6 +474,82 @@ class CategoryServiceTest {
                 () -> categoryService.hardDeleteCategory(id)
             );
             assertEquals("Category not found with id: " + id, exception.getMessage());
+        }
+    }
+    @Nested
+    @DisplayName("Get Category Map By IDs Tests")
+    class GetCategoryMapByIdsTests {
+
+        @Test
+        @DisplayName("Should return a map of category IDs to names for a given list of IDs")
+        void shouldReturnMapOfIdsToNames() {
+            // Given
+            List<Integer> ids = Arrays.asList(1, 2, 3);
+            List<Category> categories = Arrays.asList(
+                    createCategory(1, "Fantasy", "desc", "fantasy", true),
+                    createCategory(2, "Sci-Fi", "desc", "sci-fi", true),
+                    createCategory(3, "History", "desc", "history", true)
+            );
+            when(categoryMapper.selectByIds(ids)).thenReturn(categories);
+
+            // When
+            Map<Integer, String> result = categoryService.getCategoryMapByIds(ids);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(3, result.size());
+            assertEquals("Fantasy", result.get(1));
+            assertEquals("Sci-Fi", result.get(2));
+            assertEquals("History", result.get(3));
+            verify(categoryMapper).selectByIds(ids);
+        }
+
+        @Test
+        @DisplayName("Should return an empty map when the list of IDs is empty")
+        void shouldReturnEmptyMapForEmptyIdList() {
+            // Given
+            List<Integer> ids = Collections.emptyList();
+
+            // When
+            Map<Integer, String> result = categoryService.getCategoryMapByIds(ids);
+
+            // Then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(categoryMapper);
+        }
+
+        @Test
+        @DisplayName("Should return an empty map when the list of IDs is null")
+        void shouldReturnEmptyMapForNullIdList() {
+            // When
+            Map<Integer, String> result = categoryService.getCategoryMapByIds(null);
+
+            // Then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+            verifyNoInteractions(categoryMapper);
+        }
+
+        @Test
+        @DisplayName("Should return a partial map if some category IDs are not found")
+        void shouldReturnPartialMapForMissingIds() {
+            // Given
+            List<Integer> ids = Arrays.asList(1, 999); // 999 does not exist
+            List<Category> categories = Collections.singletonList(
+                    createCategory(1, "Fantasy", "desc", "fantasy", true)
+            );
+            when(categoryMapper.selectByIds(ids)).thenReturn(categories);
+
+            // When
+            Map<Integer, String> result = categoryService.getCategoryMapByIds(ids);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(1, result.size());
+            assertEquals("Fantasy", result.get(1));
+            assertNull(result.get(999)); // Key for the missing ID should not be present
+            verify(categoryMapper).selectByIds(ids);
         }
     }
 
