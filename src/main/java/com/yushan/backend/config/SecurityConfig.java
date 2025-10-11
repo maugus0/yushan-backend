@@ -138,6 +138,9 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/reviews/novel/*").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                 .requestMatchers("/api/reviews/**").authenticated()
+                
+                // Ranking APIs - allow OPTIONS for CORS preflight only, require auth for actual requests
+                .requestMatchers(HttpMethod.OPTIONS, "/api/ranking/**").permitAll()
                 .requestMatchers("/api/ranking/**").authenticated()
 
                 // Admin endpoints - require admin role
