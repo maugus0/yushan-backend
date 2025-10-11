@@ -131,6 +131,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/library/**").authenticated()
                 .requestMatchers("/api/history/**").authenticated()
                 .requestMatchers("/api/comments/**").authenticated()
+                .requestMatchers("/api/reports/**").authenticated()
                 
                 // Review APIs - mixed public and authenticated
                 .requestMatchers(HttpMethod.GET, "/api/reviews/{id}").permitAll()

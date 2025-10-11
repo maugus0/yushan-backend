@@ -11,7 +11,6 @@ import java.util.UUID;
 @Data
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class CommentResponseDTO {
     private Integer id;
     private UUID userId;
@@ -24,4 +23,49 @@ public class CommentResponseDTO {
     private Date createTime;
     private Date updateTime;
     private Boolean isOwnComment; // Whether the current user owns this comment
+
+    public CommentResponseDTO(Integer id, UUID userId, String username, Integer chapterId, String chapterTitle, String content, Integer likeCnt, Boolean isSpoiler, Date createTime, Date updateTime, Boolean isOwnComment) {
+        this.id = id;
+        this.userId = userId;
+        this.username = username;
+        this.chapterId = chapterId;
+        this.chapterTitle = chapterTitle;
+        this.content = content;
+        this.likeCnt = likeCnt;
+        this.isSpoiler = isSpoiler;
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
+        this.isOwnComment = isOwnComment;
+    }
+
+    public Date getCreateTime() {
+        return createTime != null ? new Date(createTime.getTime()) : null;
+    }
+
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+    }
+
+    public Date getUpdateTime() {
+        return updateTime != null ? new Date(updateTime.getTime()) : null;
+    }
+
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
+    }
+
+    public static class CommentResponseDTOBuilder {
+        private Date createTime;
+        private Date updateTime;
+
+        public CommentResponseDTOBuilder createTime(Date createTime) {
+            this.createTime = createTime != null ? new Date(createTime.getTime()) : null;
+            return this;
+        }
+
+        public CommentResponseDTOBuilder updateTime(Date updateTime) {
+            this.updateTime = updateTime != null ? new Date(updateTime.getTime()) : null;
+            return this;
+        }
+    }
 }

@@ -142,3 +142,36 @@ CREATE TABLE IF NOT EXISTS vote (
     CONSTRAINT fk_vote_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
     CONSTRAINT unique_user_novel_vote UNIQUE (user_id, novel_id)
 );
+
+-- History table
+CREATE TABLE IF NOT EXISTS history (
+    id SERIAL PRIMARY KEY,
+    uuid VARCHAR(36) NOT NULL,
+    user_id VARCHAR(36) NOT NULL,
+    novel_id INTEGER NOT NULL,
+    chapter_id INTEGER NOT NULL,
+    create_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_history_user FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE,
+    CONSTRAINT fk_history_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
+    CONSTRAINT fk_history_chapter FOREIGN KEY (chapter_id) REFERENCES chapter(id) ON DELETE CASCADE
+);
+
+-- Report system tables
+CREATE TABLE IF NOT EXISTS report (
+    id SERIAL PRIMARY KEY,
+    uuid VARCHAR(36) NOT NULL,
+    reporter_id VARCHAR(36) NOT NULL,
+    report_type VARCHAR(20) NOT NULL,
+    reason TEXT NOT NULL,
+    status VARCHAR(20) DEFAULT 'IN_REVIEW',
+    admin_notes TEXT,
+    resolved_by VARCHAR(36),
+    content_type VARCHAR(10) NOT NULL,
+    content_id INTEGER NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES users(uuid) ON DELETE CASCADE,
+    CONSTRAINT fk_report_resolved_by FOREIGN KEY (resolved_by) REFERENCES users(uuid) ON DELETE SET NULL,
+    CONSTRAINT chk_content_type CHECK (content_type IN ('NOVEL', 'COMMENT'))
+);

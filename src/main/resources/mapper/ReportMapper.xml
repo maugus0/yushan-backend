@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.yushan.backend.dao.ReportMapper" >
+    <resultMap id="BaseResultMap" type="com.yushan.backend.entity.Report" >
+        <constructor >
+            <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+            <arg column="uuid" jdbcType="OTHER" javaType="java.util.UUID" />
+            <arg column="reporter_id" jdbcType="OTHER" javaType="java.util.UUID" />
+            <arg column="report_type" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="reason" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="status" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="admin_notes" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="resolved_by" jdbcType="OTHER" javaType="java.util.UUID" />
+            <arg column="created_at" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="updated_at" jdbcType="TIMESTAMP" javaType="java.util.Date" />
+            <arg column="content_type" jdbcType="VARCHAR" javaType="java.lang.String" />
+            <arg column="content_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
+        </constructor>
+    </resultMap>
+
+    <sql id="Base_Column_List" >
+        id, uuid, reporter_id, report_type, reason, status, admin_notes, resolved_by, created_at, updated_at, content_type, content_id
+    </sql>
+
+    <!-- Basic CRUD operations -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select
+        <include refid="Base_Column_List" />
+        from report
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByUuid" resultMap="BaseResultMap" parameterType="java.util.UUID" >
+        select
+        <include refid="Base_Column_List" />
+        from report
+        where uuid = #{uuid,jdbcType=OTHER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer" >
+        delete from report
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.yushan.backend.entity.Report" >
+        insert into report (id, uuid, reporter_id, report_type, reason, status, admin_notes, resolved_by, created_at, updated_at, content_type, content_id)
+        values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{reporterId,jdbcType=OTHER}, #{reportType,jdbcType=VARCHAR}::report_type, #{reason,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}::report_status, #{adminNotes,jdbcType=VARCHAR}, #{resolvedBy,jdbcType=OTHER}, #{createdAt,jdbcType=TIMESTAMP}, #{updatedAt,jdbcType=TIMESTAMP}, #{contentType,jdbcType=VARCHAR}, #{contentId,jdbcType=INTEGER})
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.yushan.backend.entity.Report" useGeneratedKeys="true" keyProperty="id">
+        insert into report
+        <trim prefix="(" suffix=")" suffixOverrides="," >
+            <if test="uuid != null" >
+                uuid,
+            </if>
+            <if test="reporterId != null" >
+                reporter_id,
+            </if>
+            <if test="reportType != null" >
+                report_type,
+            </if>
+            <if test="reason != null" >
+                reason,
+            </if>
+            <if test="status != null" >
+                status,
+            </if>
+            <if test="adminNotes != null" >
+                admin_notes,
+            </if>
+            <if test="resolvedBy != null" >
+                resolved_by,
+            </if>
+            <if test="createdAt != null" >
+                created_at,
+            </if>
+            <if test="updatedAt != null" >
+                updated_at,
+            </if>
+            <if test="contentType != null" >
+                content_type,
+            </if>
+            <if test="contentId != null" >
+                content_id,
+            </if>
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="uuid != null" >
+                #{uuid,jdbcType=OTHER},
+            </if>
+            <if test="reporterId != null" >
+                #{reporterId,jdbcType=OTHER},
+            </if>
+            <if test="reportType != null" >
+                #{reportType,jdbcType=VARCHAR}::report_type,
+            </if>
+            <if test="reason != null" >
+                #{reason,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null" >
+                #{status,jdbcType=VARCHAR}::report_status,
+            </if>
+            <if test="adminNotes != null" >
+                #{adminNotes,jdbcType=VARCHAR},
+            </if>
+            <if test="resolvedBy != null" >
+                #{resolvedBy,jdbcType=OTHER},
+            </if>
+            <if test="createdAt != null" >
+                #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null" >
+                #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="contentType != null" >
+                #{contentType,jdbcType=VARCHAR},
+            </if>
+            <if test="contentId != null" >
+                #{contentId,jdbcType=INTEGER},
+            </if>
+        </trim>
+    </insert>
+
+    <update id="updateByPrimaryKeySelective" parameterType="com.yushan.backend.entity.Report" >
+        update report
+        <set >
+            <if test="uuid != null" >
+                uuid = #{uuid,jdbcType=OTHER},
+            </if>
+            <if test="reporterId != null" >
+                reporter_id = #{reporterId,jdbcType=OTHER},
+            </if>
+            <if test="reportType != null" >
+                report_type = #{reportType,jdbcType=VARCHAR}::report_type,
+            </if>
+            <if test="reason != null" >
+                reason = #{reason,jdbcType=VARCHAR},
+            </if>
+            <if test="status != null" >
+                status = #{status,jdbcType=VARCHAR}::report_status,
+            </if>
+            <if test="adminNotes != null" >
+                admin_notes = #{adminNotes,jdbcType=VARCHAR},
+            </if>
+            <if test="resolvedBy != null" >
+                resolved_by = #{resolvedBy,jdbcType=OTHER},
+            </if>
+            <if test="createdAt != null" >
+                created_at = #{createdAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="updatedAt != null" >
+                updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+            </if>
+            <if test="contentType != null" >
+                content_type = #{contentType,jdbcType=VARCHAR},
+            </if>
+            <if test="contentId != null" >
+                content_id = #{contentId,jdbcType=INTEGER},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateByPrimaryKey" parameterType="com.yushan.backend.entity.Report" >
+        update report
+        set uuid = #{uuid,jdbcType=OTHER},
+            reporter_id = #{reporterId,jdbcType=OTHER},
+            report_type = #{reportType,jdbcType=VARCHAR}::report_type,
+            reason = #{reason,jdbcType=VARCHAR},
+            status = #{status,jdbcType=VARCHAR}::report_status,
+            admin_notes = #{adminNotes,jdbcType=VARCHAR},
+            resolved_by = #{resolvedBy,jdbcType=OTHER},
+            created_at = #{createdAt,jdbcType=TIMESTAMP},
+            updated_at = #{updatedAt,jdbcType=TIMESTAMP},
+            content_type = #{contentType,jdbcType=VARCHAR},
+            content_id = #{contentId,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!-- Search and pagination -->
+    <select id="selectReportsWithPagination" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from report
+        <where>
+            <if test="req.status != null and req.status != ''">
+                and status = #{req.status,jdbcType=VARCHAR}
+            </if>
+            <if test="req.reportType != null and req.reportType != ''">
+                and report_type = #{req.reportType,jdbcType=VARCHAR}
+            </if>
+            <if test="req.search != null and req.search != ''">
+                and (reason ILIKE CONCAT('%', #{req.search,jdbcType=VARCHAR}, '%')
+                     or admin_notes ILIKE CONCAT('%', #{req.search,jdbcType=VARCHAR}, '%'))
+            </if>
+        </where>
+        <choose>
+            <when test="req.sort == 'createdAt' and req.order == 'asc'">
+                order by created_at asc
+            </when>
+            <when test="req.sort == 'createdAt' and req.order == 'desc'">
+                order by created_at desc
+            </when>
+            <when test="req.sort == 'status' and req.order == 'asc'">
+                order by status asc
+            </when>
+            <when test="req.sort == 'status' and req.order == 'desc'">
+                order by status desc
+            </when>
+            <otherwise>
+                order by created_at desc
+            </otherwise>
+        </choose>
+        limit #{req.size} offset #{req.page} * #{req.size}
+    </select>
+
+    <select id="countReports" resultType="long">
+        select count(*)
+        from report
+        <where>
+            <if test="req.status != null and req.status != ''">
+                and status = #{req.status,jdbcType=VARCHAR}
+            </if>
+            <if test="req.reportType != null and req.reportType != ''">
+                and report_type = #{req.reportType,jdbcType=VARCHAR}
+            </if>
+            <if test="req.search != null and req.search != ''">
+                and (reason ILIKE CONCAT('%', #{req.search,jdbcType=VARCHAR}, '%')
+                     or admin_notes ILIKE CONCAT('%', #{req.search,jdbcType=VARCHAR}, '%'))
+            </if>
+        </where>
+    </select>
+
+    <!-- Content reports -->
+    <select id="selectReportsByNovelId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from report
+        where content_type = 'NOVEL' and content_id = #{novelId,jdbcType=INTEGER}
+        order by created_at desc
+    </select>
+
+    <select id="selectReportsByCommentId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from report
+        where content_type = 'COMMENT' and content_id = #{commentId,jdbcType=INTEGER}
+        order by created_at desc
+    </select>
+
+    <!-- User reports -->
+    <select id="selectReportsByReporterId" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from report
+        where reporter_id = #{reporterId,jdbcType=OTHER}
+        order by created_at desc
+    </select>
+
+    <!-- Status updates -->
+    <update id="updateReportStatus">
+        update report
+        set status = #{status,jdbcType=VARCHAR}::report_status,
+            admin_notes = #{adminNotes,jdbcType=VARCHAR},
+            resolved_by = #{resolvedBy,jdbcType=OTHER},
+            updated_at = CURRENT_TIMESTAMP
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <!-- Check if user already reported -->
+    <select id="existsReportByUserAndContent" resultType="boolean">
+        select count(*) > 0
+        from report
+        where reporter_id = #{reporterId,jdbcType=OTHER}
+        and content_type = #{contentType,jdbcType=VARCHAR}
+        and content_id = #{contentId,jdbcType=INTEGER}
+        and status = 'IN_REVIEW'
+    </select>
+</mapper>
