@@ -4,7 +4,7 @@ import lombok.Data;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -13,5 +13,5 @@ public class VoteUserResponseDTO {
     private Integer id;
     private Integer novelId;
     private String novelTitle;
-    private Date votedTime;
+    private LocalDateTime votedTime;
 }

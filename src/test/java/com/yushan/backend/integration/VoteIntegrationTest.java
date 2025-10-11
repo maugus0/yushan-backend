@@ -1,7 +1,6 @@
 package com.yushan.backend.integration;
 
 import com.yushan.backend.TestcontainersConfiguration;
-import com.yushan.backend.config.DatabaseConfig;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dao.VoteMapper;
@@ -142,6 +141,13 @@ public class VoteIntegrationTest {
         user.setAvatarUrl("avatar.jpg");
         user.setStatus(1);
         user.setGender(1);
+        user.setIsAuthor(false);
+        user.setIsAdmin(false);
+        user.setLevel(1);
+        user.setExp(0.0f);
+        user.setYuan(0.0f);
+        user.setReadTime(0.0f);
+        user.setReadBookNum(0);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setLastLogin(new Date());

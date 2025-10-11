@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class VoteService {
@@ -117,8 +119,15 @@ public class VoteService {
         dto.setId(vote.getId());
         dto.setNovelId(vote.getNovelId());
         dto.setNovelTitle(novel.getTitle());
-        dto.setVotedTime(vote.getCreateTime());
+        dto.setVotedTime(convertToLocalDateTime(vote.getCreateTime()));
 
         return dto;
+    }
+
+    private LocalDateTime convertToLocalDateTime(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }

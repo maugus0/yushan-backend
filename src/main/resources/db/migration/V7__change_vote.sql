@@ -4,7 +4,7 @@ CREATE TABLE vote (
     user_id UUID NOT NULL,
     novel_id INTEGER NOT NULL,
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 -- Insert 20 votes (users voting on novels)
 INSERT INTO vote (user_id, novel_id, create_time, update_time)
