@@ -14,6 +14,7 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/novels")
+@CrossOrigin(origins = "*")
 public class NovelController {
 
     @Autowired
