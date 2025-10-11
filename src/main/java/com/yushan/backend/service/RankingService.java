@@ -1,9 +1,11 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dto.AuthorResponseDTO;
 import com.yushan.backend.dto.NovelDetailResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
+import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dao.UserMapper;
@@ -12,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -22,6 +25,9 @@ public class RankingService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private CategoryService categoryService;
 
     private static final int MAX_TOTAL_RECORDS = 100;
 
@@ -49,11 +55,20 @@ public class RankingService {
         int adjustedSize = Math.min(size, MAX_TOTAL_RECORDS - offset);
 
         List<Novel> novels = novelMapper.selectNovelsByRanking(categoryId, sortType, offset, adjustedSize);
+        if (novels.isEmpty()) {
+            return PageResponseDTO.of(List.of(), 0L, page, size);
+        }
+        List<Integer> categoryIds = novels.stream()
+                .map(Novel::getCategoryId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Integer, String> categoryMap = categoryService.getCategoryMapByIds(categoryIds);
 
         long total = Math.min(novelMapper.countNovelsByRanking(categoryId), MAX_TOTAL_RECORDS);
 
         List<NovelDetailResponseDTO> novelDTOs = novels.stream()
-                .map(this::convertToNovelDetailResponseDTO)
+                .map(novel -> convertToNovelDetailResponseDTO(novel, categoryMap))
                 .collect(Collectors.toList());
 
         return PageResponseDTO.of(novelDTOs, total, page, size);
@@ -129,7 +144,7 @@ public class RankingService {
         return dto;
     }
 
-    private NovelDetailResponseDTO convertToNovelDetailResponseDTO(Novel novel) {
+    private NovelDetailResponseDTO convertToNovelDetailResponseDTO(Novel novel, Map<Integer, String> categoryMap) {
         NovelDetailResponseDTO dto = new NovelDetailResponseDTO();
         dto.setId(novel.getId());
         dto.setTitle(novel.getTitle());
@@ -137,6 +152,10 @@ public class RankingService {
         dto.setVoteCnt(novel.getVoteCnt());
         dto.setCoverImgUrl(novel.getCoverImgUrl());
         dto.setCategoryId(novel.getCategoryId());
+        dto.setSynopsis(novel.getSynopsis());
+        if (novel.getCategoryId() != null) {
+            dto.setCategoryName(categoryMap.get(novel.getCategoryId()));
+        }
         return dto;
     }
 }
