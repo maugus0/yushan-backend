@@ -79,7 +79,7 @@ public class AuthService {
         user.setIsAdmin(false);
         user.setLevel(1);
         user.setExp(0f);
-        user.setYuan(0f);
+        user.setYuan(2f);
         user.setReadTime(0f);
         user.setReadBookNum(0);
 
@@ -163,10 +163,11 @@ public class AuthService {
         }
 
         if(isFirstLoginToday) {
-            // add exp
+            // add exp & yuan
             Float newExp = user.getExp() + DAILY_LOGIN_EXP;
             user.setExp(newExp);
             user.setLevel(expService.checkLevel(newExp));
+            user.setYuan(user.getYuan() + user.getLevel());
         }
 
         Date now = new Date();

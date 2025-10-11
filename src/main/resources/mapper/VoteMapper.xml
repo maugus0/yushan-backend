@@ -6,13 +6,12 @@
       <idArg column="id" jdbcType="INTEGER" javaType="java.lang.Integer" />
       <arg column="user_id" jdbcType="OTHER" javaType="java.util.UUID" />
       <arg column="novel_id" jdbcType="INTEGER" javaType="java.lang.Integer" />
-      <arg column="is_active" jdbcType="BOOLEAN" javaType="java.lang.Boolean" />
       <arg column="create_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
       <arg column="update_time" jdbcType="TIMESTAMP" javaType="java.util.Date" />
     </constructor>
   </resultMap>
   <sql id="Base_Column_List" >
-    id, user_id, novel_id, is_active, create_time, update_time
+    id, user_id, novel_id, create_time, update_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
     select 
@@ -25,9 +24,9 @@
     where id = #{id,jdbcType=INTEGER}
   </delete>
   <insert id="insert" parameterType="com.yushan.backend.entity.Vote" useGeneratedKeys="true" keyProperty="id">
-    insert into vote (id, user_id, novel_id, is_active, create_time, update_time)
+    insert into vote (id, user_id, novel_id, create_time, update_time)
     values (#{id,jdbcType=INTEGER}, #{userId,jdbcType=OTHER}, #{novelId,jdbcType=INTEGER}, 
-            #{isActive,jdbcType=BOOLEAN}, #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
+            #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP})
   </insert>
   <insert id="insertSelective" parameterType="com.yushan.backend.entity.Vote" useGeneratedKeys="true" keyProperty="id">
     insert into vote
@@ -40,9 +39,6 @@
       </if>
       <if test="novelId != null" >
         novel_id,
-      </if>
-      <if test="isActive != null" >
-        is_active,
       </if>
       <if test="createTime != null" >
         create_time,
@@ -61,9 +57,6 @@
       <if test="novelId != null" >
         #{novelId,jdbcType=INTEGER},
       </if>
-      <if test="isActive != null" >
-        #{isActive,jdbcType=BOOLEAN},
-      </if>
       <if test="createTime != null" >
         #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -81,9 +74,6 @@
       <if test="novelId != null" >
         novel_id = #{novelId,jdbcType=INTEGER},
       </if>
-      <if test="isActive != null" >
-        is_active = #{isActive,jdbcType=BOOLEAN},
-      </if>
       <if test="createTime != null" >
         create_time = #{createTime,jdbcType=TIMESTAMP},
       </if>
@@ -97,44 +87,10 @@
     update vote
     set user_id = #{userId,jdbcType=OTHER},
         novel_id = #{novelId,jdbcType=INTEGER},
-        is_active = #{isActive,jdbcType=BOOLEAN},
         create_time = #{createTime,jdbcType=TIMESTAMP},
         update_time = #{updateTime,jdbcType=TIMESTAMP}
     where id = #{id,jdbcType=INTEGER}
   </update>
-
-  <!-- Custom methods for voting functionality -->
-  <select id="selectByUserAndNovel" resultMap="BaseResultMap">
-    select 
-    <include refid="Base_Column_List" />
-    from vote
-    where user_id = #{userId,jdbcType=OTHER} and novel_id = #{novelId,jdbcType=INTEGER}
-  </select>
-
-  <select id="selectActiveByUserAndNovel" resultMap="BaseResultMap">
-    select 
-    <include refid="Base_Column_List" />
-    from vote
-    where user_id = #{userId,jdbcType=OTHER} and novel_id = #{novelId,jdbcType=INTEGER} and is_active = true
-  </select>
-
-  <update id="deactivateVote">
-    update vote
-    set is_active = false, update_time = CURRENT_TIMESTAMP
-    where user_id = #{userId,jdbcType=OTHER} and novel_id = #{novelId,jdbcType=INTEGER}
-  </update>
-
-  <update id="reactivateVote">
-    update vote
-    set is_active = true, update_time = CURRENT_TIMESTAMP
-    where user_id = #{userId,jdbcType=OTHER} and novel_id = #{novelId,jdbcType=INTEGER}
-  </update>
-
-  <select id="countActiveVotesByNovel" resultType="int">
-    select count(*)
-    from vote
-    where novel_id = #{novelId,jdbcType=INTEGER} and is_active = true
-  </select>
 
   <!-- Methods to update novel vote count -->
   <update id="incrementVoteCount">
@@ -146,8 +102,22 @@
 
   <update id="decrementVoteCount">
     update novel
-    set vote_cnt = vote_cnt - 1,
-        update_time = CURRENT_TIMESTAMP
+    set vote_cnt = vote_cnt - 1
     where id = #{novelId,jdbcType=INTEGER}
   </update>
+
+    <select id="countByUserId" resultType="long">
+        select count(*)
+        from vote
+        where user_id = #{userId,jdbcType=OTHER}
+    </select>
+
+    <select id="selectByUserIdWithPagination" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List" />
+        from vote
+        where user_id = #{userId,jdbcType=OTHER}
+        order by create_time desc
+        limit #{limit,jdbcType=INTEGER} offset #{offset,jdbcType=INTEGER}
+    </select>
 </mapper>

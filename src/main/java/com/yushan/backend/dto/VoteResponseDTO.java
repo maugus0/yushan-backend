@@ -1,14 +1,16 @@
 package com.yushan.backend.dto;
 
 import lombok.Data;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
 public class VoteResponseDTO {
     private Integer novelId;
     private Integer voteCount;
-    private Boolean userVoted;
+    private Float remainedYuan;
+
+    public VoteResponseDTO(Integer novelId, Integer updatedVoteCount, Float remainedYuan) {
+        this.novelId = novelId;
+        this.voteCount = updatedVoteCount;
+        this.remainedYuan = remainedYuan;
+    }
 }
