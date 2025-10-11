@@ -14,12 +14,4 @@ public class VoteUserResponseDTO {
     private Integer novelId;
     private String novelTitle;
     private Date votedTime;
-
-    public Date getVotedTime() {
-        return votedTime != null ? new Date(votedTime.getTime()) : null;
-    }
-
-    public void setVotedTime(Date votedTime) {
-        this.votedTime = votedTime != null ? new Date(votedTime.getTime()) : null;
-    }
 }

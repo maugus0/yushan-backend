@@ -135,12 +135,8 @@ CREATE TABLE IF NOT EXISTS vote (
     id SERIAL PRIMARY KEY,
     user_id VARCHAR(36) NOT NULL,
     novel_id INTEGER NOT NULL,
-    is_active BOOLEAN NOT NULL DEFAULT TRUE, -- Soft delete flag
     create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT fk_vote_user FOREIGN KEY (user_id) REFERENCES users(uuid) ON DELETE CASCADE,
-    CONSTRAINT fk_vote_novel FOREIGN KEY (novel_id) REFERENCES novel(id) ON DELETE CASCADE,
-    CONSTRAINT unique_user_novel_vote UNIQUE (user_id, novel_id)
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 -- History table
