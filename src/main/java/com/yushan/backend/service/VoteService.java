@@ -1,18 +1,21 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.NovelMapper;
+import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dao.VoteMapper;
+import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.VoteResponseDTO;
-import com.yushan.backend.dto.VoteStatsResponseDTO;
-import com.yushan.backend.dto.VoteStatusResponseDTO;
-import com.yushan.backend.entity.Novel;
-import com.yushan.backend.entity.Vote;
+import com.yushan.backend.dto.VoteUserResponseDTO;
+import com.yushan.backend.entity.*;
 import com.yushan.backend.exception.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Service
 public class VoteService {
@@ -25,6 +28,12 @@ public class VoteService {
 
     @Autowired
     private EXPService expService;
+
+    @Autowired
+    private UserMapper userMapper;
+
+    @Autowired
+    private NovelMapper novelMapper;
 
     private static final Float EXP_PER_VOTE = 3f;
 
@@ -41,39 +50,26 @@ public class VoteService {
             throw new ValidationException("Cannot vote your own novel");
         }
 
-        // Check current vote status
-        Vote activeVote = voteMapper.selectActiveByUserAndNovel(userId, novelId);
-        
-        if (activeVote != null) {
-            // User has active vote → unvote
-            return unvote(novelId, userId);
-        } else {
-            // User has no active vote → vote
-            return vote(novelId, userId);
-        }
-    }
+        User user = userMapper.selectByPrimaryKey(userId);
 
-    /**
-     * Vote for a novel (internal method)
-     */
-    private VoteResponseDTO vote(Integer novelId, UUID userId) {
-        // Check if user has inactive vote (reactivate it)
-        Vote inactiveVote = voteMapper.selectByUserAndNovel(userId, novelId);
-        if (inactiveVote != null && !inactiveVote.getIsActive()) {
-            // Reactivate existing vote
-            voteMapper.reactivateVote(userId, novelId);
-        } else {
-            // Create new vote
-            Vote vote = new Vote();
-            vote.setUserId(userId);
-            vote.setNovelId(novelId);
-            vote.setIsActive(true);
-            Date now = new Date();
-            vote.setCreateTime(now);
-            vote.setUpdateTime(now);
-
-            voteMapper.insertSelective(vote);
+        //Check if user have enough yuan
+        if (user.getYuan() < 1) {
+            throw new ValidationException("Not enough yuan");
         }
+
+        // Create new vote
+        Vote vote = new Vote();
+        vote.setUserId(userId);
+        vote.setNovelId(novelId);
+        Date now = new Date();
+        vote.setCreateTime(now);
+        vote.setUpdateTime(now);
+
+        voteMapper.insertSelective(vote);
+
+        // update yuan
+        user.setYuan(user.getYuan() - 1);
+        userMapper.updateByPrimaryKeySelective(user);
 
         // Update novel vote count
         novelService.incrementVoteCount(novelId);
@@ -84,58 +80,54 @@ public class VoteService {
         // add exp
         expService.addExp(userId, EXP_PER_VOTE);
 
-        return new VoteResponseDTO(
-            novelId,
-            updatedVoteCount,
-            true
-        );
+        return new VoteResponseDTO(novelId, updatedVoteCount, user.getYuan());
     }
 
-    /**
-     * Unvote for a novel (internal method)
-     */
-    private VoteResponseDTO unvote(Integer novelId, UUID userId) {
-        // Deactivate vote (soft delete)
-        voteMapper.deactivateVote(userId, novelId);
+    public PageResponseDTO<VoteUserResponseDTO> getUserVotes(UUID userId, int page, int size) {
+        int offset = page * size;
+        long totalElements = voteMapper.countByUserId(userId);
 
-        // Update novel vote count
-        novelService.decrementVoteCount(novelId);
-
-        // Get updated vote count
-        Integer updatedVoteCount = novelService.getNovelVoteCount(novelId);
-
-        return new VoteResponseDTO(
-            novelId,
-            updatedVoteCount,
-            false
-        );
-    }
-
-    /**
-     * Get vote statistics for a novel
-     */
-    public VoteStatsResponseDTO getVoteStats(Integer novelId) {
-        Integer voteCount = novelService.getNovelVoteCount(novelId);
-        return new VoteStatsResponseDTO(novelId, voteCount);
-    }
-
-    /**
-     * Get user's vote status for a novel
-     */
-    public VoteStatusResponseDTO getUserVoteStatus(Integer novelId, UUID userId) {
-        // Validate novel exists using NovelService
-        novelService.getNovelVoteCount(novelId);
-
-        Vote existingVote = voteMapper.selectActiveByUserAndNovel(userId, novelId);
-        
-        if (existingVote == null) {
-            return new VoteStatusResponseDTO(novelId, false, null);
-        } else {
-            return new VoteStatusResponseDTO(
-                novelId,
-                true,
-                existingVote.getCreateTime()
-            );
+        if (totalElements == 0) {
+            return new PageResponseDTO<>(Collections.emptyList(), 0L, page, size);
         }
+
+        List<Vote> votes = voteMapper.selectByUserIdWithPagination(userId, offset, size);
+        if (votes.isEmpty()) {
+            return new PageResponseDTO<>(Collections.emptyList(), totalElements, page, size);
+        }
+
+        List<Integer> novelIds = votes.stream()
+                .map(Vote::getNovelId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        Map<Integer, Novel> novelMap = novelMapper.selectByIds(novelIds).stream()
+                .collect(Collectors.toMap(Novel::getId, novel -> novel));
+
+        List<VoteUserResponseDTO> dtos = votes.stream()
+                .map(vote -> {
+                    Novel novel = novelMap.get(vote.getNovelId());
+                    return convertToDTO(vote, novel);
+                })
+                .collect(Collectors.toList());
+
+        return new PageResponseDTO<>(dtos, totalElements, page, size);
+    }
+
+    private VoteUserResponseDTO convertToDTO(Vote vote, Novel novel) {
+        VoteUserResponseDTO dto = new VoteUserResponseDTO();
+        dto.setId(vote.getId());
+        dto.setNovelId(vote.getNovelId());
+        dto.setNovelTitle(novel.getTitle());
+        dto.setVotedTime(convertToLocalDateTime(vote.getCreateTime()));
+
+        return dto;
+    }
+
+    private LocalDateTime convertToLocalDateTime(Date date) {
+        if (date == null) {
+            return null;
+        }
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDateTime();
     }
 }
