@@ -307,4 +307,41 @@
       last_active = #{lastActive,jdbcType=TIMESTAMP}
     where uuid = #{uuid,jdbcType=OTHER}
   </update>
+
+    <sql id="AdminUserFilter_Where">
+        <where>
+            <if test="filter.status != null">
+                AND status = #{filter.status.code}
+            </if>
+            <if test="filter.isAdmin != null">
+                AND is_admin = #{filter.isAdmin}
+            </if>
+            <if test="filter.isAuthor != null">
+                AND is_author = #{filter.isAuthor}
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectUsersForAdmin" resultMap="BaseResultMap">
+        SELECT
+        <include refid="Base_Column_List" />
+        FROM users
+        <include refid="AdminUserFilter_Where" />
+        <choose>
+            <when test="filter.sortBy == 'createTime' and filter.sortOrder == 'asc'">
+                ORDER BY create_time ASC
+            </when>
+            <otherwise>
+                ORDER BY create_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{filter.size} OFFSET #{offset}
+    </select>
+
+
+    <select id="countUsersForAdmin" resultType="long">
+        SELECT COUNT(*)
+        FROM users
+        <include refid="AdminUserFilter_Where" />
+    </select>
 </mapper>

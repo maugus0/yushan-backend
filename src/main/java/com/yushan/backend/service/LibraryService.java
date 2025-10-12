@@ -268,6 +268,7 @@ public class LibraryService {
             dto.setNovelTitle(novel.getTitle());
             dto.setNovelAuthor(novel.getAuthorName());
             dto.setNovelCover(novel.getCoverImgUrl());
+            dto.setChapterCnt(novel.getChapterCnt());
         }
         if (chapter != null) {
             dto.setChapterNumber(chapter.getChapterNumber());

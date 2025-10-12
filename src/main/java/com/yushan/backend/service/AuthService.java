@@ -7,6 +7,7 @@ import com.yushan.backend.entity.Library;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.enums.Gender;
+import com.yushan.backend.enums.UserStatus;
 import com.yushan.backend.exception.ValidationException;
 import com.yushan.backend.util.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +59,7 @@ public class AuthService {
         user.setHashPassword(hashPassword(registrationDTO.getPassword()));
         user.setEmailVerified(true);
 
-        Gender gender = Gender.fromCode(registrationDTO.getGender());
+        Gender gender = registrationDTO.getGender();
         user.setGender(gender.getCode());
         user.setAvatarUrl(gender.getAvatarUrl());
 
@@ -74,7 +75,7 @@ public class AuthService {
         user.setLastActive(new Date());
 
         // set default user profile
-        user.setStatus(1); // 1 for normal
+        user.setStatus(UserStatus.NORMAL.getCode());
         user.setIsAuthor(false);
         user.setIsAdmin(false);
         user.setLevel(1);
@@ -249,7 +250,7 @@ public class AuthService {
         dto.setAvatarUrl(user.getAvatarUrl());
         dto.setProfileDetail(user.getProfileDetail());
         dto.setBirthday(user.getBirthday());
-        dto.setGender(user.getGender());
+        dto.setGender(Gender.fromCode(user.getGender()));
         dto.setIsAuthor(user.getIsAuthor());
         dto.setIsAdmin(user.getIsAdmin());
         dto.setLevel(user.getLevel());

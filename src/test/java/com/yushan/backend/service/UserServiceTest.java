@@ -4,6 +4,7 @@ import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
 import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.Gender;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -89,7 +90,7 @@ public class UserServiceTest {
         req.setUsername("newname");
         req.setAvatarUrl("new.png");
         req.setProfileDetail("new profile");
-        req.setGender(2);
+        req.setGender(Gender.FEMALE);
 
         UserProfileUpdateResponseDTO dto = userService.updateUserProfileSelective(id, req);
 
@@ -111,7 +112,7 @@ public class UserServiceTest {
         assertEquals("newname", dto.getProfile().getUsername());
         assertEquals("new.png", dto.getProfile().getAvatarUrl());
         assertEquals("new profile", dto.getProfile().getProfileDetail());
-        assertEquals(2, dto.getProfile().getGender());
+        assertEquals(Gender.FEMALE, dto.getProfile().getGender());
         assertEquals(10.5f, dto.getProfile().getReadTime());
         assertEquals(5, dto.getProfile().getReadBookNum());
         assertFalse(dto.isEmailChanged());

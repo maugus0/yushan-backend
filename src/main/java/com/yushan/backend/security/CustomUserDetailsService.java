@@ -2,6 +2,7 @@ package com.yushan.backend.security;
 
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -153,8 +154,8 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public boolean isEnabled() {
-            // Check if user status is active (1 = active, 0 = inactive)
-            return status != null && status == 1;
+            // Check if user status is NORMAL
+            return status != null && status == UserStatus.NORMAL.getCode();
         }
 
         /**

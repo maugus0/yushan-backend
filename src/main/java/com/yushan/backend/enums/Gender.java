@@ -1,5 +1,8 @@
 package com.yushan.backend.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+
 public enum Gender {
     UNKNOWN(0, "user.png"),
     MALE(1, "user_male.png"),
@@ -13,6 +16,14 @@ public enum Gender {
         this.avatarUrl = avatarUrl;
     }
 
+    public int getCode() {
+        return code;
+    }
+
+    public String getAvatarUrl() {
+        return avatarUrl;
+    }
+
     public static Gender fromCode(Integer code) {
         if (code == null) return UNKNOWN;
         for (Gender gender : values()) {
@@ -23,6 +34,24 @@ public enum Gender {
         return UNKNOWN;
     }
 
+    @JsonCreator
+    public static Gender fromString(String value) {
+        if (value == null) {
+            return UNKNOWN;
+        }
+        try {
+            return Gender.valueOf(value.toUpperCase());
+        } catch (IllegalArgumentException e) {
+            return UNKNOWN;
+        }
+    }
+
+    @JsonValue
+    @Override
+    public String toString() {
+        return name();
+    }
+
     public static boolean isDefaultAvatar(String avatarUrl) {
         if (avatarUrl == null) return true;
         for (Gender gender : values()) {
@@ -31,13 +60,5 @@ public enum Gender {
             }
         }
         return false;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
-    public String getAvatarUrl() {
-        return avatarUrl;
     }
 }

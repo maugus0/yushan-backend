@@ -1,20 +1,28 @@
 package com.yushan.backend.service;
 
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.dto.AdminUserFilterDTO;
+import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.UserStatus;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.Date;
+import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,109 +31,78 @@ class AdminServiceTest {
     @Mock
     private UserMapper userMapper;
 
-    @Mock
-    private UserService userService;
-
     @InjectMocks
     private AdminService adminService;
 
     private User testUser;
-    private String testEmail;
-    private UserProfileResponseDTO expectedResponse;
+    private UUID testUserUuid;
 
     @BeforeEach
     void setUp() {
-        testEmail = "test@example.com";
-        
+        testUserUuid = UUID.randomUUID();
         testUser = new User();
-        testUser.setUuid(UUID.randomUUID());
-        testUser.setEmail(testEmail);
+        testUser.setUuid(testUserUuid);
+        testUser.setEmail("test@example.com");
         testUser.setUsername("testuser");
-        testUser.setEmailVerified(true);
-        testUser.setAvatarUrl("https://example.com/avatar.jpg");
-        testUser.setGender(1);
-        testUser.setLastLogin(new Date());
-        testUser.setLastActive(new Date());
-        testUser.setIsAuthor(false);
-        testUser.setIsAdmin(false);
-
-        expectedResponse = new UserProfileResponseDTO();
-        expectedResponse.setEmail(testEmail);
-        expectedResponse.setUsername("testuser");
-        expectedResponse.setIsAdmin(true);
     }
 
-    @Test
-    void promoteToAdmin_Success() {
-        // Given
-        when(userMapper.selectByEmail(testEmail)).thenReturn(testUser);
-        when(userService.getUserProfile(testUser.getUuid())).thenReturn(expectedResponse);
+    @Nested
+    @DisplayName("listUsers Tests")
+    class ListUsers {
+        @Test
+        @DisplayName("Should return a paginated list of users")
+        void shouldReturnPaginatedUsers() {
+            // Given
+            AdminUserFilterDTO filter = new AdminUserFilterDTO();
+            filter.setPage(0);
+            filter.setSize(10);
+            int offset = 0;
+            List<User> users = Collections.singletonList(testUser);
 
-        // When
-        UserProfileResponseDTO result = adminService.promoteToAdmin(testEmail);
+            when(userMapper.countUsersForAdmin(filter)).thenReturn(1L);
+            when(userMapper.selectUsersForAdmin(filter, offset)).thenReturn(users);
 
-        // Then
-        assertNotNull(result);
-        assertEquals(testEmail, result.getEmail());
-        assertTrue(result.getIsAdmin());
-        assertTrue(testUser.getIsAdmin());
-        verify(userMapper).updateByPrimaryKeySelective(testUser);
+            // When
+            PageResponseDTO<UserProfileResponseDTO> result = adminService.listUsers(filter);
+
+            // Then
+            assertEquals(1, result.getTotalElements());
+            assertEquals(1, result.getContent().size());
+            assertEquals(testUser.getUsername(), result.getContent().get(0).getUsername());
+            verify(userMapper).countUsersForAdmin(filter);
+            verify(userMapper).selectUsersForAdmin(filter, offset);
+        }
     }
 
-    @Test
-    void promoteToAdmin_UserNotFound() {
-        // Given
-        when(userMapper.selectByEmail(testEmail)).thenReturn(null);
+    @Nested
+    @DisplayName("updateUserStatus Tests")
+    class UpdateUserStatus {
+        @Test
+        @DisplayName("Should update user status successfully")
+        void shouldUpdateStatus() {
+            // Given
+            when(userMapper.selectByPrimaryKey(testUserUuid)).thenReturn(testUser);
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> adminService.promoteToAdmin(testEmail));
-        
-        assertEquals("User not found with email: " + testEmail, exception.getMessage());
-        verify(userMapper, never()).updateByPrimaryKeySelective(any());
-    }
+            // When
+            adminService.updateUserStatus(testUserUuid, UserStatus.BANNED);
 
-    @Test
-    void promoteToAdmin_UserAlreadyAdmin() {
-        // Given
-        testUser.setIsAdmin(true);
-        when(userMapper.selectByEmail(testEmail)).thenReturn(testUser);
+            // Then
+            verify(userMapper).updateByPrimaryKeySelective(argThat(user ->
+                    user.getUuid().equals(testUserUuid) &&
+                            user.getStatus().equals(UserStatus.BANNED.ordinal())
+            ));
+        }
 
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> adminService.promoteToAdmin(testEmail));
-        
-        assertEquals("User is already an admin", exception.getMessage());
-        verify(userMapper, never()).updateByPrimaryKeySelective(any());
-    }
+        @Test
+        @DisplayName("Should throw ResourceNotFoundException when user to update is not found")
+        void shouldThrowWhenUpdatingNonExistentUser() {
+            // Given
+            when(userMapper.selectByPrimaryKey(testUserUuid)).thenReturn(null);
 
-    @Test
-    void promoteToAdmin_EmptyEmail() {
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> adminService.promoteToAdmin(""));
-        
-        assertEquals("Email is required", exception.getMessage());
-        verify(userMapper, never()).updateByPrimaryKeySelective(any());
-    }
-
-    @Test
-    void promoteToAdmin_NullEmail() {
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> adminService.promoteToAdmin(null));
-        
-        assertEquals("Email is required", exception.getMessage());
-        verify(userMapper, never()).updateByPrimaryKeySelective(any());
-    }
-
-    @Test
-    void promoteToAdmin_WhitespaceEmail() {
-        // When & Then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, 
-            () -> adminService.promoteToAdmin("   "));
-        
-        assertEquals("Email is required", exception.getMessage());
-        verify(userMapper, never()).updateByPrimaryKeySelective(any());
+            // When & Then
+            assertThrows(ResourceNotFoundException.class, () ->
+                    adminService.updateUserStatus(testUserUuid, UserStatus.BANNED));
+            verify(userMapper, never()).updateByPrimaryKeySelective(any());
+        }
     }
 }

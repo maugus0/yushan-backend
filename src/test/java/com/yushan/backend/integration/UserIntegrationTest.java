@@ -5,6 +5,7 @@ import com.yushan.backend.TestcontainersConfiguration;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.enums.ErrorCode;
+import com.yushan.backend.enums.Gender;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ public class UserIntegrationTest {
         Map<String, Object> updateRequest = new HashMap<>();
         updateRequest.put("username", "updatedusername");
         updateRequest.put("avatarUrl", "https://example.com/new-avatar.jpg");
-        updateRequest.put("gender", 2);
+        updateRequest.put("gender", Gender.FEMALE);
 
         // When - Use the correct endpoint with user ID
         mockMvc.perform(put("/api/users/" + testUser.getUuid() + "/profile")
@@ -287,7 +288,7 @@ public class UserIntegrationTest {
         // Given - User with complex profile data
         testUser.setProfileDetail("Complex user profile with special characters: @#$%^&*()");
         testUser.setBirthday(new Date());
-        testUser.setGender(1);
+        testUser.setGender(Gender.MALE.getCode());
         userMapper.updateByPrimaryKeySelective(testUser); // Actually update in database
 
         // When - Get user profile
@@ -296,7 +297,7 @@ public class UserIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.profileDetail").exists())
                 .andExpect(jsonPath("$.data.birthday").exists())
-                .andExpect(jsonPath("$.data.gender").value(1));
+                .andExpect(jsonPath("$.data.gender").value("MALE"));
 
         // Then - Verify complex data is properly serialized/deserialized in Redis
         User complexUser = userMapper.selectByEmail("testuser@example.com");
