@@ -521,7 +521,7 @@ public class NovelIntegrationTest {
         regularUser.setIsAdmin(false);
         regularUser.setLevel(1);
         regularUser.setExp(0.0f);
-        regularUser.setYuan(0.0f);
+        regularUser.setYuan(100.0f);
         regularUser.setReadTime(0.0f);
         regularUser.setReadBookNum(0);
         userMapper.insert(regularUser);

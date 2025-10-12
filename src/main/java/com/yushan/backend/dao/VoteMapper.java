@@ -2,8 +2,8 @@ package com.yushan.backend.dao;
 
 import com.yushan.backend.entity.Vote;
 import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
+import java.util.List;
 import java.util.UUID;
 
 @Mapper
@@ -19,19 +19,8 @@ public interface VoteMapper {
     int updateByPrimaryKeySelective(Vote record);
 
     int updateByPrimaryKey(Vote record);
-    
-    // Custom methods for voting functionality
-    Vote selectByUserAndNovel(@Param("userId") UUID userId, @Param("novelId") Integer novelId);
-    
-    Vote selectActiveByUserAndNovel(@Param("userId") UUID userId, @Param("novelId") Integer novelId);
-    
-    int deactivateVote(@Param("userId") UUID userId, @Param("novelId") Integer novelId);
-    
-    int reactivateVote(@Param("userId") UUID userId, @Param("novelId") Integer novelId);
-    
-    int countActiveVotesByNovel(@Param("novelId") Integer novelId);
-    
-    int incrementVoteCount(@Param("novelId") Integer novelId);
-    
-    int decrementVoteCount(@Param("novelId") Integer novelId);
+
+    long countByUserId(UUID userId);
+
+    List<Vote> selectByUserIdWithPagination(UUID userId, int offset, int limit);
 }

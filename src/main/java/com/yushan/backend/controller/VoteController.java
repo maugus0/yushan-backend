@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/novels")
+@RequestMapping("/api")
 @CrossOrigin(origins = "*")
 public class VoteController {
 
@@ -20,39 +20,30 @@ public class VoteController {
     private VoteService voteService;
 
     /**
-     * Toggle vote for a novel (vote if not voted, unvote if already voted)
+     * Toggle a vote for a novel
      */
-    @PostMapping("/{novelId}/vote")
+    @PostMapping("/novels/{novelId}/vote")
     @PreAuthorize("isAuthenticated()")
     public ApiResponse<VoteResponseDTO> toggleVote(@PathVariable Integer novelId,
                                                    Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
         VoteResponseDTO response = voteService.toggleVote(novelId, userId);
-        
-        String message = response.getUserVoted() ? "Voted successfully" : "Vote removed successfully";
-        return ApiResponse.success(message, response);
+
+        return ApiResponse.success("Voted successfully", response);
     }
 
     /**
-     * Get vote statistics for a novel
+     * Get a user's all vote record
      */
-    @GetMapping("/{novelId}/vote/stats")
-    @PreAuthorize("permitAll()")
-    public ApiResponse<VoteStatsResponseDTO> getVoteStats(@PathVariable Integer novelId) {
-        VoteStatsResponseDTO response = voteService.getVoteStats(novelId);
-        return ApiResponse.success("Vote statistics retrieved", response);
-    }
-
-    /**
-     * Get user's vote status for a novel
-     */
-    @GetMapping("/{novelId}/vote/status")
+    @GetMapping("/users/votes")
     @PreAuthorize("isAuthenticated()")
-    public ApiResponse<VoteStatusResponseDTO> getUserVoteStatus(@PathVariable Integer novelId,
-                                                               Authentication authentication) {
+    public ApiResponse<PageResponseDTO<VoteUserResponseDTO>> getUserVotes(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication) {
         UUID userId = getUserIdFromAuthentication(authentication);
-        VoteStatusResponseDTO response = voteService.getUserVoteStatus(novelId, userId);
-        return ApiResponse.success("Vote status retrieved", response);
+        PageResponseDTO<VoteUserResponseDTO> response = voteService.getUserVotes(userId, page, size);
+        return ApiResponse.success("User votes retrieved", response);
     }
 
     /**

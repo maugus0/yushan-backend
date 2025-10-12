@@ -1,178 +1,137 @@
 package com.yushan.backend.controller;
 
+import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.VoteResponseDTO;
-import com.yushan.backend.dto.VoteStatsResponseDTO;
-import com.yushan.backend.dto.VoteStatusResponseDTO;
-import com.yushan.backend.service.VoteService;
+import com.yushan.backend.dto.VoteUserResponseDTO;
 import com.yushan.backend.security.CustomUserDetailsService;
+import com.yushan.backend.service.VoteService;
+import com.yushan.backend.util.JwtUtil;
+import com.yushan.backend.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.test.context.support.WithAnonymousUser;
+import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
 
-import java.util.Date;
+import java.util.Collections;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Unit tests for VoteController
- */
-@ExtendWith(MockitoExtension.class)
-public class VoteControllerTest {
+@WebMvcTest(VoteController.class)
+class VoteControllerTest {
 
-    @Mock
+    @Autowired
+    private MockMvc mockMvc;
+
+    @MockBean
     private VoteService voteService;
 
+    // Mocks required because @WebMvcTest loads parts of the security configuration
+    @MockBean
+    private CustomUserDetailsService customUserDetailsService;
+    @MockBean
+    private JwtUtil jwtUtil;
+    @MockBean
+    private UserMapper userMapper;
+    @MockBean
+    private RedisUtil redisUtil;
     @Mock
     private Authentication authentication;
 
-    @Mock
-    private SecurityContext securityContext;
+    private final UUID testUserId = UUID.randomUUID();
+    private final Integer testNovelId = 123;
 
-    @Mock
-    private CustomUserDetailsService.CustomUserDetails userDetails;
-
-    @InjectMocks
-    private VoteController voteController;
-
-    private UUID testUserId;
-    private Integer testNovelId;
-
-    @BeforeEach
-    void setUp() {
-        testUserId = UUID.randomUUID();
-        testNovelId = 123;
-    }
-
-    @Test
-    void toggleVote_Success() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn(userDetails);
+    void setupAuthentication() {
+        CustomUserDetailsService.CustomUserDetails userDetails = mock(CustomUserDetailsService.CustomUserDetails.class);
         when(userDetails.getUserId()).thenReturn(testUserId.toString());
-        
-        VoteResponseDTO mockResponse = new VoteResponseDTO(testNovelId, 5, true);
-        when(voteService.toggleVote(eq(testNovelId), eq(testUserId))).thenReturn(mockResponse);
 
-        // When
-        var result = voteController.toggleVote(testNovelId, authentication);
-
-        // Then
-        assertNotNull(result);
-        assertEquals("Voted successfully", result.getMessage());
-        assertEquals(mockResponse, result.getData());
-        verify(voteService).toggleVote(testNovelId, testUserId);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(userDetails, null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
     }
 
-    @Test
-    void toggleVote_Unvote_Success() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUserId()).thenReturn(testUserId.toString());
-        
-        VoteResponseDTO mockResponse = new VoteResponseDTO(testNovelId, 4, false);
-        when(voteService.toggleVote(eq(testNovelId), eq(testUserId))).thenReturn(mockResponse);
+    @Nested
+    @DisplayName("Endpoint Access Control")
+    class AccessControl {
 
-        // When
-        var result = voteController.toggleVote(testNovelId, authentication);
+        @Test
+        @WithAnonymousUser
+        @DisplayName("Anonymous user cannot vote")
+        void anonymousUser_cannotToggleVote() throws Exception {
+            mockMvc.perform(post("/api/novels/{novelId}/vote", testNovelId).with(csrf()))
+                    .andExpect(status().isUnauthorized());
+        }
 
-        // Then
-        assertNotNull(result);
-        assertEquals("Vote removed successfully", result.getMessage());
-        assertEquals(mockResponse, result.getData());
-        verify(voteService).toggleVote(testNovelId, testUserId);
+        @Test
+        @WithAnonymousUser
+        @DisplayName("Anonymous user cannot get their votes")
+        void anonymousUser_cannotGetUserVotes() throws Exception {
+            mockMvc.perform(get("/api/users/votes"))
+                    .andExpect(status().isUnauthorized());
+        }
     }
 
-    @Test
-    void getVoteStats_Success() {
-        // Given
-        VoteStatsResponseDTO mockResponse = new VoteStatsResponseDTO(testNovelId, 10);
-        when(voteService.getVoteStats(testNovelId)).thenReturn(mockResponse);
+    @Nested
+    @DisplayName("Authenticated User Endpoint Tests")
+    @WithMockUser // Ensures a user is authenticated for these tests
+    class AuthenticatedUserTests {
 
-        // When
-        var result = voteController.getVoteStats(testNovelId);
+        @Test
+        @DisplayName("POST /novels/{novelId}/vote should call service and return correct response with remainedYuan")
+        void toggleVote_shouldCallServiceAndReturnResponse() throws Exception {
+            setupAuthentication();
+            // Given: The VoteResponseDTO now includes remainedYuan
+            VoteResponseDTO mockResponse = new VoteResponseDTO(testNovelId, 10, 98.5f);
+            when(voteService.toggleVote(testNovelId, testUserId)).thenReturn(mockResponse);
 
-        // Then
-        assertNotNull(result);
-        assertEquals("Vote statistics retrieved", result.getMessage());
-        assertEquals(mockResponse, result.getData());
-        verify(voteService).getVoteStats(testNovelId);
-    }
+            // When & Then
+            mockMvc.perform(post("/api/novels/{novelId}/vote", testNovelId).with(csrf()))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Voted successfully"))
+                    .andExpect(jsonPath("$.data.novelId").value(testNovelId))
+                    .andExpect(jsonPath("$.data.voteCount").value(10))
+                    .andExpect(jsonPath("$.data.remainedYuan").value(98.5));
 
-    @Test
-    void getUserVoteStatus_Success() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUserId()).thenReturn(testUserId.toString());
-        
-        Date votedAt = new Date();
-        VoteStatusResponseDTO mockResponse = new VoteStatusResponseDTO(testNovelId, true, votedAt);
-        when(voteService.getUserVoteStatus(eq(testNovelId), eq(testUserId))).thenReturn(mockResponse);
+            // Verify
+            verify(voteService).toggleVote(testNovelId, testUserId);
+        }
 
-        // When
-        var result = voteController.getUserVoteStatus(testNovelId, authentication);
+        @Test
+        @DisplayName("GET /users/votes should call service and return a page of votes")
+        void getUserVotes_shouldCallServiceAndReturnPage() throws Exception {
+            setupAuthentication();
+            // Given
+            int page = 1;
+            int size = 5;
+            PageResponseDTO<VoteUserResponseDTO> mockPage = new PageResponseDTO<>(Collections.emptyList(), 0L, page, size);
+            when(voteService.getUserVotes(testUserId, page, size)).thenReturn(mockPage);
 
-        // Then
-        assertNotNull(result);
-        assertEquals("Vote status retrieved", result.getMessage());
-        assertEquals(mockResponse, result.getData());
-        verify(voteService).getUserVoteStatus(testNovelId, testUserId);
-    }
+            // When & Then
+            mockMvc.perform(get("/api/users/votes?page={page}&size={size}", page, size))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("User votes retrieved"))
+                    .andExpect(jsonPath("$.data.currentPage").value(page))
+                    .andExpect(jsonPath("$.data.size").value(size));
 
-    @Test
-    void getUserVoteStatus_NotVoted() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUserId()).thenReturn(testUserId.toString());
-        
-        VoteStatusResponseDTO mockResponse = new VoteStatusResponseDTO(testNovelId, false, null);
-        when(voteService.getUserVoteStatus(eq(testNovelId), eq(testUserId))).thenReturn(mockResponse);
-
-        // When
-        var result = voteController.getUserVoteStatus(testNovelId, authentication);
-
-        // Then
-        assertNotNull(result);
-        assertEquals("Vote status retrieved", result.getMessage());
-        assertEquals(mockResponse, result.getData());
-        assertFalse(result.getData().getHasVoted());
-        assertNull(result.getData().getVotedAt());
-    }
-
-    @Test
-    void getUserIdFromAuthentication_NullAuthentication() {
-        // When & Then
-        assertThrows(RuntimeException.class, () -> {
-            voteController.getUserVoteStatus(testNovelId, null);
-        });
-    }
-
-    @Test
-    void getUserIdFromAuthentication_InvalidPrincipal() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn("invalid");
-
-        // When & Then
-        assertThrows(RuntimeException.class, () -> {
-            voteController.getUserVoteStatus(testNovelId, authentication);
-        });
-    }
-
-    @Test
-    void getUserIdFromAuthentication_NullUserId() {
-        // Given
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUserId()).thenReturn(null);
-
-        // When & Then
-        assertThrows(RuntimeException.class, () -> {
-            voteController.getUserVoteStatus(testNovelId, authentication);
-        });
+            // Verify
+            verify(voteService).getUserVotes(testUserId, page, size);
+        }
     }
 }

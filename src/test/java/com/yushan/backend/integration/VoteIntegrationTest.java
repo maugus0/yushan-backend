@@ -8,7 +8,6 @@ import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.entity.Vote;
 import com.yushan.backend.enums.ErrorCode;
-import com.yushan.backend.service.NovelService;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -23,23 +22,15 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.context.WebApplicationContext;
 
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-/**
- * Integration tests for Vote management with real PostgreSQL
- * 
- * This test class verifies:
- * - Vote toggle operations with database persistence
- * - Vote permissions and access control
- * - Vote statistics with database aggregation
- * - Novel vote count updates when votes are added/removed
- * - Database transactions and data integrity
- */
 @SpringBootTest
 @ActiveProfiles("integration-test")
 @Import(TestcontainersConfiguration.class)
@@ -49,31 +40,21 @@ public class VoteIntegrationTest {
 
     @Autowired
     private WebApplicationContext context;
-
     @Autowired
     private VoteMapper voteMapper;
-
     @Autowired
     private NovelMapper novelMapper;
-
     @Autowired
     private UserMapper userMapper;
-
     @Autowired
     private JwtUtil jwtUtil;
-
     @Autowired
     private PasswordEncoder passwordEncoder;
-
-    @Autowired
-    private NovelService novelService;
-
 
     private MockMvc mockMvc;
 
     private User testUser;
     private User authorUser;
-    private User anotherUser;
     private Novel testNovel;
     private String userToken;
     private String authorToken;
@@ -84,175 +65,72 @@ public class VoteIntegrationTest {
                 .webAppContextSetup(context)
                 .apply(springSecurity())
                 .build();
-
-        // Create test data
         createTestData();
     }
 
-    /**
-     * Test vote toggle - vote if not voted, unvote if already voted
-     */
     @Test
-    void testToggleVote_VoteIfNotVoted_WithDatabasePersistence() throws Exception {
-        // Given - User has not voted yet
-        Vote existingVote = voteMapper.selectActiveByUserAndNovel(testUser.getUuid(), testNovel.getId());
-        assertThat(existingVote).isNull();
-
-        // When - Toggle vote (should vote)
-        mockMvc.perform(post("/api/novels/" + testNovel.getId() + "/vote")
-                .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data.userVoted").value(true))
-                .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.voteCount").value(1));
-
-        // Then - Verify vote was persisted in database
-        Vote createdVote = voteMapper.selectActiveByUserAndNovel(testUser.getUuid(), testNovel.getId());
-        assertThat(createdVote).isNotNull();
-        assertThat(createdVote.getIsActive()).isTrue();
-        assertThat(createdVote.getUserId()).isEqualTo(testUser.getUuid());
-        assertThat(createdVote.getNovelId()).isEqualTo(testNovel.getId());
-    }
-
-    /**
-     * Test vote toggle - unvote if already voted
-     */
-    @Test
-    void testToggleVote_UnvoteIfAlreadyVoted_WithDatabasePersistence() throws Exception {
-        // Given - User has already voted
-        Vote existingVote = createTestVote(testUser.getUuid(), testNovel.getId(), true);
-        voteMapper.insertSelective(existingVote);
-        novelService.incrementVoteCount(testNovel.getId());
-
-        // When - Toggle vote (should unvote)
-        mockMvc.perform(post("/api/novels/" + testNovel.getId() + "/vote")
-                .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data.userVoted").value(false))
-                .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.voteCount").value(0));
-
-        // Then - Verify vote was deactivated in database
-        Vote deactivatedVote = voteMapper.selectActiveByUserAndNovel(testUser.getUuid(), testNovel.getId());
-        assertThat(deactivatedVote).isNull();
-        
-        // But vote record should still exist (soft delete)
-        Vote inactiveVote = voteMapper.selectByUserAndNovel(testUser.getUuid(), testNovel.getId());
-        assertThat(inactiveVote).isNotNull();
-        assertThat(inactiveVote.getIsActive()).isFalse();
-    }
-
-    /**
-     * Test vote statistics with database aggregation
-     */
-    @Test
-    void testGetVoteStats_WithDatabaseAggregation() throws Exception {
-        // Given - Create multiple votes for the novel using service to update vote count
-        Vote vote1 = createTestVote(testUser.getUuid(), testNovel.getId(), true);
-        voteMapper.insertSelective(vote1);
-        novelService.incrementVoteCount(testNovel.getId());
-
-        Vote vote2 = createTestVote(anotherUser.getUuid(), testNovel.getId(), true);
-        voteMapper.insertSelective(vote2);
-        novelService.incrementVoteCount(testNovel.getId());
+    void testVote_WithDatabasePersistence() throws Exception {
+        // Given: User starts with 100 yuan and novel has 0 votes
+        assertThat(testUser.getYuan()).isEqualTo(100.0f);
+        Novel initialNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
+        assertThat(initialNovel.getVoteCnt()).isZero();
 
         // When
-        mockMvc.perform(get("/api/novels/" + testNovel.getId() + "/vote/stats"))
+        mockMvc.perform(post("/api/novels/{novelId}/vote", testNovel.getId())
+                        .header("Authorization", "Bearer " + userToken))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.totalVotes").value(2));
+                .andExpect(jsonPath("$.data.voteCount").value(1))
+                .andExpect(jsonPath("$.data.remainedYuan").value(99.0));
 
-        // Then - Verify statistics are calculated from database
+        // Then
+        // 1. Verify a vote record was created in the database
+        List<Vote> votes = voteMapper.selectByUserIdWithPagination(testUser.getUuid(), 0, 10);
+        assertThat(votes).hasSize(1);
+        assertThat(votes.get(0).getNovelId()).isEqualTo(testNovel.getId());
+
+        // 2. Verify the novel's vote count was incremented
         Novel updatedNovel = novelMapper.selectByPrimaryKey(testNovel.getId());
-        assertThat(updatedNovel).isNotNull();
+        assertThat(updatedNovel.getVoteCnt()).isEqualTo(1);
+
+        // 3. Verify the user's yuan balance was decremented
+        User updatedUser = userMapper.selectByPrimaryKey(testUser.getUuid());
+        assertThat(updatedUser.getYuan()).isEqualTo(99.0f);
     }
 
-    /**
-     * Test user vote status with database query
-     */
     @Test
-    void testGetUserVoteStatus_WithDatabaseQuery() throws Exception {
-        // Given - User has voted
-        Vote existingVote = createTestVote(testUser.getUuid(), testNovel.getId(), true);
-        voteMapper.insertSelective(existingVote);
+    void testVote_shouldFail_whenNotEnoughYuan() throws Exception {
+        // Given: Update user to have 0 yuan
+        testUser.setYuan(0f);
+        userMapper.updateByPrimaryKey(testUser);
 
-        // When
-        mockMvc.perform(get("/api/novels/" + testNovel.getId() + "/vote/status")
-                .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
-                .andExpect(jsonPath("$.data.novelId").value(testNovel.getId()))
-                .andExpect(jsonPath("$.data.hasVoted").value(true))
-                .andExpect(jsonPath("$.data.votedAt").exists());
+        // When & Then
+        mockMvc.perform(post("/api/novels/{novelId}/vote", testNovel.getId())
+                        .header("Authorization", "Bearer " + userToken))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.message").value("Not enough yuan"));
+
+        // Verify that no vote was created and vote count is still 0
+        Novel novel = novelMapper.selectByPrimaryKey(testNovel.getId());
+        assertThat(novel.getVoteCnt()).isZero();
     }
 
-    /**
-     * Test vote permissions - author cannot vote own novel
-     */
-    @Test
-    void testVotePermissions_AuthorCannotVoteOwnNovel() throws Exception {
-        // When - Author tries to vote their own novel
-        mockMvc.perform(post("/api/novels/" + testNovel.getId() + "/vote")
-                .header("Authorization", "Bearer " + authorToken))
-                .andExpect(status().isBadRequest());
-
-        // Then - Verify no vote was created
-        Vote authorVote = voteMapper.selectActiveByUserAndNovel(authorUser.getUuid(), testNovel.getId());
-        assertThat(authorVote).isNull();
-    }
-
-
-    /**
-     * Test database transaction rollback on vote error
-     */
-    @Test
-    void testDatabaseTransactionRollback_OnVoteError() throws Exception {
-        // Given - Invalid novel ID
-        Integer invalidNovelId = 99999;
-
-        // When - Try to vote for non-existent novel
-        mockMvc.perform(post("/api/novels/" + invalidNovelId + "/vote")
-                .header("Authorization", "Bearer " + userToken))
-                .andExpect(status().isNotFound());
-
-        // Then - Verify no vote was created
-        Vote invalidVote = voteMapper.selectActiveByUserAndNovel(testUser.getUuid(), invalidNovelId);
-        assertThat(invalidVote).isNull();
-    }
-
-    /**
-     * Helper method to create test data
-     */
+    // Helper methods
     private void createTestData() {
-        // Create test user
-        testUser = createTestUser("voteuser@example.com", "voteuser");
-        userMapper.insert(testUser);
-
-        // Create author user
-        authorUser = createTestUser("voterauthor@example.com", "voterauthor");
+        authorUser = createTestUser("voteauthor@example.com", "voteauthor");
         authorUser.setIsAuthor(true);
         userMapper.insert(authorUser);
-
-        // Create another user
-        anotherUser = createTestUser("anothervoteuser@example.com", "anothervoteuser");
-        userMapper.insert(anotherUser);
-
-        // Create test novel
-        testNovel = createTestNovel("Vote Test Novel", "A novel for testing votes");
-        testNovel.setAuthorId(authorUser.getUuid());
-        novelMapper.insert(testNovel);
-
-        // Generate tokens
-        userToken = jwtUtil.generateAccessToken(testUser);
         authorToken = jwtUtil.generateAccessToken(authorUser);
+
+        testUser = createTestUser("voteuser@example.com", "voteuser");
+        testUser.setYuan(100.0f);
+        userMapper.insert(testUser);
+        userToken = jwtUtil.generateAccessToken(testUser);
+
+        testNovel = createTestNovel("Vote Test Novel", "A novel for testing votes", authorUser.getUuid());
+        novelMapper.insertSelective(testNovel);
     }
 
-    /**
-     * Helper method to create test user
-     */
     private User createTestUser(String email, String username) {
         User user = new User();
         user.setUuid(UUID.randomUUID());
@@ -260,13 +138,9 @@ public class VoteIntegrationTest {
         user.setUsername(username);
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
-        user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(1); // Active status
+        user.setAvatarUrl("avatar.jpg");
+        user.setStatus(1);
         user.setGender(1);
-        user.setCreateTime(new Date());
-        user.setUpdateTime(new Date());
-        user.setLastLogin(new Date());
-        user.setLastActive(new Date());
         user.setIsAuthor(false);
         user.setIsAdmin(false);
         user.setLevel(1);
@@ -274,37 +148,22 @@ public class VoteIntegrationTest {
         user.setYuan(0.0f);
         user.setReadTime(0.0f);
         user.setReadBookNum(0);
+        user.setCreateTime(new Date());
+        user.setUpdateTime(new Date());
+        user.setLastLogin(new Date());
+        user.setLastActive(new Date());
         return user;
     }
 
-    /**
-     * Helper method to create test novel
-     */
-    private Novel createTestNovel(String title, String description) {
+    private Novel createTestNovel(String title, String description, UUID authorId) {
         Novel novel = new Novel();
-        novel.setId(Math.abs(UUID.randomUUID().hashCode()));
         novel.setUuid(UUID.randomUUID());
         novel.setTitle(title);
         novel.setSynopsis(description);
-        novel.setCategoryId(1); // Fantasy category
-        novel.setStatus(2); // PUBLISHED status
-        novel.setVoteCnt(0); // Initialize vote count to 0
-        novel.setCreateTime(new Date());
-        novel.setUpdateTime(new Date());
+        novel.setAuthorId(authorId);
+        novel.setCategoryId(1);
+        novel.setStatus(2); // PUBLISHED
+        novel.setVoteCnt(0);
         return novel;
-    }
-
-    /**
-     * Helper method to create test vote
-     */
-    private Vote createTestVote(UUID userId, Integer novelId, boolean isActive) {
-        Vote vote = new Vote();
-        vote.setUserId(userId);
-        vote.setNovelId(novelId);
-        vote.setIsActive(isActive);
-        Date now = new Date();
-        vote.setCreateTime(now);
-        vote.setUpdateTime(now);
-        return vote;
     }
 }
