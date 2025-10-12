@@ -329,7 +329,7 @@ public class AnalyticsService {
         
         // Calculate weekly and monthly active users
         Calendar cal = Calendar.getInstance();
-        cal.add(Calendar.DAY_OF_WEEK, -7);
+        cal.add(Calendar.DATE, -7);
         Date weekStart = cal.getTime();
         response.setWeeklyActiveUsers(analyticsMapper.getWeeklyActiveUsers(weekStart, new Date()));
         
@@ -361,7 +361,7 @@ public class AnalyticsService {
         // Calculate weekly and monthly active users
         Calendar cal = Calendar.getInstance();
         cal.setTime(date);
-        cal.add(Calendar.DAY_OF_WEEK, -7);
+        cal.add(Calendar.DATE, -7);
         Date weekStart = cal.getTime();
         response.setWau(analyticsMapper.getWeeklyActiveUsers(weekStart, date));
 
