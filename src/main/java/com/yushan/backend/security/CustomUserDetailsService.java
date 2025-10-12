@@ -154,7 +154,7 @@ public class CustomUserDetailsService implements UserDetailsService {
 
         @Override
         public boolean isEnabled() {
-            // Check if user status is active (1 = active, 0 = inactive)
+            // Check if user status is NORMAL
             return status != null && status == UserStatus.NORMAL.getCode();
         }
 
