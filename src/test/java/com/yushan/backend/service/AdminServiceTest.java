@@ -31,9 +31,6 @@ class AdminServiceTest {
     @Mock
     private UserMapper userMapper;
 
-    @Mock
-    private UserService userService;
-
     @InjectMocks
     private AdminService adminService;
 
@@ -74,37 +71,6 @@ class AdminServiceTest {
             assertEquals(testUser.getUsername(), result.getContent().get(0).getUsername());
             verify(userMapper).countUsersForAdmin(filter);
             verify(userMapper).selectUsersForAdmin(filter, offset);
-        }
-    }
-
-    @Nested
-    @DisplayName("getUserDetail Tests")
-    class GetUserDetail {
-        @Test
-        @DisplayName("Should return user details when user exists")
-        void shouldReturnUserDetails() {
-            // Given
-            UserProfileResponseDTO userProfile = new UserProfileResponseDTO();
-            userProfile.setUuid(testUserUuid.toString());
-            when(userService.getUserProfile(testUserUuid)).thenReturn(userProfile);
-
-            // When
-            UserProfileResponseDTO result = adminService.getUserDetail(testUserUuid);
-
-            // Then
-            assertNotNull(result);
-            assertEquals(testUserUuid.toString(), result.getUuid());
-            verify(userService).getUserProfile(testUserUuid);
-        }
-
-        @Test
-        @DisplayName("Should throw ResourceNotFoundException when user does not exist")
-        void shouldThrowWhenUserNotFound() {
-            // Given
-            when(userService.getUserProfile(testUserUuid)).thenReturn(null);
-
-            // When & Then
-            assertThrows(ResourceNotFoundException.class, () -> adminService.getUserDetail(testUserUuid));
         }
     }
 

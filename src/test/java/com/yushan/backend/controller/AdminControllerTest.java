@@ -183,25 +183,6 @@ class AdminControllerTest {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void getUserDetail_shouldReturnFullUserProfile() throws Exception {
-        // Given
-        UUID userId = UUID.randomUUID();
-        UserProfileResponseDTO mockProfile = new UserProfileResponseDTO();
-        mockProfile.setUuid(userId.toString());
-        mockProfile.setEmail("detail@example.com");
-        when(adminService.getUserDetail(userId)).thenReturn(mockProfile);
-
-        // When & Then
-        mockMvc.perform(get("/api/admin/users/{uuid}", userId)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("User detail retrieved successfully"))
-                .andExpect(jsonPath("$.data.email").value("detail@example.com"));
-
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
     void updateUser_shouldCallServiceWithCorrectParameters() throws Exception {
         // Given
         UUID userId = UUID.randomUUID();

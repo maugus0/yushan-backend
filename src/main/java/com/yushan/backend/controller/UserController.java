@@ -159,4 +159,17 @@ public class UserController {
             throw new ValidationException("Failed to send verification email: " + e.getMessage());
         }
     }
+
+    /**
+     * get a user's profile
+     */
+    @GetMapping("/{userId}")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<UserProfileResponseDTO> getUserDetail(@PathVariable UUID userId) {
+        UserProfileResponseDTO dto = userService.getUserProfile(userId);
+        if (dto == null) {
+            throw new ValidationException("User not found");
+        }
+        return ApiResponse.success("User profile retrieved successfully", dto);
+    }
 }

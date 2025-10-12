@@ -68,16 +68,6 @@ public class AdminController {
     }
 
     /**
-     * get a user's profile
-     */
-    @GetMapping("/users/{uuid}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<UserProfileResponseDTO> getUserDetail(@PathVariable UUID uuid) {
-        UserProfileResponseDTO userDetail = adminService.getUserDetail(uuid);
-        return ApiResponse.success("User detail retrieved successfully", userDetail);
-    }
-
-    /**
      * update a user's status
      */
     @PutMapping("/users/{uuid}/status")

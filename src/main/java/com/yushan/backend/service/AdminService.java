@@ -66,14 +66,6 @@ public class AdminService {
         return new PageResponseDTO<>(userProfiles, totalElements, filter.getPage(), filter.getSize());
     }
 
-    public UserProfileResponseDTO getUserDetail(UUID userUuid) {
-        UserProfileResponseDTO userProfile = userService.getUserProfile(userUuid);
-        if (userProfile == null) {
-            throw new ResourceNotFoundException("User not found with UUID: " + userUuid);
-        }
-        return userProfile;
-    }
-
     public void updateUserStatus(UUID userUuid, UserStatus newStatus) {
         User user = userMapper.selectByPrimaryKey(userUuid);
         if (user == null) {
