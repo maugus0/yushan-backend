@@ -8,7 +8,6 @@ import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;

@@ -1,11 +1,9 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.CategoryMapper;
 import com.yushan.backend.dto.AuthorResponseDTO;
 import com.yushan.backend.dto.NovelDetailResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
-import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dao.UserMapper;

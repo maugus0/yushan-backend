@@ -35,3 +35,13 @@ CREATE TABLE IF NOT EXISTS report (
     CONSTRAINT fk_report_resolved_by FOREIGN KEY (resolved_by) REFERENCES users(uuid) ON DELETE SET NULL,
     CONSTRAINT chk_content_type CHECK (content_type IN ('NOVEL', 'COMMENT'))
 );
+
+-- Vote table changes
+DROP TABLE IF EXISTS vote;
+CREATE TABLE vote (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL,
+    novel_id INTEGER NOT NULL,
+    create_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
