@@ -114,6 +114,9 @@ public class SecurityConfig {
                 .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 .requestMatchers("/error").permitAll()
                 
+                // CORS preflight requests - allow OPTIONS for all endpoints
+                .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
+                
                 // Novel APIs
                 .requestMatchers(HttpMethod.POST, "/api/novels").hasAnyRole("AUTHOR","ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/novels").permitAll()
@@ -139,8 +142,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/reviews").permitAll()
                 .requestMatchers("/api/reviews/**").authenticated()
                 
-                // Ranking APIs - allow OPTIONS for CORS preflight only, require auth for actual requests
-                .requestMatchers(HttpMethod.OPTIONS, "/api/ranking/**").permitAll()
+                // Ranking APIs - require authentication
                 .requestMatchers("/api/ranking/**").authenticated()
 
                 // Admin endpoints - require admin role
