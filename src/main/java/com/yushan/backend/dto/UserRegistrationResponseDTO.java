@@ -1,6 +1,7 @@
 package com.yushan.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yushan.backend.enums.Gender;
 import lombok.Data;
 
 import java.util.Date;
@@ -16,7 +17,7 @@ public class UserRegistrationResponseDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd", timezone = "UTC")
     private Date birthday;
 
-    private Integer gender;
+    private Gender gender;
     private Boolean isAuthor;
     private Boolean isAdmin;
     private Integer level;

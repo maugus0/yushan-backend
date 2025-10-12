@@ -1,5 +1,6 @@
 package com.yushan.backend.dao;
 
+import com.yushan.backend.dto.AdminUserFilterDTO;
 import com.yushan.backend.entity.User;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
@@ -30,4 +31,9 @@ public interface UserMapper {
     int updateByPrimaryKeySelective(User record);
 
     int updateByPrimaryKey(User record);
+
+    List<User> selectUsersForAdmin(@Param("filter") AdminUserFilterDTO filter,
+                                   @Param("offset") int offset);
+
+    long countUsersForAdmin(@Param("filter") AdminUserFilterDTO filter);
 }

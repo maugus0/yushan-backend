@@ -5,6 +5,7 @@ import com.yushan.backend.TestcontainersConfiguration;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.enums.ErrorCode;
+import com.yushan.backend.enums.Gender;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -119,7 +120,7 @@ public class UserIntegrationTest {
         Map<String, Object> updateRequest = new HashMap<>();
         updateRequest.put("username", "updatedusername");
         updateRequest.put("avatarUrl", "https://example.com/new-avatar.jpg");
-        updateRequest.put("gender", 2);
+        updateRequest.put("gender", Gender.FEMALE);
 
         // When - Use the correct endpoint with user ID
         mockMvc.perform(put("/api/users/" + testUser.getUuid() + "/profile")

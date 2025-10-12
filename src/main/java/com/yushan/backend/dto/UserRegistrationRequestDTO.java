@@ -1,6 +1,7 @@
 package com.yushan.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.yushan.backend.enums.Gender;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 
@@ -34,10 +35,8 @@ public class UserRegistrationRequestDTO {
         this.birthday = birthday != null ? new Date(birthday.getTime()) : null;
     }
 
-    @Min(value = 0, message = "gender must be 0 or 1 or 2")
-    @Max(value = 2, message = "gender must be 0 or 1 or 2")
     @NotNull(message = "gender cannot be empty")
-    private Integer gender = 0;
+    private Gender gender = Gender.UNKNOWN;
 
     @NotBlank(message = "code cannot be empty")
     @Size(min = 6, max = 6, message = "code must be 6 char")

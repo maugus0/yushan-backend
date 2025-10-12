@@ -6,6 +6,7 @@ import com.yushan.backend.dto.UserProfileUpdateRequestDTO;
 import com.yushan.backend.dto.UserProfileUpdateResponseDTO;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.enums.Gender;
+import com.yushan.backend.enums.UserStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -76,11 +77,9 @@ public class UserService {
             toUpdate.setEmail(req.getEmail().trim());
         }
         if (req.getGender() != null) {
-            toUpdate.setGender(req.getGender());
-            // check if update default gender URL
+            toUpdate.setGender(req.getGender().getCode());
             if(Gender.isDefaultAvatar(existing.getAvatarUrl())){
-                Gender gender = Gender.fromCode(req.getGender());
-                toUpdate.setAvatarUrl(gender.getAvatarUrl());
+                toUpdate.setAvatarUrl(req.getGender().getAvatarUrl());
             }
         }
         if (req.getAvatarUrl() != null && !req.getAvatarUrl().trim().isEmpty()) {
@@ -111,7 +110,7 @@ public class UserService {
         dto.setAvatarUrl(user.getAvatarUrl());
         dto.setProfileDetail(user.getProfileDetail());
         dto.setBirthday(user.getBirthday());
-        dto.setGender(user.getGender());
+        dto.setGender(Gender.fromCode(user.getGender()));
         dto.setIsAuthor(user.getIsAuthor());
         dto.setIsAdmin(user.getIsAdmin());
         dto.setLevel(user.getLevel());
@@ -121,6 +120,7 @@ public class UserService {
         dto.setCreateTime(user.getCreateTime());
         dto.setUpdateTime(user.getUpdateTime());
         dto.setLastActive(user.getLastActive());
+        dto.setStatus(UserStatus.fromCode(user.getStatus()));
         return dto;
     }
 
