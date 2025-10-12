@@ -122,7 +122,7 @@ public class AuthIntegrationTest {
         assertThat(registeredUser.getEmail()).isEqualTo("newuser@example.com");
         assertThat(registeredUser.getEmailVerified()).isTrue();
         assertThat(registeredUser.getStatus()).isEqualTo(UserStatus.NORMAL); // Active status
-        assertThat(registeredUser.getGender()).isEqualTo(Gender.MALE);
+        assertThat(registeredUser.getGender()).isEqualTo(Gender.MALE.getCode());
     }
 
     /**

@@ -288,7 +288,7 @@ public class UserIntegrationTest {
         // Given - User with complex profile data
         testUser.setProfileDetail("Complex user profile with special characters: @#$%^&*()");
         testUser.setBirthday(new Date());
-        testUser.setGender(1);
+        testUser.setGender(Gender.MALE.getCode());
         userMapper.updateByPrimaryKeySelective(testUser); // Actually update in database
 
         // When - Get user profile
@@ -297,7 +297,7 @@ public class UserIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.profileDetail").exists())
                 .andExpect(jsonPath("$.data.birthday").exists())
-                .andExpect(jsonPath("$.data.gender").value(1));
+                .andExpect(jsonPath("$.data.gender").value(Gender.MALE));
 
         // Then - Verify complex data is properly serialized/deserialized in Redis
         User complexUser = userMapper.selectByEmail("testuser@example.com");
