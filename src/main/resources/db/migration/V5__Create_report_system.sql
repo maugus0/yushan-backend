@@ -2,20 +2,28 @@
 -- This migration creates tables for reporting novels and comments
 
 -- Report types enum
-CREATE TYPE report_type AS ENUM (
-    'PORNOGRAPHIC',
-    'HATE_BULLYING',
-    'PERSONAL_INFO',
-    'INAPPROPRIATE',
-    'SPAM'
-);
+DO $$ BEGIN
+    CREATE TYPE report_type AS ENUM (
+        'PORNOGRAPHIC',
+        'HATE_BULLYING',
+        'PERSONAL_INFO',
+        'INAPPROPRIATE',
+        'SPAM'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Report status enum
-CREATE TYPE report_status AS ENUM (
-    'IN_REVIEW',
-    'RESOLVED',
-    'DISMISSED'
-);
+DO $$ BEGIN
+    CREATE TYPE report_status AS ENUM (
+        'IN_REVIEW',
+        'RESOLVED',
+        'DISMISSED'
+    );
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Main report table
 CREATE TABLE IF NOT EXISTS report (
