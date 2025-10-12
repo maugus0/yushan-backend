@@ -5,6 +5,8 @@ import com.yushan.backend.TestcontainersConfiguration;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.entity.User;
 import com.yushan.backend.enums.ErrorCode;
+import com.yushan.backend.enums.Gender;
+import com.yushan.backend.enums.UserStatus;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -101,7 +103,7 @@ public class AuthIntegrationTest {
         registerRequest.put("username", "newuser");
         registerRequest.put("password", "password123");
         registerRequest.put("code", "123456");
-        registerRequest.put("gender", 1);
+        registerRequest.put("gender", Gender.MALE);
 
         // When
         mockMvc.perform(post("/api/auth/register")
@@ -119,8 +121,8 @@ public class AuthIntegrationTest {
         assertThat(registeredUser.getUsername()).isEqualTo("newuser");
         assertThat(registeredUser.getEmail()).isEqualTo("newuser@example.com");
         assertThat(registeredUser.getEmailVerified()).isTrue();
-        assertThat(registeredUser.getStatus()).isEqualTo(1); // Active status
-        assertThat(registeredUser.getGender()).isEqualTo(1);
+        assertThat(registeredUser.getStatus()).isEqualTo(UserStatus.NORMAL); // Active status
+        assertThat(registeredUser.getGender()).isEqualTo(Gender.MALE);
     }
 
     /**
@@ -298,7 +300,7 @@ public class AuthIntegrationTest {
         invalidRequest.put("username", "testuser");
         invalidRequest.put("password", "password123");
         invalidRequest.put("code", "123456");
-        invalidRequest.put("gender", 1);
+        invalidRequest.put("gender", Gender.MALE);
 
         // When
         mockMvc.perform(post("/api/auth/register")
@@ -326,7 +328,7 @@ public class AuthIntegrationTest {
         user.setHashPassword(passwordEncoder.encode(password));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(1); // Active status
+        user.setStatus(0); // Active status
         user.setGender(1);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
