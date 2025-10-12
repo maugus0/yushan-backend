@@ -537,6 +537,7 @@ public class ChapterService {
                 : chapter.getContent();
 
         return new ChapterListResponseDTO.ChapterSummary(
+                chapter.getId(),
                 chapter.getUuid(),
                 chapter.getChapterNumber(),
                 chapter.getTitle(),
