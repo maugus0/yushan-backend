@@ -297,7 +297,7 @@ public class UserIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.profileDetail").exists())
                 .andExpect(jsonPath("$.data.birthday").exists())
-                .andExpect(jsonPath("$.data.gender").value(Gender.MALE));
+                .andExpect(jsonPath("$.data.gender").value("MALE"));
 
         // Then - Verify complex data is properly serialized/deserialized in Redis
         User complexUser = userMapper.selectByEmail("testuser@example.com");
