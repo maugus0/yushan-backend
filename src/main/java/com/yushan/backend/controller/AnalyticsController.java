@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
+
 @RestController
 @RequestMapping("/api/admin/analytics")
 @CrossOrigin(origins = "*")
@@ -164,5 +166,55 @@ public class AnalyticsController {
 
         AnalyticsSummaryResponseDTO response = analyticsService.getAnalyticsSummary(request);
         return ApiResponse.success("Analytics summary retrieved successfully", response);
+    }
+
+    /**
+     * Get platform-wide statistics overview
+     * Admin only endpoint for comprehensive platform statistics
+     */
+    @GetMapping("/platform/overview")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<PlatformStatisticsResponseDTO> getPlatformStatistics() {
+        PlatformStatisticsResponseDTO response = analyticsService.getPlatformStatistics();
+        return ApiResponse.success("Platform statistics retrieved successfully", response);
+    }
+
+    /**
+     * Get daily active users statistics
+     * Admin only endpoint for DAU analysis
+     */
+    @GetMapping("/platform/dau")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<DailyActiveUsersResponseDTO> getDailyActiveUsers(
+            @RequestParam(value = "date", required = false) String date) {
+        
+        Date targetDate = new Date();
+        if (date != null && !date.isEmpty()) {
+            try {
+                targetDate = java.sql.Date.valueOf(date);
+            } catch (Exception e) {
+                return ApiResponse.error(400, "Invalid date format. Use YYYY-MM-DD");
+            }
+        }
+
+        DailyActiveUsersResponseDTO response = analyticsService.getDailyActiveUsers(targetDate);
+        return ApiResponse.success("Daily active users retrieved successfully", response);
+    }
+
+    /**
+     * Get top content statistics
+     * Admin only endpoint for top content analysis
+     */
+    @GetMapping("/platform/top-content")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<TopContentResponseDTO> getTopContent(
+            @RequestParam(value = "limit", defaultValue = "10") Integer limit) {
+        
+        if (limit <= 0 || limit > 100) {
+            return ApiResponse.error(400, "Limit must be between 1 and 100");
+        }
+
+        TopContentResponseDTO response = analyticsService.getTopContent(limit);
+        return ApiResponse.success("Top content statistics retrieved successfully", response);
     }
 }

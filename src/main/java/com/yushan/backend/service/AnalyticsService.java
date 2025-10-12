@@ -295,4 +295,105 @@ public class AnalyticsService {
         
         return ((currentValue - previousValue) / (double) previousValue) * 100.0;
     }
+
+    /**
+     * Get platform-wide statistics overview
+     */
+    public PlatformStatisticsResponseDTO getPlatformStatistics() {
+        PlatformStatisticsResponseDTO response = new PlatformStatisticsResponseDTO();
+        response.setTimestamp(new Date());
+
+        // User statistics
+        response.setTotalUsers(analyticsMapper.getTotalUsersAll());
+        response.setActiveUsers(analyticsMapper.getActiveUsersAll());
+        response.setNewUsersToday(analyticsMapper.getNewUsersToday());
+        response.setAuthors(analyticsMapper.getAuthorsAll());
+        response.setAdmins(analyticsMapper.getAdminsAll());
+
+        // Content statistics
+        response.setTotalNovels(analyticsMapper.getTotalNovelsAll());
+        response.setPublishedNovels(analyticsMapper.getPublishedNovelsAll());
+        response.setCompletedNovels(analyticsMapper.getCompletedNovelsAll());
+        response.setTotalChapters(analyticsMapper.getTotalChaptersAll());
+        response.setTotalWords(analyticsMapper.getTotalWordsAll());
+
+        // Engagement statistics
+        response.setTotalViews(analyticsMapper.getTotalViewsAll());
+        response.setTotalComments(analyticsMapper.getTotalCommentsAll());
+        response.setTotalReviews(analyticsMapper.getTotalReviewsAll());
+        response.setTotalVotes(analyticsMapper.getTotalVotesAll());
+        response.setAverageRating(analyticsMapper.getAverageRatingAll());
+
+        // Activity statistics
+        response.setDailyActiveUsers(analyticsMapper.getDailyActiveUsers(new Date()));
+        
+        // Calculate weekly and monthly active users
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_WEEK, -7);
+        Date weekStart = cal.getTime();
+        response.setWeeklyActiveUsers(analyticsMapper.getWeeklyActiveUsers(weekStart, new Date()));
+        
+        cal = Calendar.getInstance();
+        cal.add(Calendar.MONTH, -1);
+        Date monthStart = cal.getTime();
+        response.setMonthlyActiveUsers(analyticsMapper.getMonthlyActiveUsers(monthStart, new Date()));
+
+        // Growth statistics
+        response.setUserGrowthRate(analyticsMapper.getPlatformUserGrowthRate());
+        response.setContentGrowthRate(analyticsMapper.getPlatformContentGrowthRate());
+        response.setEngagementGrowthRate(analyticsMapper.getPlatformEngagementGrowthRate());
+
+        return response;
+    }
+
+    /**
+     * Get daily active users with hourly breakdown
+     */
+    public DailyActiveUsersResponseDTO getDailyActiveUsers(Date date) {
+        if (date == null) {
+            date = new Date();
+        }
+
+        DailyActiveUsersResponseDTO response = new DailyActiveUsersResponseDTO();
+        response.setDate(date);
+        response.setDau(analyticsMapper.getDailyActiveUsers(date));
+
+        // Calculate weekly and monthly active users
+        Calendar cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.DAY_OF_WEEK, -7);
+        Date weekStart = cal.getTime();
+        response.setWau(analyticsMapper.getWeeklyActiveUsers(weekStart, date));
+
+        cal = Calendar.getInstance();
+        cal.setTime(date);
+        cal.add(Calendar.MONTH, -1);
+        Date monthStart = cal.getTime();
+        response.setMau(analyticsMapper.getMonthlyActiveUsers(monthStart, date));
+
+        // Get hourly breakdown
+        List<DailyActiveUsersResponseDTO.ActivityDataPoint> hourlyData = 
+            analyticsMapper.getHourlyActiveUsers(date);
+        response.setHourlyBreakdown(hourlyData);
+
+        return response;
+    }
+
+    /**
+     * Get top content statistics
+     */
+    public TopContentResponseDTO getTopContent(Integer limit) {
+        if (limit == null || limit <= 0) {
+            limit = 10; // Default to top 10
+        }
+
+        TopContentResponseDTO response = new TopContentResponseDTO();
+        response.setDate(new Date());
+
+        response.setTopNovels(analyticsMapper.getTopNovels(limit));
+        response.setTopAuthors(analyticsMapper.getTopAuthors(limit));
+        response.setTopCategories(analyticsMapper.getTopCategories(limit));
+
+        return response;
+    }
 }
