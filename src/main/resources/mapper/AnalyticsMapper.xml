@@ -433,7 +433,7 @@
         )
         SELECT 
             CASE 
-                WHEN previous_count > 0 THEN 
+                WHEN previous_count &gt; 0 THEN 
                     ((current_count - previous_count)::FLOAT / previous_count) * 100
                 ELSE 0
             END as growth_rate
@@ -453,7 +453,7 @@
         )
         SELECT 
             CASE 
-                WHEN previous_count > 0 THEN 
+                WHEN previous_count &gt; 0 THEN 
                     ((current_count - previous_count)::FLOAT / previous_count) * 100
                 ELSE 0
             END as growth_rate
@@ -473,7 +473,7 @@
         )
         SELECT 
             CASE 
-                WHEN previous_views > 0 THEN 
+                WHEN previous_views &gt; 0 THEN 
                     ((current_views - previous_views)::FLOAT / previous_views) * 100
                 ELSE 0
             END as growth_rate
@@ -483,7 +483,7 @@
     <!-- Average Calculations -->
     <select id="getAverageRating" resultType="java.lang.Double">
         SELECT COALESCE(AVG(avg_rating), 0) FROM novel 
-        WHERE create_time BETWEEN #{startDate} AND #{endDate} AND avg_rating > 0
+        WHERE create_time BETWEEN #{startDate} AND #{endDate} AND avg_rating &gt; 0
     </select>
 
     <select id="getAverageViewsPerNovel" resultType="java.lang.Double">
@@ -510,6 +510,234 @@
             WHERE n.create_time BETWEEN #{startDate} AND #{endDate}
             GROUP BY n.id
         ) novel_reviews
+    </select>
+
+    <!-- Platform-wide Statistics -->
+    <select id="getTotalUsersAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM users
+    </select>
+
+    <select id="getActiveUsersAll" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id) FROM (
+            SELECT user_id FROM history WHERE create_time >= CURRENT_DATE - INTERVAL '30 days'
+            UNION
+            SELECT user_id FROM comment WHERE create_time >= CURRENT_DATE - INTERVAL '30 days'
+            UNION
+            SELECT user_id FROM review WHERE create_time >= CURRENT_DATE - INTERVAL '30 days'
+            UNION
+            SELECT user_id FROM vote WHERE create_time >= CURRENT_DATE - INTERVAL '30 days'
+        ) active_users
+    </select>
+
+    <select id="getNewUsersToday" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM users WHERE DATE(create_time) = CURRENT_DATE
+    </select>
+
+    <select id="getAuthorsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM users WHERE is_author = true
+    </select>
+
+    <select id="getAdminsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM users WHERE is_admin = true
+    </select>
+
+    <select id="getTotalNovelsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM novel
+    </select>
+
+    <select id="getPublishedNovelsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM novel WHERE status = 1
+    </select>
+
+    <select id="getCompletedNovelsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM novel WHERE is_completed = true
+    </select>
+
+    <select id="getTotalChaptersAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM chapter
+    </select>
+
+    <select id="getTotalWordsAll" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(word_cnt), 0) FROM novel
+    </select>
+
+    <select id="getTotalViewsAll" resultType="java.lang.Long">
+        SELECT COALESCE(SUM(view_cnt), 0) FROM novel
+    </select>
+
+    <select id="getTotalCommentsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM comment
+    </select>
+
+    <select id="getTotalReviewsAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM review
+    </select>
+
+    <select id="getTotalVotesAll" resultType="java.lang.Long">
+        SELECT COUNT(*) FROM vote
+    </select>
+
+    <select id="getAverageRatingAll" resultType="java.lang.Double">
+        SELECT COALESCE(AVG(avg_rating), 0) FROM novel WHERE avg_rating &gt; 0
+    </select>
+
+    <!-- Daily Active Users -->
+    <select id="getDailyActiveUsers" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id) FROM (
+            SELECT user_id FROM history WHERE DATE(create_time) = #{date}
+            UNION
+            SELECT user_id FROM comment WHERE DATE(create_time) = #{date}
+            UNION
+            SELECT user_id FROM review WHERE DATE(create_time) = #{date}
+            UNION
+            SELECT user_id FROM vote WHERE DATE(create_time) = #{date}
+        ) active_users
+    </select>
+
+    <select id="getWeeklyActiveUsers" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id) FROM (
+            SELECT user_id FROM history WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM comment WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM review WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM vote WHERE create_time BETWEEN #{startDate} AND #{endDate}
+        ) active_users
+    </select>
+
+    <select id="getMonthlyActiveUsers" resultType="java.lang.Long">
+        SELECT COUNT(DISTINCT user_id) FROM (
+            SELECT user_id FROM history WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM comment WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM review WHERE create_time BETWEEN #{startDate} AND #{endDate}
+            UNION
+            SELECT user_id FROM vote WHERE create_time BETWEEN #{startDate} AND #{endDate}
+        ) active_users
+    </select>
+
+    <select id="getHourlyActiveUsers" resultType="com.yushan.backend.dto.DailyActiveUsersResponseDTO$ActivityDataPoint">
+        SELECT 
+            EXTRACT(HOUR FROM create_time) as hour,
+            COUNT(DISTINCT user_id) as activeUsers,
+            COUNT(CASE WHEN DATE(create_time) = #{date} THEN 1 END) as newUsers,
+            COUNT(*) as readingSessions
+        FROM history 
+        WHERE DATE(create_time) = #{date}
+        GROUP BY EXTRACT(HOUR FROM create_time)
+        ORDER BY hour
+    </select>
+
+    <!-- Top Content -->
+    <select id="getTopNovels" resultType="com.yushan.backend.dto.TopContentResponseDTO$TopNovel">
+        SELECT 
+            n.id,
+            n.title,
+            n.author_name as authorName,
+            c.name as categoryName,
+            n.view_cnt as viewCount,
+            n.vote_cnt as voteCount,
+            n.avg_rating as rating,
+            n.chapter_cnt as chapterCount,
+            n.word_cnt as wordCount
+        FROM novel n
+        LEFT JOIN category c ON n.category_id = c.id
+        WHERE n.is_valid = true
+        ORDER BY n.view_cnt DESC, n.vote_cnt DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="getTopAuthors" resultType="com.yushan.backend.dto.TopContentResponseDTO$TopAuthor">
+        SELECT 
+            u.uuid as authorId,
+            u.username as authorName,
+            COUNT(n.id) as novelCount,
+            COALESCE(SUM(n.view_cnt), 0) as totalViews,
+            COALESCE(SUM(n.vote_cnt), 0) as totalVotes,
+            COALESCE(AVG(n.avg_rating), 0) as averageRating,
+            COALESCE(SUM(n.word_cnt), 0) as totalWords
+        FROM users u
+        LEFT JOIN novel n ON u.uuid = n.author_id AND n.is_valid = true
+        WHERE u.is_author = true
+        GROUP BY u.uuid, u.username
+        ORDER BY totalViews DESC, totalVotes DESC
+        LIMIT #{limit}
+    </select>
+
+    <select id="getTopCategories" resultType="com.yushan.backend.dto.TopContentResponseDTO$TopCategory">
+        SELECT 
+            c.id as categoryId,
+            c.name as categoryName,
+            COUNT(n.id) as novelCount,
+            COALESCE(SUM(n.view_cnt), 0) as totalViews,
+            COALESCE(SUM(n.vote_cnt), 0) as totalVotes,
+            COALESCE(AVG(n.avg_rating), 0) as averageRating
+        FROM category c
+        LEFT JOIN novel n ON c.id = n.category_id AND n.is_valid = true
+        WHERE c.is_active = true
+        GROUP BY c.id, c.name
+        ORDER BY totalViews DESC, novelCount DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- Growth Rates -->
+    <select id="getPlatformUserGrowthRate" resultType="java.lang.Double">
+        WITH current_month AS (
+            SELECT COUNT(*) as current_count FROM users 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE)
+        ),
+        previous_month AS (
+            SELECT COUNT(*) as previous_count FROM users 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+            AND create_time &lt; DATE_TRUNC('month', CURRENT_DATE)
+        )
+        SELECT 
+            CASE 
+                WHEN previous_count &gt; 0 THEN 
+                    ((current_count - previous_count)::FLOAT / previous_count) * 100
+                ELSE 0
+            END as growth_rate
+        FROM current_month, previous_month
+    </select>
+
+    <select id="getPlatformContentGrowthRate" resultType="java.lang.Double">
+        WITH current_month AS (
+            SELECT COUNT(*) as current_count FROM novel 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE)
+        ),
+        previous_month AS (
+            SELECT COUNT(*) as previous_count FROM novel 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+            AND create_time &lt; DATE_TRUNC('month', CURRENT_DATE)
+        )
+        SELECT 
+            CASE 
+                WHEN previous_count &gt; 0 THEN 
+                    ((current_count - previous_count)::FLOAT / previous_count) * 100
+                ELSE 0
+            END as growth_rate
+        FROM current_month, previous_month
+    </select>
+
+    <select id="getPlatformEngagementGrowthRate" resultType="java.lang.Double">
+        WITH current_month AS (
+            SELECT COALESCE(SUM(view_cnt), 0) as current_views FROM novel 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE)
+        ),
+        previous_month AS (
+            SELECT COALESCE(SUM(view_cnt), 0) as previous_views FROM novel 
+            WHERE create_time >= DATE_TRUNC('month', CURRENT_DATE) - INTERVAL '1 month'
+            AND create_time &lt; DATE_TRUNC('month', CURRENT_DATE)
+        )
+        SELECT 
+            CASE 
+                WHEN previous_views &gt; 0 THEN 
+                    ((current_views - previous_views)::FLOAT / previous_views) * 100
+                ELSE 0
+            END as growth_rate
+        FROM current_month, previous_month
     </select>
 
 </mapper>
