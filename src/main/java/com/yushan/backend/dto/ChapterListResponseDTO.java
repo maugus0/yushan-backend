@@ -13,6 +13,7 @@ public class ChapterListResponseDTO {
 
     // Nested class for chapter summary
     public static class ChapterSummary {
+        private Integer chapterId;
         private UUID uuid;
         private Integer chapterNumber;
         private String title;
@@ -26,9 +27,10 @@ public class ChapterListResponseDTO {
         // Constructors
         public ChapterSummary() {}
 
-        public ChapterSummary(UUID uuid, Integer chapterNumber, String title,
+        public ChapterSummary(Integer chapterId, UUID uuid, Integer chapterNumber, String title,
                               String contentPreview, Integer wordCnt, Boolean isPremium,
                               Float yuanCost, Long viewCnt, Date publishTime) {
+            this.chapterId = chapterId;
             this.uuid = uuid;
             this.chapterNumber = chapterNumber;
             this.title = title;
@@ -41,6 +43,9 @@ public class ChapterListResponseDTO {
         }
 
         // Getters and Setters
+        public Integer getChapterId() { return chapterId; }
+        public void setChapterId(Integer chapterId) { this.chapterId = chapterId; }
+
         public UUID getUuid() { return uuid; }
         public void setUuid(UUID uuid) { this.uuid = uuid; }
 
@@ -65,11 +70,11 @@ public class ChapterListResponseDTO {
         public Long getViewCnt() { return viewCnt; }
         public void setViewCnt(Long viewCnt) { this.viewCnt = viewCnt; }
 
-        public Date getPublishTime() { 
-            return publishTime != null ? (Date) publishTime.clone() : null; 
+        public Date getPublishTime() {
+            return publishTime != null ? (Date) publishTime.clone() : null;
         }
-        public void setPublishTime(Date publishTime) { 
-            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+        public void setPublishTime(Date publishTime) {
+            this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
         }
     }
 
@@ -86,11 +91,11 @@ public class ChapterListResponseDTO {
     }
 
     // Getters and Setters
-    public List<ChapterSummary> getChapters() { 
-        return chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    public List<ChapterSummary> getChapters() {
+        return chapters != null ? new java.util.ArrayList<>(chapters) : null;
     }
-    public void setChapters(List<ChapterSummary> chapters) { 
-        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null; 
+    public void setChapters(List<ChapterSummary> chapters) {
+        this.chapters = chapters != null ? new java.util.ArrayList<>(chapters) : null;
     }
 
     public Long getTotalCount() { return totalCount; }
