@@ -42,7 +42,7 @@ public enum Gender {
         try {
             return Gender.valueOf(value.toUpperCase());
         } catch (IllegalArgumentException e) {
-            return UNKNOWN; // 如果传入无效字符串，则默认为UNKNOWN
+            return UNKNOWN;
         }
     }
 

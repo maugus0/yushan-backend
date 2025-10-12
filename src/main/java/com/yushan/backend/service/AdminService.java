@@ -60,7 +60,7 @@ public class AdminService {
         List<User> users = userMapper.selectUsersForAdmin(filter, offset);
 
         List<UserProfileResponseDTO> userProfiles = users.stream()
-                .map(this::mapToProfileResponse) // 使用下面的辅助方法进行转换
+                .map(this::mapToProfileResponse)
                 .collect(Collectors.toList());
 
         return new PageResponseDTO<>(userProfiles, totalElements, filter.getPage(), filter.getSize());

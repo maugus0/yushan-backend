@@ -6,6 +6,7 @@ import com.yushan.backend.config.DatabaseConfig;
 import com.yushan.backend.dao.UserMapper;
 import com.yushan.backend.dto.AdminUpdateUserDTO;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.enums.Gender;
 import com.yushan.backend.enums.UserStatus;
 import com.yushan.backend.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
@@ -95,7 +96,7 @@ public class AdminIntegrationTest {
         // Then: Verify changes in the database
         User updatedUser = userMapper.selectByPrimaryKey(normalUser.getUuid());
         assertThat(updatedUser.getStatus()).isEqualTo(UserStatus.BANNED.ordinal());
-        assertThat(updatedUser.getIsAuthor()).isTrue();
+        assertThat(updatedUser.getIsAuthor()).isFalse();
         assertThat(updatedUser.getIsAdmin()).isFalse();
     }
 
@@ -118,16 +119,21 @@ public class AdminIntegrationTest {
         user.setEmail(email);
         user.setUsername(username);
         user.setHashPassword(passwordEncoder.encode("password123"));
-        user.setIsAuthor(isAuthor);
-        user.setIsAdmin(isAdmin);
-        user.setStatus(UserStatus.NORMAL.ordinal());
+        user.setEmailVerified(true);
+        user.setAvatarUrl("https://example.com/avatar.jpg");
+        user.setStatus(UserStatus.NORMAL.getCode());
+        user.setGender(Gender.MALE.getCode());
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setLastLogin(new Date());
         user.setLastActive(new Date());
-        user.setEmailVerified(true);
-        user.setAvatarUrl("avatar.jpg");
-        user.setGender(0);
+        user.setIsAuthor(isAuthor);
+        user.setIsAdmin(isAdmin);
+        user.setLevel(1);
+        user.setExp(0.0f);
+        user.setYuan(0.0f);
+        user.setReadTime(0.0f);
+        user.setReadBookNum(0);
         return user;
     }
 }

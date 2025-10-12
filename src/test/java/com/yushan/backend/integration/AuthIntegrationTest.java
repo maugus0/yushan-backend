@@ -328,8 +328,8 @@ public class AuthIntegrationTest {
         user.setHashPassword(passwordEncoder.encode(password));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(0); // Active status
-        user.setGender(1);
+        user.setStatus(UserStatus.NORMAL.getCode());
+        user.setGender(Gender.MALE.getCode());
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());
         user.setLastLogin(new Date());
