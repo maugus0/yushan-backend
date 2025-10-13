@@ -220,6 +220,7 @@ class RankingServiceTest {
         novel.setId(id);
         novel.setTitle("Test Novel " + id);
         novel.setCategoryId(categoryId);
+        novel.setStatus(2);
         return novel;
     }
 
