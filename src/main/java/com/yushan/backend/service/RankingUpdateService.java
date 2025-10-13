@@ -43,7 +43,11 @@ public class RankingUpdateService {
     @PostConstruct
     public void runUpdateOnStartup() {
         log.info("update ranking while starting");
-        updateAllRankings();
+        try {
+            updateAllRankings();
+        } catch (Exception e) {
+            log.warn("Failed to initialize rankings due to Redis connection issue: {}", e.getMessage());
+        }
     }
 
     @Scheduled(cron = "0 0 0 * * ?")

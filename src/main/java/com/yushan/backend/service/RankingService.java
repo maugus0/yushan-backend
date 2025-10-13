@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -45,14 +46,21 @@ public class RankingService {
             return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
         }
 
-        List<Integer> novelIds = novelIdsStr.stream().map(Integer::parseInt).collect(Collectors.toList());
-        List<Novel> novels = novelMapper.selectByIds(novelIds);
+        List<Integer> orderedNovelIds = novelIdsStr.stream().map(Integer::parseInt).collect(Collectors.toList());
+        List<Novel> novelsFromDb = novelMapper.selectByIds(orderedNovelIds);
 
-        List<Integer> categoryIds = novels.stream().map(Novel::getCategoryId).distinct().collect(Collectors.toList());
+        Map<Integer, Novel> novelMap = novelsFromDb.stream()
+                .collect(Collectors.toMap(Novel::getId, Function.identity()));
+
+        List<Novel> sortedNovels = orderedNovelIds.stream()
+                .map(novelMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        List<Integer> categoryIds = sortedNovels.stream().map(Novel::getCategoryId).distinct().collect(Collectors.toList());
         Map<Integer, String> categoryMap = categoryService.getCategoryMapByIds(categoryIds);
 
-        List<NovelDetailResponseDTO> novelDTOs = novels.stream()
-                .sorted(Comparator.comparing(novel -> novelIds.indexOf(novel.getId())))
+        List<NovelDetailResponseDTO> novelDTOs = sortedNovels.stream()
                 .map(novel -> convertToNovelDetailResponseDTO(novel, categoryMap))
                 .collect(Collectors.toList());
 
@@ -119,13 +127,15 @@ public class RankingService {
         return getPaginatedRanking(page, size, redisKey,
                 uuids -> userMapper.selectByUuids(uuids).stream()
                         .map(this::convertToUserProfileResponseDTO)
-                        .collect(Collectors.toList()));
+                        .collect(Collectors.toList()), dto -> UUID.fromString(dto.getUuid()) );
     }
 
     public PageResponseDTO<AuthorResponseDTO> rankAuthor(Integer page, Integer size, String sortType, String timeRange) {
         String redisKey = "ranking:author:" + sortType;
         return getPaginatedRanking(page, size, redisKey,
-                uuids -> novelMapper.selectAuthorsByUuids(uuids));
+                uuids -> novelMapper.selectAuthorsByUuids(uuids), // DB fetcher
+                authorDto -> UUID.fromString(authorDto.getUuid()) // UUID extractor
+        );
     }
 
     private String buildNovelRedisKey(String sortType, Integer categoryId) {
@@ -133,7 +143,9 @@ public class RankingService {
         return (categoryId == null || categoryId <= 0) ? baseKey + ":all" : baseKey + ":" + categoryId;
     }
 
-    private <T> PageResponseDTO<T> getPaginatedRanking(int page, int size, String redisKey, java.util.function.Function<List<UUID>, List<T>> fetcher) {
+    private <T> PageResponseDTO<T> getPaginatedRanking(int page, int size, String redisKey,
+                                                       Function<List<UUID>, List<T>> fetcher,
+                                                       Function<T, UUID> uuidExtractor) {
         long offset = (long) page * size;
 
         Long totalInRedis = redisUtil.zCard(redisKey);
@@ -148,18 +160,17 @@ public class RankingService {
             return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
         }
 
-        List<UUID> uuids = uuidsStr.stream().map(UUID::fromString).collect(Collectors.toList());
-        List<T> dtoList = fetcher.apply(uuids);
+        List<UUID> orderedUuids = uuidsStr.stream().map(UUID::fromString).collect(Collectors.toList());
 
-        List<T> sortedDtoList = dtoList.stream().sorted(Comparator.comparing(dto -> {
-            // A bit of reflection to get the UUID back for sorting
-            try {
-                Object uuidObj = dto.getClass().getMethod("getUuid").invoke(dto);
-                return uuids.indexOf(UUID.fromString(uuidObj.toString()));
-            } catch (Exception e) {
-                return -1;
-            }
-        })).collect(Collectors.toList());
+        List<T> dtoList = fetcher.apply(orderedUuids);
+
+        Map<UUID, T> dtoMap = dtoList.stream()
+                .collect(Collectors.toMap(uuidExtractor, Function.identity()));
+
+        List<T> sortedDtoList = orderedUuids.stream()
+                .map(dtoMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
 
         return PageResponseDTO.of(sortedDtoList, totalElements, page, size);
     }

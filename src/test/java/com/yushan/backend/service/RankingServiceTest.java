@@ -123,7 +123,7 @@ class RankingServiceTest {
             // Then
             assertNotNull(result);
             assertEquals(5, result.getRank());
-            assertEquals("Fantasy Votes", result.getRankType());
+            assertEquals("Fantasy Votes Ranking", result.getRankType());
             assertEquals(100.0, result.getScore());
         }
 
