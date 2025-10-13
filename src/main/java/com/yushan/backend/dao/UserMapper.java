@@ -21,13 +21,6 @@ public interface UserMapper {
 
     User selectByEmail(String email);
 
-    List<User> selectUsersByRanking(@Param("offset") int offset,
-                                    @Param("limit") int limit);
-
-    long countAllUsers();
-
-    long countAllAuthors();
-
     int updateByPrimaryKeySelective(User record);
 
     int updateByPrimaryKey(User record);
@@ -36,4 +29,8 @@ public interface UserMapper {
                                    @Param("offset") int offset);
 
     long countUsersForAdmin(@Param("filter") AdminUserFilterDTO filter);
+
+    List<User> selectAllUsersForRanking();
+
+    List<User> selectByUuids(List<UUID> uuids);
 }

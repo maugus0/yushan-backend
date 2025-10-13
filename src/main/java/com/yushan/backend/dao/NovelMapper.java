@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.UUID;
 
 @Mapper
 public interface NovelMapper {
@@ -37,17 +38,13 @@ public interface NovelMapper {
     
     int decrementVoteCount(@Param("novelId") Integer novelId);
 
-    // Ranking methods
-    List<Novel> selectNovelsByRanking(@Param("categoryId") Integer categoryId,
-                                      @Param("sortType") String sortType,
-                                      @Param("offset") int offset,
-                                      @Param("limit") int limit);
-
-    long countNovelsByRanking(@Param("categoryId") Integer categoryId);
-
     List<AuthorResponseDTO> selectAuthorsByRanking(@Param("sortType") String sortType,
                                                    @Param("offset") int offset,
                                                    @Param("limit") int limit);
 
     List<Novel> selectByIds(List<Integer> ids);
+
+    List<Novel> selectAllNovelsForRanking();
+
+    List<AuthorResponseDTO> selectAuthorsByUuids(List<UUID> uuids);
 }

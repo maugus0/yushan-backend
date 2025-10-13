@@ -464,41 +464,6 @@
     where id = #{novelId,jdbcType=INTEGER}
   </update>
 
-    <select id="selectNovelsByRanking" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List" />
-        FROM novel
-        <where>
-            is_valid = true
-            <if test="categoryId != null and categoryId > 0">
-                AND category_id = #{categoryId,jdbcType=INTEGER}
-            </if>
-        </where>
-        <choose>
-            <when test="sortType == 'view'">
-                ORDER BY view_cnt DESC
-            </when>
-            <when test="sortType == 'vote'">
-                ORDER BY vote_cnt DESC
-            </when>
-            <otherwise>
-                ORDER BY view_cnt DESC
-            </otherwise>
-        </choose>
-        LIMIT #{limit} OFFSET #{offset}
-    </select>
-
-    <select id="countNovelsByRanking" resultType="long">
-        SELECT COUNT(*)
-        FROM novel
-        <where>
-            is_valid = true
-            <if test="categoryId != null and categoryId > 0">
-                AND category_id = #{categoryId,jdbcType=INTEGER}
-            </if>
-        </where>
-    </select>
-
     <select id="selectAuthorsByRanking" resultType="com.yushan.backend.dto.AuthorResponseDTO">
         SELECT
         u.uuid as uuid,
@@ -536,5 +501,20 @@
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </select>
+
+    <select id="selectAllNovelsForRanking" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" /> FROM novel WHERE status = 2
+    </select>
+
+    <select id="selectAuthorsByUuids" resultType="com.yushan.backend.dto.AuthorResponseDTO">
+        SELECT u.uuid, u.username, u.avatar_url as avatarUrl, COUNT(n.id) as novelNum,
+        COALESCE(SUM(n.vote_cnt), 0) as totalVoteCnt, COALESCE(SUM(n.view_cnt), 0) as totalViewCnt
+        FROM users u LEFT JOIN novel n ON u.uuid = n.author_id AND n.is_valid = true
+        WHERE n.status = 2 and u.uuid IN
+        <foreach item="uuid" collection="list" open="(" separator="," close=")">
+            #{uuid, jdbcType=OTHER}
+        </foreach>
+        GROUP BY u.uuid, u.username, u.avatar_url
     </select>
 </mapper>

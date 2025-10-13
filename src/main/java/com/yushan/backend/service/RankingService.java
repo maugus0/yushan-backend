@@ -1,18 +1,16 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dto.AuthorResponseDTO;
-import com.yushan.backend.dto.NovelDetailResponseDTO;
-import com.yushan.backend.dto.PageResponseDTO;
-import com.yushan.backend.dto.UserProfileResponseDTO;
-import com.yushan.backend.entity.Novel;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dao.UserMapper;
+import com.yushan.backend.dto.*;
+import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.exception.ResourceNotFoundException;
+import com.yushan.backend.util.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -20,116 +18,150 @@ public class RankingService {
 
     @Autowired
     private NovelMapper novelMapper;
-
     @Autowired
     private UserMapper userMapper;
-
     @Autowired
     private CategoryService categoryService;
+    @Autowired
+    private RedisUtil redisUtil;
 
-    private static final int MAX_TOTAL_RECORDS = 100;
-
-    /**
-     * @param page
-     * @param size
-     * @param sortType
-     * @param categoryId
-     * @param timeRange
-     * @return
-     */
     public PageResponseDTO<NovelDetailResponseDTO> rankNovel(
-            Integer page,
-            Integer size,
-            String sortType,
-            Integer categoryId,
-            String timeRange) {
+            Integer page, Integer size, String sortType, Integer categoryId, String timeRange) {
 
-        int offset = page * size;
+        String redisKey = buildNovelRedisKey(sortType, categoryId);
+        long offset = (long) page * size;
 
-        if (offset >= MAX_TOTAL_RECORDS) {
-            return PageResponseDTO.of(List.of(), 0L, page, size);
+        Long totalInRedis = redisUtil.zCard(redisKey);
+        long totalElements = totalInRedis != null ? Math.min(totalInRedis, 100) : 0;
+
+        if (offset >= totalElements) {
+            return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
         }
 
-        int adjustedSize = Math.min(size, MAX_TOTAL_RECORDS - offset);
+        long end = offset + size - 1;
+        Set<String> novelIdsStr = redisUtil.zReverseRange(redisKey, offset, end);
 
-        List<Novel> novels = novelMapper.selectNovelsByRanking(categoryId, sortType, offset, adjustedSize);
-        if (novels.isEmpty()) {
-            return PageResponseDTO.of(List.of(), 0L, page, size);
+        if (novelIdsStr == null || novelIdsStr.isEmpty()) {
+            return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
         }
-        List<Integer> categoryIds = novels.stream()
-                .map(Novel::getCategoryId)
-                .distinct()
-                .collect(Collectors.toList());
 
+        List<Integer> novelIds = novelIdsStr.stream().map(Integer::parseInt).collect(Collectors.toList());
+        List<Novel> novels = novelMapper.selectByIds(novelIds);
+
+        List<Integer> categoryIds = novels.stream().map(Novel::getCategoryId).distinct().collect(Collectors.toList());
         Map<Integer, String> categoryMap = categoryService.getCategoryMapByIds(categoryIds);
 
-        long total = Math.min(novelMapper.countNovelsByRanking(categoryId), MAX_TOTAL_RECORDS);
-
         List<NovelDetailResponseDTO> novelDTOs = novels.stream()
+                .sorted(Comparator.comparing(novel -> novelIds.indexOf(novel.getId())))
                 .map(novel -> convertToNovelDetailResponseDTO(novel, categoryMap))
                 .collect(Collectors.toList());
 
-        return PageResponseDTO.of(novelDTOs, total, page, size);
+        return PageResponseDTO.of(novelDTOs, totalElements, page, size);
     }
 
-    /**
-     * rank user by exp
-     * @param page
-     * @param size
-     * @param timeRange
-     * @return
-     */
-    public PageResponseDTO<UserProfileResponseDTO> rankUser(
-            Integer page,
-            Integer size,
-            String timeRange) {
+    private NovelRankDTO getNovelRank(Integer novelId, String sortType, Integer categoryId) {
+        String redisKey = buildNovelRedisKey(sortType, categoryId);
 
-        int offset = page * size;
+        Long rank = redisUtil.zReverseRank(redisKey, novelId.toString());
 
-        if (offset >= MAX_TOTAL_RECORDS) {
-            return PageResponseDTO.of(List.of(), 0L, page, size);
+        if (rank == null || rank >= 100) {
+            return null;
         }
 
-        int adjustedSize = Math.min(size, MAX_TOTAL_RECORDS - offset);
-
-        List<User> users = userMapper.selectUsersByRanking(offset, adjustedSize);
-
-        long total = Math.min(userMapper.countAllUsers(), MAX_TOTAL_RECORDS);
-
-        List<UserProfileResponseDTO> userDTOs = users.stream()
-                .map(this::convertToUserProfileResponseDTO)
-                .collect(Collectors.toList());
-
-        return PageResponseDTO.of(userDTOs, total, page, size);
+        Double score = redisUtil.zScore(redisKey, novelId.toString());
+        return new NovelRankDTO(novelId, rank + 1, score, redisKey);
     }
 
-    /**
-     *
-     * @param page
-     * @param size
-     * @param sortType
-     * @param timeRange
-     * @return
-     */
-    public PageResponseDTO<AuthorResponseDTO> rankAuthor(
-            Integer page,
-            Integer size,
-            String sortType,
-            String timeRange) {
-
-        int offset = page * size;
-
-        if (offset >= MAX_TOTAL_RECORDS) {
-            return PageResponseDTO.of(List.of(), 0L, page, size);
+    public NovelRankDTO getBestNovelRank(Integer novelId) {
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null) {
+            throw new ResourceNotFoundException("novel not found, id: " + novelId);
         }
 
-        int adjustedSize = Math.min(size, MAX_TOTAL_RECORDS - offset);
+        NovelRankDTO bestRank = null;
 
-        List<AuthorResponseDTO> authors = novelMapper.selectAuthorsByRanking(sortType, offset, adjustedSize);
+        NovelRankDTO allViewsRank = getNovelRank(novelId, "view", null);
+        if (allViewsRank != null) {
+            bestRank = new NovelRankDTO(novelId,  allViewsRank.getRank(), allViewsRank.getScore(), "All-Time Views Ranking");
+        }
 
-        long total = Math.min(userMapper.countAllAuthors(), MAX_TOTAL_RECORDS);
+        NovelRankDTO allVotesRank = getNovelRank(novelId, "vote", null);
+        if (allVotesRank != null) {
+            if (bestRank == null || allVotesRank.getRank() < bestRank.getRank()) {
+                bestRank = new NovelRankDTO(novelId, allVotesRank.getRank(), allVotesRank.getScore(), "All-Time Votes Ranking");
+            }
+        }
 
-        return PageResponseDTO.of(authors, total, page, size);
+        Integer categoryId = novel.getCategoryId();
+        if (categoryId != null) {
+            String categoryName = categoryService.getCategoryById(categoryId).getName();
+
+            NovelRankDTO categoryViewRank = getNovelRank(novelId, "view", categoryId);
+            if (categoryViewRank != null) {
+                if (bestRank == null || categoryViewRank.getRank() < bestRank.getRank()) {
+                    bestRank = new NovelRankDTO(novelId, categoryViewRank.getRank(), categoryViewRank.getScore(), categoryName + " Views Ranking");
+                }
+            }
+
+            NovelRankDTO categoryVoteRank = getNovelRank(novelId, "vote", categoryId);
+            if (categoryVoteRank != null) {
+                if (bestRank == null || categoryVoteRank.getRank() < bestRank.getRank()) {
+                    bestRank = new NovelRankDTO(novelId, categoryVoteRank.getRank(), categoryVoteRank.getScore(), categoryName + " Votes Ranking");
+                }
+            }
+        }
+
+        return bestRank;
+    }
+
+    public PageResponseDTO<UserProfileResponseDTO> rankUser(Integer page, Integer size, String timeRange) {
+        String redisKey = "ranking:user:exp";
+        return getPaginatedRanking(page, size, redisKey,
+                uuids -> userMapper.selectByUuids(uuids).stream()
+                        .map(this::convertToUserProfileResponseDTO)
+                        .collect(Collectors.toList()));
+    }
+
+    public PageResponseDTO<AuthorResponseDTO> rankAuthor(Integer page, Integer size, String sortType, String timeRange) {
+        String redisKey = "ranking:author:" + sortType;
+        return getPaginatedRanking(page, size, redisKey,
+                uuids -> novelMapper.selectAuthorsByUuids(uuids));
+    }
+
+    private String buildNovelRedisKey(String sortType, Integer categoryId) {
+        String baseKey = "ranking:novel:" + ("view".equalsIgnoreCase(sortType) ? "view" : "vote");
+        return (categoryId == null || categoryId <= 0) ? baseKey + ":all" : baseKey + ":" + categoryId;
+    }
+
+    private <T> PageResponseDTO<T> getPaginatedRanking(int page, int size, String redisKey, java.util.function.Function<List<UUID>, List<T>> fetcher) {
+        long offset = (long) page * size;
+
+        Long totalInRedis = redisUtil.zCard(redisKey);
+        long totalElements = totalInRedis != null ? Math.min(totalInRedis, 100) : 0;
+
+        if (offset >= totalElements) {
+            return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
+        }
+
+        Set<String> uuidsStr = redisUtil.zReverseRange(redisKey, offset, offset + size - 1);
+        if (uuidsStr == null || uuidsStr.isEmpty()) {
+            return PageResponseDTO.of(Collections.emptyList(), totalElements, page, size);
+        }
+
+        List<UUID> uuids = uuidsStr.stream().map(UUID::fromString).collect(Collectors.toList());
+        List<T> dtoList = fetcher.apply(uuids);
+
+        List<T> sortedDtoList = dtoList.stream().sorted(Comparator.comparing(dto -> {
+            // A bit of reflection to get the UUID back for sorting
+            try {
+                Object uuidObj = dto.getClass().getMethod("getUuid").invoke(dto);
+                return uuids.indexOf(UUID.fromString(uuidObj.toString()));
+            } catch (Exception e) {
+                return -1;
+            }
+        })).collect(Collectors.toList());
+
+        return PageResponseDTO.of(sortedDtoList, totalElements, page, size);
     }
 
     private UserProfileResponseDTO convertToUserProfileResponseDTO(User user) {
