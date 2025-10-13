@@ -69,24 +69,27 @@ public class NovelService {
             throw new ResourceNotFoundException("novel not found");
         }
 
-        // Check if novel can be edited - only DRAFT or PUBLISHED novels can be edited
+        // Check if novel can be edited - allow DRAFT, PUBLISHED, and HIDDEN novels to be edited
         int currentStatus = existing.getStatus();
-        if (currentStatus != mapStatus(NovelStatus.DRAFT) && currentStatus != mapStatus(NovelStatus.PUBLISHED)) {
-            throw new IllegalArgumentException("only draft or published novels can be edited");
+        if (currentStatus != mapStatus(NovelStatus.DRAFT) && 
+            currentStatus != mapStatus(NovelStatus.PUBLISHED) && 
+            currentStatus != mapStatus(NovelStatus.HIDDEN)) {
+            throw new IllegalArgumentException("only draft, published, or hidden novels can be edited");
         }
 
-        boolean hasChanges = false;
+        boolean changeOtherFieldsNotIsCompleted = false;
+        boolean changeStatus = false;
         
         if (req.getTitle() != null && !req.getTitle().trim().isEmpty()) {
             if (!req.getTitle().equals(existing.getTitle())) {
                 existing.setTitle(req.getTitle());
-                hasChanges = true;
+                changeOtherFieldsNotIsCompleted = true;
             }
         }
         if (req.getSynopsis() != null && !req.getSynopsis().trim().isEmpty()) {
             if (!req.getSynopsis().equals(existing.getSynopsis())) {
                 existing.setSynopsis(req.getSynopsis());
-                hasChanges = true;
+                changeOtherFieldsNotIsCompleted = true;
             }
         }
         if (req.getCategoryId() != null && req.getCategoryId() > 0) {
@@ -95,20 +98,19 @@ public class NovelService {
             }
             if (!req.getCategoryId().equals(existing.getCategoryId())) {
                 existing.setCategoryId(req.getCategoryId());
-                hasChanges = true;
+                changeOtherFieldsNotIsCompleted = true;
             }
         }
         if (req.getCoverImgBase64() != null && !req.getCoverImgBase64().trim().isEmpty()) {
             String newCoverUrl = convertBase64ToUrl(req.getCoverImgBase64());
             if (!newCoverUrl.equals(existing.getCoverImgUrl())) {
                 existing.setCoverImgUrl(newCoverUrl);
-                hasChanges = true;
+                changeOtherFieldsNotIsCompleted = true;
             }
         }
         if (req.getIsCompleted() != null) {
             if (!req.getIsCompleted().equals(existing.getIsCompleted())) {
                 existing.setIsCompleted(req.getIsCompleted());
-                hasChanges = true;
             }
         }
         
@@ -124,13 +126,15 @@ public class NovelService {
                 if (s == NovelStatus.PUBLISHED) {
                     existing.setPublishTime(new Date());
                 }
-                hasChanges = true;
+                changeStatus = true;
             }
         }
         
-        // If editing a published novel and there are actual changes, change status to DRAFT
-        if (currentStatus == mapStatus(NovelStatus.PUBLISHED) && hasChanges) {
-            existing.setStatus(mapStatus(NovelStatus.DRAFT));
+        // New logic: If editing a published or hidden novel and there are changes other than isCompleted, 
+        // change status to UNDER_REVIEW
+        if ((currentStatus == mapStatus(NovelStatus.PUBLISHED) || currentStatus == mapStatus(NovelStatus.HIDDEN)) 
+            && changeOtherFieldsNotIsCompleted && !changeStatus) {
+            existing.setStatus(mapStatus(NovelStatus.UNDER_REVIEW));
         }
         
         existing.setUpdateTime(new Date());
@@ -427,6 +431,14 @@ public class NovelService {
         }
         if (existing.getStatus().equals(mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("Novel not found with id: " + id);
+        }
+
+        // Check if novel can be archived - only DRAFT, PUBLISHED, or HIDDEN novels can be archived
+        int currentStatus = existing.getStatus();
+        if (currentStatus != mapStatus(NovelStatus.DRAFT) && 
+            currentStatus != mapStatus(NovelStatus.PUBLISHED) && 
+            currentStatus != mapStatus(NovelStatus.HIDDEN)) {
+            throw new IllegalArgumentException("only draft, published, or hidden novels can be archived");
         }
 
         existing.setStatus(mapStatus(NovelStatus.ARCHIVED));

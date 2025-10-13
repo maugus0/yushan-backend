@@ -45,9 +45,9 @@ public class NovelGuard {
             return false;
         }
         
-        // Only allow editing if novel is in DRAFT or PUBLISHED status
+        // Only allow editing if novel is in DRAFT, PUBLISHED, or HIDDEN status
         int status = novel.getStatus();
-        return status == 0 || status == 2; // 0 = DRAFT, 2 = PUBLISHED
+        return status == 0 || status == 2 || status == 3; // 0 = DRAFT, 2 = PUBLISHED, 3 = HIDDEN
     }
 
     public boolean canHideOrUnhide(Integer novelId, Authentication authentication) {
