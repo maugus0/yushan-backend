@@ -45,25 +45,6 @@
     where email = #{email,jdbcType=VARCHAR}
   </select>
 
-    <select id="selectUsersByRanking" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List" />
-        FROM users
-        WHERE is_admin = false
-        ORDER BY exp DESC
-        LIMIT #{limit} OFFSET #{offset}
-    </select>
-
-    <select id="countAllUsers" resultType="long">
-        SELECT COUNT(*) FROM users
-    </select>
-
-    <select id="countAllAuthors" resultType="long">
-        SELECT COUNT(*)
-        FROM users
-        WHERE is_author = true
-    </select>
-
   <delete id="deleteByPrimaryKey" parameterType="java.util.UUID">
     delete from users
     where uuid = #{uuid,jdbcType=OTHER}
@@ -338,10 +319,21 @@
         LIMIT #{filter.size} OFFSET #{offset}
     </select>
 
-
     <select id="countUsersForAdmin" resultType="long">
         SELECT COUNT(*)
         FROM users
         <include refid="AdminUserFilter_Where" />
+    </select>
+
+    <select id="selectAllUsersForRanking" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" /> FROM users WHERE is_admin = false and status = 0
+    </select>
+
+    <select id="selectByUuids" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List" /> from users
+        where uuid IN
+        <foreach item="uuid" collection="list" open="(" separator="," close=")">
+            #{uuid, jdbcType=OTHER}
+        </foreach>
     </select>
 </mapper>

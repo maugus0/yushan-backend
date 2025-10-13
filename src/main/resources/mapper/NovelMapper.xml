@@ -27,7 +27,7 @@
   </resultMap>
   <sql id="Base_Column_List" >
     id, uuid, title, author_id, author_name, category_id, synopsis, cover_img_url, status, 
-    is_completed, chapter_cnt, word_cnt, avg_rating, review_cnt, view_cnt, 
+    is_completed, chapter_cnt, word_cnt, avg_rating, review_cnt, view_cnt,
     vote_cnt, yuan_cnt, create_time, update_time, publish_time
   </sql>
   <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
@@ -44,7 +44,7 @@
     insert into novel (id, uuid, title, 
       author_id, author_name, category_id, 
       synopsis, cover_img_url, status, 
-      is_completed, chapter_cnt, 
+      is_completed, chapter_cnt,
       word_cnt, avg_rating, review_cnt, 
       view_cnt, vote_cnt, yuan_cnt, 
       create_time, update_time, publish_time
@@ -52,7 +52,7 @@
     values (#{id,jdbcType=INTEGER}, #{uuid,jdbcType=OTHER}, #{title,jdbcType=VARCHAR}, 
       #{authorId,jdbcType=OTHER}, #{authorName,jdbcType=VARCHAR}, #{categoryId,jdbcType=INTEGER}, 
       #{synopsis,jdbcType=VARCHAR}, #{coverImgUrl,jdbcType=VARCHAR}, #{status,jdbcType=INTEGER}, 
-      #{isCompleted,jdbcType=BOOLEAN}, #{chapterCnt,jdbcType=INTEGER}, 
+      #{isCompleted,jdbcType=BOOLEAN}, #{chapterCnt,jdbcType=INTEGER},
       #{wordCnt,jdbcType=BIGINT}, #{avgRating,jdbcType=REAL}, #{reviewCnt,jdbcType=INTEGER}, 
       #{viewCnt,jdbcType=BIGINT}, #{voteCnt,jdbcType=INTEGER}, #{yuanCnt,jdbcType=REAL}, 
       #{createTime,jdbcType=TIMESTAMP}, #{updateTime,jdbcType=TIMESTAMP}, #{publishTime,jdbcType=TIMESTAMP}
@@ -531,5 +531,20 @@
         <foreach item="id" collection="list" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </select>
+
+    <select id="selectAllNovelsForRanking" resultMap="BaseResultMap">
+        SELECT <include refid="Base_Column_List" /> FROM novel WHERE status = 2
+    </select>
+
+    <select id="selectAuthorsByUuids" resultType="com.yushan.backend.dto.AuthorResponseDTO">
+        SELECT u.uuid, u.username, u.avatar_url as avatarUrl, COUNT(n.id) as novelNum,
+        COALESCE(SUM(n.vote_cnt), 0) as totalVoteCnt, COALESCE(SUM(n.view_cnt), 0) as totalViewCnt
+        FROM users u LEFT JOIN novel n ON u.uuid = n.author_id AND n.is_valid = true
+        WHERE n.status = 2 and u.uuid IN
+        <foreach item="uuid" collection="list" open="(" separator="," close=")">
+            #{uuid, jdbcType=OTHER}
+        </foreach>
+        GROUP BY u.uuid, u.username, u.avatar_url
     </select>
 </mapper>

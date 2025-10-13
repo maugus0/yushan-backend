@@ -66,4 +66,15 @@ public class RankingController {
         PageResponseDTO<AuthorResponseDTO> response = rankingService.rankAuthor(page,size, sortType, timeRange);
         return ApiResponse.success("Novels retrieved successfully", response);
     }
+
+    @GetMapping("/novel/{novelId}/rank")
+    public ApiResponse<NovelRankDTO> getNovelRank(@PathVariable Integer novelId) {
+        NovelRankDTO rank = rankingService.getBestNovelRank(novelId);
+
+        if (rank == null) {
+            return ApiResponse.success("Novel is not in the top 100 for this ranking.", null);
+        }
+
+        return ApiResponse.success("Novel rank retrieved successfully", rank);
+    }
 }

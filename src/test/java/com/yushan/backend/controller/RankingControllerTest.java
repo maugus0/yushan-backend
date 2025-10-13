@@ -1,9 +1,6 @@
 package com.yushan.backend.controller;
 
-import com.yushan.backend.dto.PageResponseDTO;
-import com.yushan.backend.dto.NovelDetailResponseDTO;
-import com.yushan.backend.dto.UserProfileResponseDTO;
-import com.yushan.backend.dto.AuthorResponseDTO;
+import com.yushan.backend.dto.*;
 import com.yushan.backend.service.RankingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -99,4 +96,19 @@ class RankingControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.message").value("Novels retrieved successfully"));
     }
+
+    @Test
+    void getANovelRanking_ShouldReturnSuccessResponse() throws Exception {
+        // Given
+        NovelRankDTO mockResponse = new NovelRankDTO();
+        when(rankingService.getBestNovelRank(anyInt()))
+                .thenReturn(mockResponse);
+
+        // When & Then
+        mockMvc.perform(get("/api/ranking/novel/{novelId}/rank", 1)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.message").value("Novel rank retrieved successfully"));
+    }
+
 }
