@@ -2,6 +2,7 @@ package com.yushan.backend.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.yushan.backend.enums.Gender;
+import com.yushan.backend.enums.UserStatus;
 import lombok.Data;
 
 import java.util.Date;
@@ -18,10 +19,12 @@ public class UserRegistrationResponseDTO {
     private Date birthday;
 
     private Gender gender;
+    private UserStatus status;
     private Boolean isAuthor;
     private Boolean isAdmin;
     private Integer level;
     private Float exp;
+    private Float yuan;
     private Float readTime;
     private Integer readBookNum;
 

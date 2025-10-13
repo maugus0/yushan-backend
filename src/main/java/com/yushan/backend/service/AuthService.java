@@ -251,10 +251,12 @@ public class AuthService {
         dto.setProfileDetail(user.getProfileDetail());
         dto.setBirthday(user.getBirthday());
         dto.setGender(Gender.fromCode(user.getGender()));
+        dto.setStatus(UserStatus.fromCode(user.getStatus()));
         dto.setIsAuthor(user.getIsAuthor());
         dto.setIsAdmin(user.getIsAdmin());
         dto.setLevel(user.getLevel());
         dto.setExp(user.getExp());
+        dto.setYuan(user.getYuan());
         dto.setReadTime(user.getReadTime());
         dto.setReadBookNum(user.getReadBookNum());
         dto.setCreateTime(user.getCreateTime());

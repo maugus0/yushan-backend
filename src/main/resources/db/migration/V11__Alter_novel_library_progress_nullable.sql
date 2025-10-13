@@ -1,0 +1,1 @@
+ALTER TABLE novel_library ALTER COLUMN progress DROP NOT NULL;
