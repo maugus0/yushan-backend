@@ -10,6 +10,7 @@ import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.entity.Category;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.User;
+import com.yushan.backend.exception.ResourceNotFoundException;
 import com.yushan.backend.util.RedisUtil;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -144,12 +145,14 @@ class RankingServiceTest {
         }
 
         @Test
-        @DisplayName("Should return null if novel does not exist")
-        void shouldReturnNullWhenNovelNotFound() {
-            when(novelMapper.selectByPrimaryKey(999)).thenReturn(null);
-            NovelRankDTO result = rankingService.getBestNovelRank(999);
-            assertNull(result);
+        @DisplayName("Should throw exception if novel does not exist")
+        void shouldThrowExceptionWhenNovelNotFound() {
+            // 当小说不存在时，应该抛出异常而不是返回null
+            assertThrows(ResourceNotFoundException.class, () -> {
+                rankingService.getBestNovelRank(999);
+            });
         }
+
     }
 
     @Nested
