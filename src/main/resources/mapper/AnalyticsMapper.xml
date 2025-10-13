@@ -644,7 +644,7 @@
             n.word_cnt as wordCount
         FROM novel n
         LEFT JOIN category c ON n.category_id = c.id
-        WHERE n.is_valid = true
+        WHERE n.status = 2
         ORDER BY n.view_cnt DESC, n.vote_cnt DESC
         LIMIT #{limit}
     </select>
@@ -659,7 +659,7 @@
             COALESCE(AVG(n.avg_rating), 0) as averageRating,
             COALESCE(SUM(n.word_cnt), 0) as totalWords
         FROM users u
-        LEFT JOIN novel n ON u.uuid = n.author_id AND n.is_valid = true
+        LEFT JOIN novel n ON u.uuid = n.author_id AND n.status = 2
         WHERE u.is_author = true
         GROUP BY u.uuid, u.username
         ORDER BY totalViews DESC, totalVotes DESC
@@ -675,7 +675,7 @@
             COALESCE(SUM(n.vote_cnt), 0) as totalVotes,
             COALESCE(AVG(n.avg_rating), 0) as averageRating
         FROM category c
-        LEFT JOIN novel n ON c.id = n.category_id AND n.is_valid = true
+        LEFT JOIN novel n ON c.id = n.category_id AND n.status = 2
         WHERE c.is_active = true
         GROUP BY c.id, c.name
         ORDER BY totalViews DESC, novelCount DESC
