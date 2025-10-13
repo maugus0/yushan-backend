@@ -5,6 +5,7 @@ import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Chapter;
 import com.yushan.backend.entity.Novel;
+import com.yushan.backend.enums.NovelStatus;
 import com.yushan.backend.exception.ResourceNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,11 +23,15 @@ public class ChapterService {
     @Autowired
     private NovelMapper novelMapper;
 
+    @Autowired
+    private NovelService novelService;
+
+
     @Transactional
     public ChapterDetailResponseDTO createChapter(UUID userId, ChapterCreateRequestDTO req) {
         // Validate novel exists and user is the author
         Novel novel = novelMapper.selectByPrimaryKey(req.getNovelId());
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 
@@ -75,7 +80,7 @@ public class ChapterService {
     public void batchCreateChapters(UUID userId, ChapterBatchCreateRequestDTO req) {
         // Validate novel exists and user is the author
         Novel novel = novelMapper.selectByPrimaryKey(req.getNovelId());
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 
@@ -160,7 +165,7 @@ public class ChapterService {
     public ChapterListResponseDTO getChaptersByNovelId(Integer novelId, Integer page, Integer pageSize, Boolean publishedOnly) {
         // Validate novel exists
         Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 
@@ -221,7 +226,7 @@ public class ChapterService {
     public ChapterStatisticsResponseDTO getChapterStatistics(Integer novelId) {
         // Validate novel exists
         Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 
@@ -394,7 +399,7 @@ public class ChapterService {
     public void batchPublishChapters(UUID userId, Integer novelId, Boolean isValid) {
         // Validate novel exists and user is the author
         Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 
@@ -444,7 +449,7 @@ public class ChapterService {
     public void deleteChaptersByNovelId(UUID userId, Integer novelId) {
         // Validate novel exists and user is the author
         Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
 

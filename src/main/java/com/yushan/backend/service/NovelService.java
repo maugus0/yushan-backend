@@ -47,7 +47,6 @@ public class NovelService {
         }
         novel.setStatus(mapStatus(NovelStatus.DRAFT));
         novel.setIsCompleted(Boolean.TRUE.equals(req.getIsCompleted()));
-        novel.setIsValid(true);
         novel.setChapterCnt(0);
         novel.setWordCnt(0L);
         novel.setAvgRating(0.0f);
@@ -145,13 +144,13 @@ public class NovelService {
         if (n == null) {
             throw new ResourceNotFoundException("novel not found");
         }
-        if (Boolean.FALSE.equals(n.getIsValid())) {
+        if (n.getStatus().equals(mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
         return toResponse(n);
     }
 
-    private int mapStatus(NovelStatus status) {
+    public int mapStatus(NovelStatus status) {
         switch (status) {
             case DRAFT:
                 return 0;
@@ -426,12 +425,11 @@ public class NovelService {
         if (existing == null) {
             throw new ResourceNotFoundException("Novel not found with id: " + id);
         }
-        if (!existing.getIsValid()) {
+        if (existing.getStatus().equals(mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("Novel not found with id: " + id);
         }
 
         existing.setStatus(mapStatus(NovelStatus.ARCHIVED));
-        existing.setIsValid(false);  // Soft delete - hide from all views
         existing.setUpdateTime(new Date());
         novelMapper.updateByPrimaryKeySelective(existing);
 

@@ -24,7 +24,6 @@ public class Novel {
 
     private Boolean isCompleted;
 
-    private Boolean isValid;
 
     private Integer chapterCnt;
 
@@ -46,7 +45,7 @@ public class Novel {
 
     private Date publishTime;
 
-    public Novel(Integer id, UUID uuid, String title, UUID authorId, String authorName, Integer categoryId, String synopsis, String coverImgUrl, Integer status, Boolean isCompleted, Boolean isValid, Integer chapterCnt, Long wordCnt, Float avgRating, Integer reviewCnt, Long viewCnt, Integer voteCnt, Float yuanCnt, Date createTime, Date updateTime, Date publishTime) {
+    public Novel(Integer id, UUID uuid, String title, UUID authorId, String authorName, Integer categoryId, String synopsis, String coverImgUrl, Integer status, Boolean isCompleted, Integer chapterCnt, Long wordCnt, Float avgRating, Integer reviewCnt, Long viewCnt, Integer voteCnt, Float yuanCnt, Date createTime, Date updateTime, Date publishTime) {
         this.id = id;
         this.uuid = uuid;
         this.title = title;
@@ -57,7 +56,6 @@ public class Novel {
         this.coverImgUrl = coverImgUrl;
         this.status = status;
         this.isCompleted = isCompleted;
-        this.isValid = isValid;
         this.chapterCnt = chapterCnt;
         this.wordCnt = wordCnt;
         this.avgRating = avgRating;
@@ -154,13 +152,6 @@ public class Novel {
         this.isCompleted = isCompleted;
     }
 
-    public Boolean getIsValid() {
-        return isValid;
-    }
-
-    public void setIsValid(Boolean isValid) {
-        this.isValid = isValid;
-    }
 
     public Integer getChapterCnt() {
         return chapterCnt;
