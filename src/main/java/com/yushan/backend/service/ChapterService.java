@@ -515,6 +515,7 @@ public class ChapterService {
     // Helper methods
     private ChapterDetailResponseDTO toDetailResponse(Chapter chapter) {
         ChapterDetailResponseDTO dto = new ChapterDetailResponseDTO();
+        dto.setId(chapter.getId()); 
         dto.setUuid(chapter.getUuid());
         dto.setNovelId(chapter.getNovelId());
         dto.setChapterNumber(chapter.getChapterNumber());

@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public class ChapterDetailResponseDTO {
+    private Integer id; // YW-301
     private UUID uuid;
     private Integer novelId;
     private Integer chapterNumber;
@@ -25,11 +26,12 @@ public class ChapterDetailResponseDTO {
     // Constructors
     public ChapterDetailResponseDTO() {}
 
-    public ChapterDetailResponseDTO(UUID uuid, Integer novelId, Integer chapterNumber,
+    public ChapterDetailResponseDTO(Integer id, UUID uuid, Integer novelId, Integer chapterNumber,
                                     String title, String content, Integer wordCnt,
                                     Boolean isPremium, Float yuanCost, Long viewCnt,
                                     Boolean isValid, Date createTime, Date updateTime,
                                     Date publishTime) {
+        this.id = id;
         this.uuid = uuid;
         this.novelId = novelId;
         this.chapterNumber = chapterNumber;
@@ -46,6 +48,9 @@ public class ChapterDetailResponseDTO {
     }
 
     // Getters and Setters
+    public Integer getId() { return id; }
+    public void setId(Integer id) { this.id = id; }
+
     public UUID getUuid() { return uuid; }
     public void setUuid(UUID uuid) { this.uuid = uuid; }
 
@@ -76,25 +81,25 @@ public class ChapterDetailResponseDTO {
     public Boolean getIsValid() { return isValid; }
     public void setIsValid(Boolean isValid) { this.isValid = isValid; }
 
-    public Date getCreateTime() { 
-        return createTime != null ? (Date) createTime.clone() : null; 
+    public Date getCreateTime() {
+        return createTime != null ? (Date) createTime.clone() : null;
     }
-    public void setCreateTime(Date createTime) { 
-        this.createTime = createTime != null ? (Date) createTime.clone() : null; 
-    }
-
-    public Date getUpdateTime() { 
-        return updateTime != null ? (Date) updateTime.clone() : null; 
-    }
-    public void setUpdateTime(Date updateTime) { 
-        this.updateTime = updateTime != null ? (Date) updateTime.clone() : null; 
+    public void setCreateTime(Date createTime) {
+        this.createTime = createTime != null ? (Date) createTime.clone() : null;
     }
 
-    public Date getPublishTime() { 
-        return publishTime != null ? (Date) publishTime.clone() : null; 
+    public Date getUpdateTime() {
+        return updateTime != null ? (Date) updateTime.clone() : null;
     }
-    public void setPublishTime(Date publishTime) { 
-        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null; 
+    public void setUpdateTime(Date updateTime) {
+        this.updateTime = updateTime != null ? (Date) updateTime.clone() : null;
+    }
+
+    public Date getPublishTime() {
+        return publishTime != null ? (Date) publishTime.clone() : null;
+    }
+    public void setPublishTime(Date publishTime) {
+        this.publishTime = publishTime != null ? (Date) publishTime.clone() : null;
     }
 
     public UUID getPreviousChapterUuid() { return previousChapterUuid; }
