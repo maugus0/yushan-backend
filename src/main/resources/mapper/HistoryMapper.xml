@@ -115,18 +115,21 @@
     </select>
 
     <select id="selectByUserIdWithPagination" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List" />
-        from history
-        where user_id = #{userId,jdbcType=OTHER}
-        order by update_time desc
-        limit #{size,jdbcType=INTEGER} offset #{offset}
+        SELECT h.*
+        FROM history h
+                 JOIN novel n ON h.novel_id = n.id
+        WHERE h.user_id = #{userId,jdbcType=OTHER}
+          AND n.status = 2 -- Filter for PUBLISHED novels
+        ORDER BY h.update_time desc
+            LIMIT #{size,jdbcType=INTEGER} OFFSET #{offset}
     </select>
 
     <select id="countByUserId" resultType="long">
-        select count(*)
-        from history
-        where user_id = #{userId,jdbcType=OTHER}
+        SELECT COUNT(h.id)
+        FROM history h
+                 JOIN novel n ON h.novel_id = n.id
+        WHERE h.user_id = #{userId,jdbcType=OTHER}
+          AND n.status = 2 -- Filter for PUBLISHED novels
     </select>
 
     <delete id="deleteByUserId" parameterType="java.util.UUID">

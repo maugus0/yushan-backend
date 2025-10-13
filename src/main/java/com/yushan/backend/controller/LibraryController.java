@@ -32,13 +32,13 @@ public class LibraryController {
     @PostMapping("/{novelId}")
     @ResponseStatus(HttpStatus.CREATED)
     public ApiResponse<String> addNovelToLibrary(@PathVariable Integer novelId,
-                                                 @RequestBody @Valid LibraryRequestDTO request,
+                                                 @RequestBody(required = false) @Valid LibraryRequestDTO request,
                                                  Authentication authentication) {
-        //get user id from authentication
         UUID userId = getCurrentUserId(authentication);
 
-        //don't need return any info because only add novel in novel page or browser page
-        libraryService.addNovelToLibrary(userId, novelId, request.getProgress());
+        Integer progress = (request != null) ? request.getProgress() : null;
+
+        libraryService.addNovelToLibrary(userId, novelId, progress);
         return ApiResponse.success("Add novel to library successfully");
     }
 
