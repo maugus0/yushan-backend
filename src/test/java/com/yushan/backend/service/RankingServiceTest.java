@@ -55,7 +55,7 @@ class RankingServiceTest {
             // Given
             int page = 0, size = 10;
             String redisKey = "ranking:novel:view:all";
-            Set<String> novelIdsFromRedis = Set.of("1", "2");
+            Set<String> novelIdsFromRedis = new LinkedHashSet<>(Arrays.asList("1", "2"));
 
             Novel novel1 = createMockNovel(1, 10);
             Novel novel2 = createMockNovel(2, 20);
