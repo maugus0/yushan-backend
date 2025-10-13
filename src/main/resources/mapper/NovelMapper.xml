@@ -464,7 +464,7 @@
         <include refid="Base_Column_List" />
         FROM novel
         <where>
-            status = 2  <!-- Exclude ARCHIVED novels (NovelStatus.ARCHIVED = 4) -->
+            status = 2  <!-- Include only PUBLISHED novels (NovelStatus.PUBLISHED = 2) -->
             <if test="categoryId != null and categoryId > 0">
                 AND category_id = #{categoryId,jdbcType=INTEGER}
             </if>
