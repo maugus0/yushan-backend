@@ -464,6 +464,13 @@
     where id = #{novelId,jdbcType=INTEGER}
   </update>
 
+  <update id="incrementViewCount">
+    update novel
+    set view_cnt = view_cnt + 1,
+        update_time = CURRENT_TIMESTAMP
+    where id = #{novelId,jdbcType=INTEGER}
+  </update>
+
     <select id="selectNovelsByRanking" resultMap="BaseResultMap">
         SELECT
         <include refid="Base_Column_List" />

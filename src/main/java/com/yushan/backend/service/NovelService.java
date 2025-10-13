@@ -302,6 +302,13 @@ public class NovelService {
     }
 
     /**
+     * Increment view count for a novel
+     */
+    public void incrementViewCount(Integer novelId) {
+        novelMapper.incrementViewCount(novelId);
+    }
+
+    /**
      * Submit novel for review (Author only)
      */
     public NovelDetailResponseDTO submitForReview(Integer novelId, UUID userId) {
