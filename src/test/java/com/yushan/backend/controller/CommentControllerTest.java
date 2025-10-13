@@ -861,4 +861,242 @@ class CommentControllerTest {
             verifyNoInteractions(commentService);
         }
     }
+    @Nested
+    @DisplayName("POST /api/comments/{id}/unlike - Unlike Comment")
+    class UnlikeCommentTests {
+
+        @Test
+        @DisplayName("Should unlike comment successfully")
+        void shouldUnlikeCommentSuccessfully() throws Exception {
+            // Given
+            CommentResponseDTO unlikedResponse = CommentResponseDTO.builder()
+                    .id(testCommentId)
+                    .content("Test comment content")
+                    .likeCnt(0)
+                    .build();
+
+            when(commentService.toggleLike(eq(testCommentId), any(UUID.class), eq(false)))
+                    .thenReturn(unlikedResponse);
+
+            // When & Then
+            mockMvc.perform(post("/api/comments/{id}/unlike", testCommentId)
+                            .with(authentication(createUserAuthentication("user@example.com", "USER"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Comment unliked successfully"))
+                    .andExpect(jsonPath("$.data.likeCnt").value(0));
+
+            verify(commentService).toggleLike(eq(testCommentId), any(UUID.class), eq(false));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/comments/admin/moderation - Get All Comments For Moderation")
+    class GetAllCommentsForModerationTests {
+
+        @Test
+        @DisplayName("Should get all comments for moderation as admin")
+        void shouldGetAllCommentsForModerationAsAdmin() throws Exception {
+            // Given
+            CommentListResponseDTO listResponse = CommentListResponseDTO.builder()
+                    .comments(Collections.emptyList())
+                    .totalCount(0L)
+                    .totalPages(0)
+                    .currentPage(0)
+                    .pageSize(50)
+                    .build();
+
+            when(commentService.getAllComments(any(CommentSearchRequestDTO.class), any(UUID.class)))
+                    .thenReturn(listResponse);
+
+            // When & Then
+            mockMvc.perform(get("/api/comments/admin/moderation")
+                            .with(authentication(createAdminAuthentication("admin@example.com")))
+                            .param("chapterId", "1")
+                            .param("userId", testUserId.toString())
+                            .param("isSpoiler", "true"))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("All comments retrieved successfully"));
+
+            verify(commentService).getAllComments(any(CommentSearchRequestDTO.class), any(UUID.class));
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/comments/admin/statistics - Get Moderation Statistics")
+    class GetModerationStatisticsTests {
+
+        @Test
+        @DisplayName("Should get moderation statistics as admin")
+        void shouldGetModerationStatisticsAsAdmin() throws Exception {
+            // Given
+            CommentModerationStatsDTO stats = CommentModerationStatsDTO.builder()
+                    .totalComments(100L)
+                    .spoilerComments(20L)
+                    .nonSpoilerComments(80L)
+                    .commentsToday(10L)
+                    .commentsThisWeek(50L)
+                    .commentsThisMonth(90L)
+                    .build();
+
+            when(commentService.getModerationStatistics()).thenReturn(stats);
+
+            // When & Then
+            mockMvc.perform(get("/api/comments/admin/statistics")
+                            .with(authentication(createAdminAuthentication("admin@example.com"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Moderation statistics retrieved"))
+                    .andExpect(jsonPath("$.data.totalComments").value(100))
+                    .andExpect(jsonPath("$.data.commentsToday").value(10));
+
+            verify(commentService).getModerationStatistics();
+        }
+
+        @Test
+        @DisplayName("Should return 401 when non-admin tries to get moderation statistics")
+        void shouldReturn401WhenNonAdminTriesToGetStatistics() throws Exception {
+            // When & Then
+            mockMvc.perform(get("/api/comments/admin/statistics")
+                            .with(authentication(createUserAuthentication("user@example.com", "USER"))))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(commentService);
+        }
+    }
+
+    @Nested
+    @DisplayName("GET /api/comments/admin/user/{userId} - Get User Comments (Admin)")
+    class GetUserCommentsAdminTests {
+
+        @Test
+        @DisplayName("Should get user comments as admin")
+        void shouldGetUserCommentsAsAdmin() throws Exception {
+            // Given
+            List<CommentResponseDTO> comments = Arrays.asList(testCommentResponse);
+            when(commentService.getUserComments(any(UUID.class))).thenReturn(comments);
+
+            // When & Then
+            mockMvc.perform(get("/api/comments/admin/user/{userId}", testUserId.toString())
+                            .with(authentication(createAdminAuthentication("admin@example.com"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("User comments retrieved successfully"))
+                    .andExpect(jsonPath("$.data").isArray())
+                    .andExpect(jsonPath("$.data.length()").value(1));
+
+            verify(commentService).getUserComments(any(UUID.class));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when non-admin tries to get user comments")
+        void shouldReturn401WhenNonAdminTriesToGetUserComments() throws Exception {
+            // When & Then
+            mockMvc.perform(get("/api/comments/admin/user/{userId}", testUserId.toString())
+                            .with(authentication(createUserAuthentication("user@example.com", "USER"))))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(commentService);
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/comments/admin/user/{userId}/all - Delete All User Comments")
+    class DeleteAllUserCommentsTests {
+
+        @Test
+        @DisplayName("Should delete all user comments as admin")
+        void shouldDeleteAllUserCommentsAsAdmin() throws Exception {
+            // Given
+            when(commentService.deleteAllUserComments(any(UUID.class))).thenReturn(5);
+
+            // When & Then
+            mockMvc.perform(delete("/api/comments/admin/user/{userId}/all", testUserId.toString())
+                            .with(authentication(createAdminAuthentication("admin@example.com"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Successfully deleted 5 comment(s) from user"));
+
+            verify(commentService).deleteAllUserComments(any(UUID.class));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when non-admin tries to delete all user comments")
+        void shouldReturn401WhenNonAdminTriesToDeleteAllUserComments() throws Exception {
+            // When & Then
+            mockMvc.perform(delete("/api/comments/admin/user/{userId}/all", testUserId.toString())
+                            .with(authentication(createUserAuthentication("user@example.com", "USER"))))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(commentService);
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/comments/admin/chapter/{chapterId}/all - Delete All Chapter Comments")
+    class DeleteAllChapterCommentsTests {
+
+        @Test
+        @DisplayName("Should delete all chapter comments as admin")
+        void shouldDeleteAllChapterCommentsAsAdmin() throws Exception {
+            // Given
+            when(commentService.deleteAllChapterComments(eq(testChapterId))).thenReturn(10);
+
+            // When & Then
+            mockMvc.perform(delete("/api/comments/admin/chapter/{chapterId}/all", testChapterId)
+                            .with(authentication(createAdminAuthentication("admin@example.com"))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Successfully deleted 10 comment(s) from chapter"));
+
+            verify(commentService).deleteAllChapterComments(eq(testChapterId));
+        }
+    }
+
+    @Nested
+    @DisplayName("PATCH /api/comments/admin/bulk-spoiler - Bulk Update Spoiler Status")
+    class BulkUpdateSpoilerStatusTests {
+
+        @Test
+        @DisplayName("Should bulk update spoiler status as admin")
+        void shouldBulkUpdateSpoilerStatusAsAdmin() throws Exception {
+            // Given
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("commentIds", Arrays.asList(1, 2, 3));
+            requestBody.put("isSpoiler", true);
+
+            when(commentService.bulkUpdateSpoilerStatus(any(CommentBulkSpoilerUpdateRequestDTO.class)))
+                    .thenReturn(3);
+
+            // When & Then
+            mockMvc.perform(patch("/api/comments/admin/bulk-spoiler")
+                            .with(authentication(createAdminAuthentication("admin@example.com")))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Successfully updated 3 comment(s)"));
+
+            verify(commentService).bulkUpdateSpoilerStatus(any(CommentBulkSpoilerUpdateRequestDTO.class));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when non-admin tries to bulk update spoiler status")
+        void shouldReturn401WhenNonAdminTriesToBulkUpdateSpoilerStatus() throws Exception {
+            // Given
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("commentIds", Arrays.asList(1, 2, 3));
+            requestBody.put("isSpoiler", true);
+
+            // When & Then
+            mockMvc.perform(patch("/api/comments/admin/bulk-spoiler")
+                            .with(authentication(createUserAuthentication("user@example.com", "USER")))
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content(objectMapper.writeValueAsString(requestBody)))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(commentService);
+        }
+    }
 }

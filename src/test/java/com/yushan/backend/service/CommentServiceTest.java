@@ -836,4 +836,80 @@ class CommentServiceTest {
         );
         assertEquals("Comment IDs list cannot be empty", exception.getMessage());
     }
+    @Test
+    void toResponseDTO_WithUserServiceException() {
+        // Arrange - Test when userService.getUsernameById throws exception
+        when(commentMapper.selectByPrimaryKey(testCommentId)).thenReturn(testComment);
+        when(userService.getUsernameById(testUserId)).thenThrow(new RuntimeException("User not found"));
+        when(chapterMapper.selectByPrimaryKey(testChapterId)).thenReturn(testChapter);
+
+        // Act
+        CommentResponseDTO result = commentService.getComment(testCommentId, testUserId);
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getUsername()); // Username should be null when exception occurs
+        assertEquals(testCommentId, result.getId());
+    }
+
+    @Test
+    void toResponseDTO_WithChapterNotFound() {
+        // Arrange - Test when chapter is not found in toResponseDTO
+        when(commentMapper.selectByPrimaryKey(testCommentId)).thenReturn(testComment);
+        when(userService.getUsernameById(testUserId)).thenReturn("testuser");
+        when(chapterMapper.selectByPrimaryKey(testChapterId)).thenReturn(null);
+
+        // Act
+        CommentResponseDTO result = commentService.getComment(testCommentId, testUserId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("Chapter not found", result.getChapterTitle());
+    }
+
+    @Test
+    void batchDeleteComments_PartialFailure() {
+        // Arrange - Some comments exist, some don't
+        CommentBatchDeleteRequestDTO request = new CommentBatchDeleteRequestDTO();
+        request.setCommentIds(Arrays.asList(1, 999, 2));
+
+        when(commentMapper.selectByPrimaryKey(1)).thenReturn(testComment);
+        when(commentMapper.selectByPrimaryKey(999)).thenReturn(null); // This one doesn't exist
+        when(commentMapper.selectByPrimaryKey(2)).thenReturn(testComment);
+        when(commentMapper.deleteByPrimaryKey(1)).thenReturn(1);
+        when(commentMapper.deleteByPrimaryKey(2)).thenReturn(1);
+
+        // Act
+        int result = commentService.batchDeleteComments(request, true);
+
+        // Assert
+        assertEquals(2, result); // Only 2 deleted, 1 not found
+        verify(commentMapper, times(2)).deleteByPrimaryKey(anyInt());
+    }
+
+    @Test
+    void getCommentsByNovel_ValidatesInvalidParameters() {
+        // Arrange
+        CommentSearchRequestDTO searchRequest = CommentSearchRequestDTO.builder()
+                .novelId(1)
+                .page(-5) // Invalid page
+                .size(0) // Invalid size
+                .sort(null) // Null sort
+                .order("INVALID") // Invalid order
+                .build();
+
+        when(commentMapper.selectCommentsByNovelWithPagination(
+                anyInt(), any(), any(), anyString(), anyString(), anyInt(), anyInt()))
+                .thenReturn(Collections.emptyList());
+        when(commentMapper.countCommentsByNovel(anyInt(), any(), any())).thenReturn(0L);
+
+        // Act
+        CommentListResponseDTO result = commentService.getCommentsByNovel(1, testUserId, searchRequest);
+
+        // Assert
+        assertEquals(0, searchRequest.getPage()); // Corrected from -5
+        assertEquals(20, searchRequest.getSize()); // Corrected from 0
+        assertEquals("createTime", searchRequest.getSort()); // Default
+        assertEquals("desc", searchRequest.getOrder()); // Default
+    }
 }
