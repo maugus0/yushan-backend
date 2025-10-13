@@ -70,7 +70,7 @@ public class NovelServiceTest {
             assertEquals(authorName, n.getAuthorName());
             assertEquals("My Title", n.getTitle());
             assertEquals(Integer.valueOf(10), n.getCategoryId());
-            assertTrue(Boolean.TRUE.equals(n.getIsValid()));
+            assertTrue(n.getStatus() != 4); // Not NovelStatus.ARCHIVED
             assertEquals(Integer.valueOf(0), n.getChapterCnt());
             assertEquals(Long.valueOf(0L), n.getWordCnt());
             assertEquals(Float.valueOf(0.0f), n.getAvgRating());
@@ -106,7 +106,6 @@ public class NovelServiceTest {
         Novel existing = new Novel();
         existing.setId(novelId);
         existing.setAuthorId(UUID.randomUUID());
-        existing.setIsValid(true);
         existing.setStatus(0); // DRAFT
         existing.setCreateTime(new Date());
         existing.setUpdateTime(new Date());
@@ -151,7 +150,6 @@ public class NovelServiceTest {
         Integer novelId = 4;
         Novel ok = new Novel();
         ok.setId(novelId);
-        ok.setIsValid(true);
         ok.setStatus(1); // PUBLISHED
         ok.setTitle("OK");
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(ok);
@@ -335,7 +333,6 @@ public class NovelServiceTest {
         novel.setCoverImgUrl("test-cover.jpg");
         novel.setStatus(1); // PUBLISHED
         novel.setIsCompleted(false);
-        novel.setIsValid(true);
         novel.setChapterCnt(5);
         novel.setWordCnt(10000L);
         novel.setAvgRating(4.5f);
@@ -356,7 +353,6 @@ public class NovelServiceTest {
         Novel existingNovel = new Novel();
         existingNovel.setId(novelId);
         existingNovel.setTitle("Test Novel");
-        existingNovel.setIsValid(true);
         existingNovel.setStatus(0); // DRAFT
 
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(existingNovel);
@@ -367,8 +363,7 @@ public class NovelServiceTest {
 
         // Assert
         verify(novelMapper).updateByPrimaryKeySelective(argThat(novel -> {
-            return novel.getStatus() == 4 && // ARCHIVED
-                   !novel.getIsValid() &&
+            return novel.getStatus() == 4 && // NovelStatus.ARCHIVED
                    novel.getUpdateTime() != null;
         }));
         assertNotNull(result);
