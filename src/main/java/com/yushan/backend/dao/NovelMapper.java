@@ -50,13 +50,4 @@ public interface NovelMapper {
                                                    @Param("limit") int limit);
 
     List<Novel> selectByIds(List<Integer> ids);
-    
-    // Novel ranking methods
-    Integer getNovelRanking(@Param("novelId") Integer novelId, 
-                           @Param("sortType") String sortType, 
-                           @Param("categoryId") Integer categoryId);
-    
-    Integer getNovelCategoryRanking(@Param("novelId") Integer novelId, 
-                                  @Param("sortType") String sortType, 
-                                  @Param("categoryId") Integer categoryId);
 }

@@ -2,7 +2,6 @@ package com.yushan.backend.service;
 
 import com.yushan.backend.dto.AuthorResponseDTO;
 import com.yushan.backend.dto.NovelDetailResponseDTO;
-import com.yushan.backend.dto.NovelRankingResponseDTO;
 import com.yushan.backend.dto.PageResponseDTO;
 import com.yushan.backend.dto.UserProfileResponseDTO;
 import com.yushan.backend.entity.Novel;
@@ -131,70 +130,6 @@ public class RankingService {
         long total = Math.min(userMapper.countAllAuthors(), MAX_TOTAL_RECORDS);
 
         return PageResponseDTO.of(authors, total, page, size);
-    }
-
-    /**
-     * Get ranking information for a specific novel
-     * @param novelId The ID of the novel
-     * @param sortType The sorting type (view/vote)
-     * @param categoryId Optional category filter
-     * @return NovelRankingResponseDTO with ranking information
-     */
-    public NovelRankingResponseDTO getNovelRanking(Integer novelId, String sortType, Integer categoryId) {
-        // Get the novel details
-        Novel novel = novelMapper.selectByPrimaryKey(novelId);
-        if (novel == null || Boolean.FALSE.equals(novel.getIsValid())) {
-            throw new RuntimeException("Novel not found");
-        }
-
-        // Get overall ranking
-        Integer overallRanking = novelMapper.getNovelRanking(novelId, sortType, null);
-        
-        // Get category ranking if category is specified
-        Integer categoryRanking = null;
-        if (categoryId != null && categoryId > 0) {
-            categoryRanking = novelMapper.getNovelCategoryRanking(novelId, sortType, categoryId);
-        }
-
-        // Convert to response DTO
-        NovelRankingResponseDTO response = new NovelRankingResponseDTO();
-        response.setId(novel.getId());
-        response.setUuid(novel.getUuid());
-        response.setTitle(novel.getTitle());
-        response.setAuthorId(novel.getAuthorId());
-        response.setAuthorName(novel.getAuthorName());
-        response.setCategoryId(novel.getCategoryId());
-        response.setSynopsis(novel.getSynopsis());
-        response.setCoverImgUrl(novel.getCoverImgUrl());
-        response.setIsCompleted(novel.getIsCompleted());
-        response.setViewCnt(novel.getViewCnt());
-        response.setVoteCnt(novel.getVoteCnt());
-        response.setAvgRating(novel.getAvgRating());
-        response.setReviewCnt(novel.getReviewCnt());
-        response.setChapterCnt(novel.getChapterCnt());
-        response.setWordCnt(novel.getWordCnt());
-        response.setYuanCnt(novel.getYuanCnt());
-        response.setCreateTime(novel.getCreateTime());
-        response.setUpdateTime(novel.getUpdateTime());
-        response.setPublishTime(novel.getPublishTime());
-        
-        // Set ranking information
-        response.setRanking(overallRanking);
-        response.setSortType(sortType);
-        response.setCategoryRanking(categoryRanking);
-        response.setOverallRanking(overallRanking);
-
-        // Set category name if available
-        if (novel.getCategoryId() != null) {
-            try {
-                var category = categoryService.getCategoryById(novel.getCategoryId());
-                response.setCategoryName(category.getName());
-            } catch (Exception e) {
-                response.setCategoryName(null);
-            }
-        }
-
-        return response;
     }
 
     private UserProfileResponseDTO convertToUserProfileResponseDTO(User user) {

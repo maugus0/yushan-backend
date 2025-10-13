@@ -66,20 +66,4 @@ public class RankingController {
         PageResponseDTO<AuthorResponseDTO> response = rankingService.rankAuthor(page,size, sortType, timeRange);
         return ApiResponse.success("Novels retrieved successfully", response);
     }
-
-    /**
-     * Get ranking information for a specific novel
-     * @param novelId The ID of the novel
-     * @param sortType The sorting type (view/vote)
-     * @param categoryId Optional category filter
-     * @return NovelRankingResponseDTO with ranking information
-     */
-    @GetMapping("/novel/{novelId}")
-    public ApiResponse<NovelRankingResponseDTO> getNovelRanking(
-            @PathVariable("novelId") Integer novelId,
-            @RequestParam(value = "sortType", defaultValue = "view") String sortType,
-            @RequestParam(value = "category", required = false) Integer categoryId) {
-        NovelRankingResponseDTO response = rankingService.getNovelRanking(novelId, sortType, categoryId);
-        return ApiResponse.success("Novel ranking retrieved successfully", response);
-    }
 }
