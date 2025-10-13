@@ -147,7 +147,6 @@ class RankingServiceTest {
         @Test
         @DisplayName("Should throw exception if novel does not exist")
         void shouldThrowExceptionWhenNovelNotFound() {
-            // 当小说不存在时，应该抛出异常而不是返回null
             assertThrows(ResourceNotFoundException.class, () -> {
                 rankingService.getBestNovelRank(999);
             });
