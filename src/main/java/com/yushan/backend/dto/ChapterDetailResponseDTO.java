@@ -4,7 +4,7 @@ import java.util.Date;
 import java.util.UUID;
 
 public class ChapterDetailResponseDTO {
-    private Integer id; // YW-290
+    private Integer id; // YW-301
     private UUID uuid;
     private Integer novelId;
     private Integer chapterNumber;
