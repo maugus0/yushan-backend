@@ -640,4 +640,200 @@ class CommentServiceTest {
         assertEquals(1, result.size());
         assertEquals(testUserId, result.get(0).getUserId());
     }
+    // ========================================
+    // ADDITIONAL TESTS FOR INCREASED COVERAGE
+    // ========================================
+
+    @Test
+    void getAllComments_Success() {
+        // Arrange
+        CommentSearchRequestDTO searchRequest = CommentSearchRequestDTO.builder()
+                .page(0)
+                .size(50)
+                .sort("createTime")
+                .order("desc")
+                .build();
+
+        List<Comment> comments = Arrays.asList(testComment);
+        when(commentMapper.selectCommentsWithPagination(any())).thenReturn(comments);
+        when(commentMapper.countComments(any())).thenReturn(1L);
+        when(userService.getUsernameById(testUserId)).thenReturn("testuser");
+        when(chapterMapper.selectByPrimaryKey(testChapterId)).thenReturn(testChapter);
+
+        // Act
+        CommentListResponseDTO result = commentService.getAllComments(searchRequest, testUserId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.getComments().size());
+        assertEquals(1L, result.getTotalCount());
+    }
+
+    @Test
+    void getAllComments_WithInvalidSizeAndSort() {
+        // Arrange
+        CommentSearchRequestDTO searchRequest = CommentSearchRequestDTO.builder()
+                .page(0)
+                .size(200) // Exceeds max of 100
+                .sort("")
+                .order("invalid")
+                .build();
+
+        when(commentMapper.selectCommentsWithPagination(any())).thenReturn(Collections.emptyList());
+        when(commentMapper.countComments(any())).thenReturn(0L);
+
+        // Act
+        CommentListResponseDTO result = commentService.getAllComments(searchRequest, testUserId);
+
+        // Assert
+        assertEquals(100, searchRequest.getSize()); // Should be capped at 100
+        assertEquals("createTime", searchRequest.getSort()); // Should default to createTime
+        assertEquals("desc", searchRequest.getOrder()); // Should default to desc
+    }
+
+    @Test
+    void deleteAllUserComments_Success() {
+        // Arrange
+        List<Comment> userComments = Arrays.asList(testComment, testComment, testComment);
+        when(commentMapper.selectByUserId(testUserId)).thenReturn(userComments);
+        when(commentMapper.deleteByPrimaryKey(anyInt())).thenReturn(1);
+
+        // Act
+        int result = commentService.deleteAllUserComments(testUserId);
+
+        // Assert
+        assertEquals(3, result);
+        verify(commentMapper, times(3)).deleteByPrimaryKey(anyInt());
+    }
+
+    @Test
+    void deleteAllChapterComments_Success() {
+        // Arrange
+        List<Comment> chapterComments = Arrays.asList(testComment, testComment);
+        when(commentMapper.selectByChapterId(testChapterId)).thenReturn(chapterComments);
+        when(commentMapper.deleteByPrimaryKey(anyInt())).thenReturn(1);
+
+        // Act
+        int result = commentService.deleteAllChapterComments(testChapterId);
+
+        // Assert
+        assertEquals(2, result);
+        verify(commentMapper, times(2)).deleteByPrimaryKey(anyInt());
+    }
+
+    @Test
+    void bulkUpdateSpoilerStatus_Success() {
+        // Arrange
+        CommentBulkSpoilerUpdateRequestDTO request = new CommentBulkSpoilerUpdateRequestDTO();
+        request.setCommentIds(Arrays.asList(1, 2, 3));
+        request.setIsSpoiler(true);
+
+        when(commentMapper.selectByPrimaryKey(anyInt())).thenReturn(testComment);
+        when(commentMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        // Act
+        int result = commentService.bulkUpdateSpoilerStatus(request);
+
+        // Assert
+        assertEquals(3, result);
+        verify(commentMapper, times(3)).updateByPrimaryKeySelective(any());
+    }
+
+    @Test
+    void bulkUpdateSpoilerStatus_EmptyList_ThrowsException() {
+        // Arrange
+        CommentBulkSpoilerUpdateRequestDTO request = new CommentBulkSpoilerUpdateRequestDTO();
+        request.setCommentIds(Collections.emptyList());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> commentService.bulkUpdateSpoilerStatus(request)
+        );
+        assertEquals("Comment IDs list cannot be empty", exception.getMessage());
+    }
+
+    @Test
+    void getModerationStatistics_Success() {
+        // Arrange
+        when(commentMapper.countComments(any())).thenReturn(100L, 30L);
+        when(commentMapper.countCommentsInLastDays(1)).thenReturn(10L);
+        when(commentMapper.countCommentsInLastDays(7)).thenReturn(50L);
+        when(commentMapper.countCommentsInLastDays(30)).thenReturn(80L);
+
+        Comment mostActiveComment = new Comment();
+        mostActiveComment.setUserId(testUserId);
+        when(commentMapper.selectMostActiveUser()).thenReturn(mostActiveComment);
+        when(userService.getUsernameById(testUserId)).thenReturn("ActiveUser");
+        when(commentMapper.countCommentsByUser(testUserId)).thenReturn(25L);
+
+        Comment mostCommentedChapter = new Comment();
+        mostCommentedChapter.setChapterId(testChapterId);
+        when(commentMapper.selectMostCommentedChapter()).thenReturn(mostCommentedChapter);
+        when(chapterMapper.selectByPrimaryKey(testChapterId)).thenReturn(testChapter);
+        when(commentMapper.countByChapterId(testChapterId)).thenReturn(40L);
+
+        // Act
+        CommentModerationStatsDTO result = commentService.getModerationStatistics();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(100L, result.getTotalComments());
+        assertEquals(30L, result.getSpoilerComments());
+        assertEquals(70L, result.getNonSpoilerComments());
+        assertEquals(10L, result.getCommentsToday());
+        assertEquals(50L, result.getCommentsThisWeek());
+        assertEquals(80L, result.getCommentsThisMonth());
+        assertEquals("ActiveUser", result.getMostActiveUsername());
+        assertEquals(25L, result.getMostActiveUserCommentCount());
+    }
+
+    @Test
+    void getModerationStatistics_NoMostActiveUser() {
+        // Arrange
+        when(commentMapper.countComments(any())).thenReturn(0L);
+        when(commentMapper.countCommentsInLastDays(anyInt())).thenReturn(0L);
+        when(commentMapper.selectMostActiveUser()).thenReturn(null);
+        when(commentMapper.selectMostCommentedChapter()).thenReturn(null);
+
+        // Act
+        CommentModerationStatsDTO result = commentService.getModerationStatistics();
+
+        // Assert
+        assertNotNull(result);
+        assertNull(result.getMostActiveUsername());
+        assertNull(result.getMostCommentedChapterId());
+    }
+
+    @Test
+    void getChapterCommentStats_EmptyComments() {
+        // Arrange
+        when(chapterMapper.selectByPrimaryKey(testChapterId)).thenReturn(testChapter);
+        when(commentMapper.selectByChapterId(testChapterId)).thenReturn(Collections.emptyList());
+
+        // Act
+        CommentStatisticsDTO result = commentService.getChapterCommentStats(testChapterId);
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(0L, result.getTotalComments());
+        assertEquals(0L, result.getSpoilerComments());
+        assertEquals(0L, result.getNonSpoilerComments());
+        assertEquals(0, result.getAvgLikesPerComment());
+        assertNull(result.getMostLikedCommentId());
+    }
+
+    @Test
+    void batchDeleteComments_EmptyList_ThrowsException() {
+        // Arrange
+        CommentBatchDeleteRequestDTO request = new CommentBatchDeleteRequestDTO();
+        request.setCommentIds(Collections.emptyList());
+
+        // Act & Assert
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> commentService.batchDeleteComments(request, true)
+        );
+        assertEquals("Comment IDs list cannot be empty", exception.getMessage());
+    }
 }
