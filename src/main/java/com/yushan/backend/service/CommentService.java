@@ -422,4 +422,125 @@ public class CommentService {
 
         return dto;
     }
+    /**
+     * Get moderation statistics for admin dashboard
+     */
+    public CommentModerationStatsDTO getModerationStatistics() {
+        CommentModerationStatsDTO stats = new CommentModerationStatsDTO();
+
+        // Get all comments for analysis
+        CommentSearchRequestDTO allCommentsRequest = CommentSearchRequestDTO.builder()
+                .page(0)
+                .size(Integer.MAX_VALUE)
+                .build();
+
+        long totalComments = commentMapper.countComments(allCommentsRequest);
+        stats.setTotalComments(totalComments);
+
+        // Count spoiler vs non-spoiler
+        CommentSearchRequestDTO spoilerRequest = CommentSearchRequestDTO.builder()
+                .isSpoiler(true)
+                .page(0)
+                .size(1)
+                .build();
+        long spoilerCount = commentMapper.countComments(spoilerRequest);
+        stats.setSpoilerComments(spoilerCount);
+        stats.setNonSpoilerComments(totalComments - spoilerCount);
+
+        // Time-based statistics
+        stats.setCommentsToday(commentMapper.countCommentsInLastDays(1));
+        stats.setCommentsThisWeek(commentMapper.countCommentsInLastDays(7));
+        stats.setCommentsThisMonth(commentMapper.countCommentsInLastDays(30));
+
+        // Get most active user
+        Comment mostActiveUserComment = commentMapper.selectMostActiveUser();
+        if (mostActiveUserComment != null) {
+            try {
+                String username = userService.getUsernameById(mostActiveUserComment.getUserId());
+                stats.setMostActiveUsername(username);
+                stats.setMostActiveUserCommentCount(
+                        commentMapper.countCommentsByUser(mostActiveUserComment.getUserId())
+                );
+            } catch (Exception e) {
+                stats.setMostActiveUsername("Unknown");
+            }
+        }
+
+        // Get most commented chapter
+        Comment mostCommentedChapterComment = commentMapper.selectMostCommentedChapter();
+        if (mostCommentedChapterComment != null) {
+            stats.setMostCommentedChapterId(mostCommentedChapterComment.getChapterId());
+            Chapter chapter = chapterMapper.selectByPrimaryKey(mostCommentedChapterComment.getChapterId());
+            if (chapter != null) {
+                stats.setMostCommentedChapterTitle(chapter.getTitle());
+            }
+            stats.setMostCommentedChapterCount(
+                    commentMapper.countByChapterId(mostCommentedChapterComment.getChapterId())
+            );
+        }
+
+        return stats;
+    }
+
+    /**
+     * Delete all comments by a specific user (admin moderation)
+     */
+    @Transactional
+    public int deleteAllUserComments(UUID userId) {
+        List<Comment> userComments = commentMapper.selectByUserId(userId);
+        int deletedCount = 0;
+
+        for (Comment comment : userComments) {
+            int result = commentMapper.deleteByPrimaryKey(comment.getId());
+            if (result > 0) {
+                deletedCount++;
+            }
+        }
+
+        return deletedCount;
+    }
+
+    /**
+     * Delete all comments for a specific chapter (admin cleanup)
+     */
+    @Transactional
+    public int deleteAllChapterComments(Integer chapterId) {
+        List<Comment> chapterComments = commentMapper.selectByChapterId(chapterId);
+        int deletedCount = 0;
+
+        for (Comment comment : chapterComments) {
+            int result = commentMapper.deleteByPrimaryKey(comment.getId());
+            if (result > 0) {
+                deletedCount++;
+            }
+        }
+
+        return deletedCount;
+    }
+
+    /**
+     * Bulk update spoiler status for multiple comments (admin moderation)
+     */
+    @Transactional
+    public int bulkUpdateSpoilerStatus(CommentBulkSpoilerUpdateRequestDTO request) {
+        if (request.getCommentIds() == null || request.getCommentIds().isEmpty()) {
+            throw new IllegalArgumentException("Comment IDs list cannot be empty");
+        }
+
+        int updatedCount = 0;
+
+        for (Integer commentId : request.getCommentIds()) {
+            Comment comment = commentMapper.selectByPrimaryKey(commentId);
+            if (comment != null) {
+                comment.setIsSpoiler(request.getIsSpoiler());
+                comment.setUpdateTime(new Date());
+                int result = commentMapper.updateByPrimaryKeySelective(comment);
+                if (result > 0) {
+                    updatedCount++;
+                }
+            }
+        }
+
+        return updatedCount;
+    }
 }

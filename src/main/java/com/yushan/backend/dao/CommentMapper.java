@@ -50,4 +50,15 @@ public interface CommentMapper {
 
     // Validation/Check queries
     boolean existsByUserAndChapter(@Param("userId") UUID userId, @Param("chapterId") Integer chapterId);
+
+    // Moderation queries
+    long countCommentsInLastDays(@Param("days") int days);
+    long countCommentsByUser(@Param("userId") UUID userId);
+    Comment selectMostActiveUser();
+    Comment selectMostCommentedChapter();
+    int batchDeleteByIds(@Param("ids") List<Integer> ids);
+    int batchUpdateSpoilerStatus(@Param("ids") List<Integer> ids, @Param("isSpoiler") Boolean isSpoiler);
+    List<Comment> selectCommentsByKeyword(@Param("keyword") String keyword, @Param("limit") int limit);
+    List<Comment> selectPopularComments(@Param("minLikes") int minLikes, @Param("limit") int limit);
+    List<Comment> selectRecentComments(@Param("hours") int hours, @Param("limit") int limit);
 }
