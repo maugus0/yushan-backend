@@ -26,12 +26,14 @@ public class ChapterServiceTest {
 
     private ChapterMapper chapterMapper;
     private NovelMapper novelMapper;
+    private NovelService novelService;
     private ChapterService chapterService;
 
     @BeforeEach
     void setUp() {
         chapterMapper = Mockito.mock(ChapterMapper.class);
         novelMapper = Mockito.mock(NovelMapper.class);
+        novelService = Mockito.mock(NovelService.class);
 
         chapterService = new ChapterService();
         try {
@@ -42,9 +44,16 @@ public class ChapterServiceTest {
             Field novelMapperField = ChapterService.class.getDeclaredField("novelMapper");
             novelMapperField.setAccessible(true);
             novelMapperField.set(chapterService, novelMapper);
+
+            Field novelServiceField = ChapterService.class.getDeclaredField("novelService");
+            novelServiceField.setAccessible(true);
+            novelServiceField.set(chapterService, novelService);
         } catch (Exception e) {
             fail("Failed to set up test dependencies: " + e.getMessage());
         }
+        
+        // Mock novelService.mapStatus() to return 4 for ARCHIVED status
+        when(novelService.mapStatus(any())).thenReturn(4);
     }
 
     @Test
@@ -118,7 +127,7 @@ public class ChapterServiceTest {
         req.setTitle("Chapter 1");
 
         Novel invalidNovel = createTestNovel(1, userId);
-        invalidNovel.setIsValid(false);
+        invalidNovel.setStatus(4); // NovelStatus.ARCHIVED
         when(novelMapper.selectByPrimaryKey(1)).thenReturn(invalidNovel);
 
         assertThrows(ResourceNotFoundException.class, () -> chapterService.createChapter(userId, req));
@@ -454,7 +463,6 @@ public class ChapterServiceTest {
         novel.setId(id);
         novel.setAuthorId(authorId);
         novel.setTitle("Test Novel");
-        novel.setIsValid(true);
         novel.setStatus(1); // PUBLISHED
         novel.setCreateTime(new Date());
         novel.setUpdateTime(new Date());

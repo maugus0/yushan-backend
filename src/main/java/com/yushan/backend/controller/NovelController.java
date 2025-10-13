@@ -64,6 +64,16 @@ public class NovelController {
         return ApiResponse.success("Novel retrieved successfully", dto);
     }
 
+    /**
+     * Increment view count for a novel (public endpoint)
+     * Called when a user clicks on a novel
+     */
+    @PostMapping("/{id}/view")
+    public ApiResponse<String> incrementViewCount(@PathVariable Integer id) {
+        novelService.incrementViewCount(id);
+        return ApiResponse.success("View count incremented");
+    }
+
     @GetMapping
     public ApiResponse<PageResponseDTO<NovelDetailResponseDTO>> listNovels(
             @RequestParam(value = "page", defaultValue = "0") Integer page,

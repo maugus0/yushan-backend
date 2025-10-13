@@ -3,6 +3,8 @@ package com.yushan.backend.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.util.Locale;
+
 public enum Gender {
     UNKNOWN(0, "user.png"),
     MALE(1, "user_male.png"),
@@ -40,7 +42,7 @@ public enum Gender {
             return UNKNOWN;
         }
         try {
-            return Gender.valueOf(value.toUpperCase());
+            return Gender.valueOf(value.toUpperCase(Locale.ENGLISH));
         } catch (IllegalArgumentException e) {
             return UNKNOWN;
         }

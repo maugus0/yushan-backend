@@ -37,6 +37,9 @@ public interface NovelMapper {
     int incrementVoteCount(@Param("novelId") Integer novelId);
     
     int decrementVoteCount(@Param("novelId") Integer novelId);
+    
+    // View count methods
+    int incrementViewCount(@Param("novelId") Integer novelId);
 
     List<AuthorResponseDTO> selectAuthorsByRanking(@Param("sortType") String sortType,
                                                    @Param("offset") int offset,
