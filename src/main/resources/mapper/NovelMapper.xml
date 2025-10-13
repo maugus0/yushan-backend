@@ -537,4 +537,54 @@
             #{id}
         </foreach>
     </select>
+
+    <!-- Get novel ranking overall -->
+    <select id="getNovelRanking" resultType="java.lang.Integer">
+        SELECT ranking FROM (
+            SELECT id, 
+                   ROW_NUMBER() OVER (
+                       <choose>
+                           <when test="sortType == 'view'">
+                               ORDER BY view_cnt DESC, id ASC
+                           </when>
+                           <when test="sortType == 'vote'">
+                               ORDER BY vote_cnt DESC, id ASC
+                           </when>
+                           <otherwise>
+                               ORDER BY view_cnt DESC, id ASC
+                           </otherwise>
+                       </choose>
+                   ) as ranking
+            FROM novel
+            WHERE is_valid = true
+            <if test="categoryId != null and categoryId > 0">
+                AND category_id = #{categoryId,jdbcType=INTEGER}
+            </if>
+        ) ranked_novels
+        WHERE id = #{novelId,jdbcType=INTEGER}
+    </select>
+
+    <!-- Get novel ranking within category -->
+    <select id="getNovelCategoryRanking" resultType="java.lang.Integer">
+        SELECT ranking FROM (
+            SELECT id, 
+                   ROW_NUMBER() OVER (
+                       <choose>
+                           <when test="sortType == 'view'">
+                               ORDER BY view_cnt DESC, id ASC
+                           </when>
+                           <when test="sortType == 'vote'">
+                               ORDER BY vote_cnt DESC, id ASC
+                           </when>
+                           <otherwise>
+                               ORDER BY view_cnt DESC, id ASC
+                           </otherwise>
+                       </choose>
+                   ) as ranking
+            FROM novel
+            WHERE is_valid = true
+            AND category_id = #{categoryId,jdbcType=INTEGER}
+        ) ranked_novels
+        WHERE id = #{novelId,jdbcType=INTEGER}
+    </select>
 </mapper>
