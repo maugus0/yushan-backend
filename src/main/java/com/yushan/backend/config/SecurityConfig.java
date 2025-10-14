@@ -117,19 +117,12 @@ public class SecurityConfig {
                         // CORS preflight requests - allow OPTIONS for all endpoints
                         .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
 
-                        // Category APIs - public read, admin write
-                        .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
-                        .requestMatchers("/api/categories/**").hasRole("ADMIN")
-
                         // Novel APIs
                         .requestMatchers(HttpMethod.POST, "/api/novels").hasAnyRole("AUTHOR","ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/novels").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/novels/*").permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/novels/*").authenticated()
                         .requestMatchers("/api/novels/admin/**").hasRole("ADMIN")
-
-                        // Chapter APIs - delete requires author or admin
-                        .requestMatchers(HttpMethod.DELETE, "/api/chapters/**").hasAnyRole("AUTHOR", "ADMIN")
 
                         // Voting APIs - require authentication
                         .requestMatchers(HttpMethod.POST, "/api/novels/*/vote").authenticated()
