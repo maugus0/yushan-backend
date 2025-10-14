@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.yushan.backend.dao.SearchMapper">
+
+    <!-- Search novels by keyword and optional category -->
+    <select id="searchNovels" resultType="com.yushan.backend.entity.Novel">
+        SELECT * FROM novel
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (title ILIKE CONCAT('%', #{keyword}, '%')
+            OR author_name ILIKE CONCAT('%', #{keyword}, '%')
+            OR synopsis ILIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="category != null and category != ''">
+            AND category_id = #{category}
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'title'">
+                title
+            </when>
+            <when test="sortBy == 'author'">
+                author_name
+            </when>
+            <when test="sortBy == 'view_count'">
+                view_cnt
+            </when>
+            <when test="sortBy == 'rating'">
+                avg_rating
+            </when>
+            <otherwise>
+                create_time
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="sortOrder == 'ASC'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- Count total novels matching search criteria -->
+    <select id="countNovels" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM novel
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (title ILIKE CONCAT('%', #{keyword}, '%')
+            OR author_name ILIKE CONCAT('%', #{keyword}, '%')
+            OR synopsis ILIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="category != null and category != ''">
+            AND category_id = #{category}
+        </if>
+    </select>
+
+    <!-- Search users by keyword -->
+    <select id="searchUsers" resultType="com.yushan.backend.entity.User">
+        SELECT * FROM users
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (username ILIKE CONCAT('%', #{keyword}, '%')
+            OR email ILIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        ORDER BY
+        <choose>
+            <when test="sortBy == 'username'">
+                username
+            </when>
+            <when test="sortBy == 'email'">
+                email
+            </when>
+            <otherwise>
+                create_time
+            </otherwise>
+        </choose>
+        <choose>
+            <when test="sortOrder == 'ASC'">
+                ASC
+            </when>
+            <otherwise>
+                DESC
+            </otherwise>
+        </choose>
+        LIMIT #{pageSize} OFFSET #{offset}
+    </select>
+
+    <!-- Count total users matching search criteria -->
+    <select id="countUsers" resultType="java.lang.Integer">
+        SELECT COUNT(*) FROM users
+        WHERE 1=1
+        <if test="keyword != null and keyword != ''">
+            AND (username ILIKE CONCAT('%', #{keyword}, '%')
+            OR email ILIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+    </select>
+
+</mapper>
