@@ -347,7 +347,7 @@ public class UserIntegrationTest {
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setEmailVerified(true);
         testUser.setAvatarUrl("https://example.com/avatar.jpg");
-        testUser.setStatus(1); // Active status
+        testUser.setStatus(0); // Active status
         testUser.setGender(1);
         testUser.setCreateTime(new Date());
         testUser.setUpdateTime(new Date());
@@ -376,7 +376,7 @@ public class UserIntegrationTest {
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(1); // Active status
+        user.setStatus(0); // Active status
         user.setGender(1);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());

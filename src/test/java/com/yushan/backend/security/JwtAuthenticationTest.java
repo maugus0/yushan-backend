@@ -116,7 +116,7 @@ public class JwtAuthenticationTest {
         testUser.setHashPassword(passwordEncoder.encode("password123"));
         testUser.setEmailVerified(true);
         testUser.setAvatarUrl("https://example.com/avatar.jpg");
-        testUser.setStatus(1); // Active status
+        testUser.setStatus(0); // Active status
         testUser.setGender(1);
         testUser.setLastLogin(new Date());
         testUser.setLastActive(new Date());
@@ -139,7 +139,7 @@ public class JwtAuthenticationTest {
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setEmailVerified(true);
         authorUser.setAvatarUrl("https://example.com/author-avatar.jpg");
-        authorUser.setStatus(1); // Active status
+        authorUser.setStatus(0); // Active status
         authorUser.setGender(1);
         authorUser.setLastLogin(new Date());
         authorUser.setLastActive(new Date());
@@ -173,7 +173,7 @@ public class JwtAuthenticationTest {
         user.setGender(1);
         user.setLastLogin(new Date());
         user.setLastActive(new Date());
-        user.setStatus(1);
+        user.setStatus(0);
         user.setIsAuthor(isAuthor);
         user.setIsAdmin(isAdmin);
         user.setLevel(1);

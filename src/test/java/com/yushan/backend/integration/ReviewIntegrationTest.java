@@ -307,7 +307,7 @@ public class ReviewIntegrationTest {
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(1); // Active status
+        user.setStatus(0); // Active status
         user.setGender(1);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());

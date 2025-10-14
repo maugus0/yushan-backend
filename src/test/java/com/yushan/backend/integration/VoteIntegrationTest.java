@@ -139,7 +139,7 @@ public class VoteIntegrationTest {
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
         user.setAvatarUrl("avatar.jpg");
-        user.setStatus(1);
+        user.setStatus(0);
         user.setGender(1);
         user.setIsAuthor(false);
         user.setIsAdmin(false);

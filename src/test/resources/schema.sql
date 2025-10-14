@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS users (
     profile_detail TEXT,
     birthday DATE,
     gender INTEGER NOT NULL,
-    status INTEGER NOT NULL DEFAULT 1,
+    status INTEGER NOT NULL DEFAULT 0,
     is_author BOOLEAN NOT NULL DEFAULT FALSE,
     is_admin BOOLEAN NOT NULL DEFAULT FALSE,
     level INTEGER NOT NULL DEFAULT 1,
