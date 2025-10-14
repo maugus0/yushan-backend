@@ -21,6 +21,10 @@ public class CommentController {
     @Autowired
     private CommentService commentService;
 
+    // ========================================
+    // PUBLIC & USER ENDPOINTS
+    // ========================================
+
     /**
      * Create a new comment (authenticated users only)
      */
@@ -71,7 +75,7 @@ public class CommentController {
     @GetMapping("/{id}")
     public ApiResponse<CommentResponseDTO> getComment(@PathVariable Integer id,
                                                       Authentication authentication) {
-        UUID userId = getUserIdFromAuthentication(authentication);
+        UUID userId = getUserIdFromAuthenticationOrNull(authentication);
         CommentResponseDTO dto = commentService.getComment(id, userId);
         return ApiResponse.success("Comment retrieved successfully", dto);
     }
@@ -88,7 +92,7 @@ public class CommentController {
             @RequestParam(value = "order", defaultValue = "desc") String order,
             Authentication authentication) {
 
-        UUID userId = authentication != null ? getUserIdFromAuthenticationOrNull(authentication) : null;
+        UUID userId = getUserIdFromAuthenticationOrNull(authentication);
         CommentListResponseDTO response = commentService.getCommentsByChapter(chapterId, userId, page, size, sort, order);
         return ApiResponse.success("Comments retrieved successfully", response);
     }
@@ -107,7 +111,7 @@ public class CommentController {
             @RequestParam(value = "search", required = false) String search,
             Authentication authentication) {
 
-        UUID userId = authentication != null ? getUserIdFromAuthenticationOrNull(authentication) : null;
+        UUID userId = getUserIdFromAuthenticationOrNull(authentication);
 
         CommentSearchRequestDTO request = CommentSearchRequestDTO.builder()
                 .novelId(novelId)
@@ -125,8 +129,6 @@ public class CommentController {
 
     /**
      * Like a comment (authenticated users only)
-     * For now, this simply increments the like count
-     * In a real application, you would track user likes in a separate table
      */
     @PostMapping("/{id}/like")
     @PreAuthorize("hasAnyRole('USER','AUTHOR','ADMIN')")
@@ -182,11 +184,47 @@ public class CommentController {
     }
 
     // ========================================
-    // ADMIN ENDPOINTS
+    // ADMIN MODERATION ENDPOINTS
     // ========================================
 
     /**
      * Get all comments with filtering and pagination (admin only)
+     * Primary endpoint for comment moderation dashboard
+     */
+    @GetMapping("/admin/moderation")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CommentListResponseDTO> getAllCommentsForModeration(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "50") Integer size,
+            @RequestParam(value = "sort", defaultValue = "createTime") String sort,
+            @RequestParam(value = "order", defaultValue = "desc") String order,
+            @RequestParam(value = "chapterId", required = false) Integer chapterId,
+            @RequestParam(value = "novelId", required = false) Integer novelId,
+            @RequestParam(value = "userId", required = false) String userId,
+            @RequestParam(value = "isSpoiler", required = false) Boolean isSpoiler,
+            @RequestParam(value = "search", required = false) String search,
+            Authentication authentication) {
+
+        UUID currentUserId = getUserIdFromAuthentication(authentication);
+
+        CommentSearchRequestDTO request = CommentSearchRequestDTO.builder()
+                .chapterId(chapterId)
+                .novelId(novelId)
+                .userId(userId != null ? UUID.fromString(userId) : null)
+                .isSpoiler(isSpoiler)
+                .search(search)
+                .sort(sort)
+                .order(order)
+                .page(page)
+                .size(size)
+                .build();
+
+        CommentListResponseDTO response = commentService.getAllComments(request, currentUserId);
+        return ApiResponse.success("All comments retrieved successfully", response);
+    }
+
+    /**
+     * Get all comments (admin search/filter)
      */
     @GetMapping("/admin/all")
     @PreAuthorize("hasRole('ADMIN')")
@@ -221,30 +259,7 @@ public class CommentController {
     }
 
     /**
-     * Delete any comment (admin only)
-     */
-    @DeleteMapping("/admin/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> deleteCommentAdmin(@PathVariable Integer id) {
-        boolean deleted = commentService.deleteComment(id, null, true);
-        if (deleted) {
-            return ApiResponse.success("Comment deleted successfully by admin");
-        }
-        return ApiResponse.error(400, "Failed to delete comment");
-    }
-
-    /**
-     * Batch delete comments (admin only)
-     */
-    @PostMapping("/admin/batch-delete")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ApiResponse<String> batchDeleteComments(@Valid @RequestBody CommentBatchDeleteRequestDTO request) {
-        int deletedCount = commentService.batchDeleteComments(request, true);
-        return ApiResponse.success("Successfully deleted " + deletedCount + " comment(s)");
-    }
-
-    /**
-     * Get all comments (admin search/filter)
+     * Search comments with advanced filters (admin)
      */
     @GetMapping("/admin/search")
     @PreAuthorize("hasRole('ADMIN')")
@@ -276,6 +291,85 @@ public class CommentController {
 
         CommentListResponseDTO response = commentService.getAllComments(request, currentUserId);
         return ApiResponse.success("Comments search completed", response);
+    }
+
+    /**
+     * Get comments by specific user (admin moderation tool)
+     */
+    @GetMapping("/admin/user/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<List<CommentResponseDTO>> getUserCommentsAdmin(
+            @PathVariable String userId,
+            Authentication authentication) {
+        UUID currentUserId = getUserIdFromAuthentication(authentication);
+        UUID targetUserId = UUID.fromString(userId);
+        List<CommentResponseDTO> comments = commentService.getUserComments(targetUserId);
+        return ApiResponse.success("User comments retrieved successfully", comments);
+    }
+
+    /**
+     * Get moderation statistics (admin dashboard)
+     */
+    @GetMapping("/admin/statistics")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<CommentModerationStatsDTO> getModerationStats() {
+        CommentModerationStatsDTO stats = commentService.getModerationStatistics();
+        return ApiResponse.success("Moderation statistics retrieved", stats);
+    }
+
+    /**
+     * Delete any comment (admin only)
+     */
+    @DeleteMapping("/admin/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteCommentAdmin(@PathVariable Integer id) {
+        boolean deleted = commentService.deleteComment(id, null, true);
+        if (deleted) {
+            return ApiResponse.success("Comment deleted successfully by admin");
+        }
+        return ApiResponse.error(400, "Failed to delete comment");
+    }
+
+    /**
+     * Batch delete comments (admin only)
+     */
+    @PostMapping("/admin/batch-delete")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> batchDeleteComments(@Valid @RequestBody CommentBatchDeleteRequestDTO request) {
+        int deletedCount = commentService.batchDeleteComments(request, true);
+        return ApiResponse.success("Successfully deleted " + deletedCount + " comment(s)");
+    }
+
+    /**
+     * Delete all comments by a user (admin moderation action)
+     */
+    @DeleteMapping("/admin/user/{userId}/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteAllUserComments(@PathVariable String userId) {
+        UUID targetUserId = UUID.fromString(userId);
+        int deletedCount = commentService.deleteAllUserComments(targetUserId);
+        return ApiResponse.success("Successfully deleted " + deletedCount + " comment(s) from user");
+    }
+
+    /**
+     * Delete all comments for a chapter (admin cleanup tool)
+     */
+    @DeleteMapping("/admin/chapter/{chapterId}/all")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> deleteAllChapterComments(@PathVariable Integer chapterId) {
+        int deletedCount = commentService.deleteAllChapterComments(chapterId);
+        return ApiResponse.success("Successfully deleted " + deletedCount + " comment(s) from chapter");
+    }
+
+    /**
+     * Bulk update spoiler status (admin moderation tool)
+     */
+    @PatchMapping("/admin/bulk-spoiler")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> bulkUpdateSpoilerStatus(
+            @Valid @RequestBody CommentBulkSpoilerUpdateRequestDTO request) {
+        int updatedCount = commentService.bulkUpdateSpoilerStatus(request);
+        return ApiResponse.success("Successfully updated " + updatedCount + " comment(s)");
     }
 
     // ========================================

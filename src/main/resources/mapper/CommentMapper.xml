@@ -268,4 +268,83 @@
         from comment
         where user_id = #{userId,jdbcType=OTHER} and chapter_id = #{chapterId,jdbcType=INTEGER}
     </select>
+    <!-- Adding these queries as part of task YW-209 -->
+    <!-- Count comments in last N days -->
+    <select id="countCommentsInLastDays" resultType="long">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{days} DAY)
+    </select>
+
+    <!-- Count comments by user -->
+    <select id="countCommentsByUser" resultType="long">
+        SELECT COUNT(*)
+        FROM comment
+        WHERE user_id = #{userId}
+    </select>
+
+    <!-- Get most active user -->
+    <select id="selectMostActiveUser" resultType="com.yushan.backend.entity.Comment">
+        SELECT c.*
+        FROM comment c
+        GROUP BY c.user_id
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    </select>
+
+    <!-- Get most commented chapter -->
+    <select id="selectMostCommentedChapter" resultType="com.yushan.backend.entity.Comment">
+        SELECT c.*
+        FROM comment c
+        GROUP BY c.chapter_id
+        ORDER BY COUNT(*) DESC
+        LIMIT 1
+    </select>
+
+    <!-- Batch delete by IDs -->
+    <delete id="batchDeleteByIds">
+        DELETE FROM comment
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <!-- Batch update spoiler status -->
+    <update id="batchUpdateSpoilerStatus">
+        UPDATE comment
+        SET is_spoiler = #{isSpoiler},
+        update_time = NOW()
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!-- Get comments by keyword (content moderation) -->
+    <select id="selectCommentsByKeyword" resultType="com.yushan.backend.entity.Comment">
+        SELECT *
+        FROM comment
+        WHERE content LIKE CONCAT('%', #{keyword}, '%')
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- Get popular comments -->
+    <select id="selectPopularComments" resultType="com.yushan.backend.entity.Comment">
+        SELECT *
+        FROM comment
+        WHERE like_cnt >= #{minLikes}
+        ORDER BY like_cnt DESC, create_time DESC
+        LIMIT #{limit}
+    </select>
+
+    <!-- Get recent comments for moderation queue -->
+    <select id="selectRecentComments" resultType="com.yushan.backend.entity.Comment">
+        SELECT *
+        FROM comment
+        WHERE create_time >= DATE_SUB(NOW(), INTERVAL #{hours} HOUR)
+        ORDER BY create_time DESC
+        LIMIT #{limit}
+    </select>
 </mapper>
