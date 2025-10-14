@@ -119,7 +119,7 @@ public class UserIntegrationTest {
         // Given
         Map<String, Object> updateRequest = new HashMap<>();
         updateRequest.put("username", "updatedusername");
-        updateRequest.put("avatarUrl", "https://example.com/new-avatar.jpg");
+        updateRequest.put("avatarBase64", "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k=");
         updateRequest.put("gender", Gender.FEMALE);
 
         // When - Use the correct endpoint with user ID
@@ -130,7 +130,7 @@ public class UserIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
                 .andExpect(jsonPath("$.data.profile.username").value("updatedusername"))
-                .andExpect(jsonPath("$.data.profile.avatarUrl").value("https://example.com/new-avatar.jpg"));
+                .andExpect(jsonPath("$.data.profile.avatarUrl").value("data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAABAAEDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAUEAEAAAAAAAAAAAAAAAAAAAAA/8QAFQEBAQAAAAAAAAAAAAAAAAAAAAX/xAAUEQEAAAAAAAAAAAAAAAAAAAAA/9oADAMBAAIRAxEAPwCdABmX/9k="));
 
         // Then - Verify database was updated
         User updatedUser = userMapper.selectByEmail("updateuser@example.com");

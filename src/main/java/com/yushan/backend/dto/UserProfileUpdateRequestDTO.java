@@ -17,8 +17,9 @@ public class UserProfileUpdateRequestDTO {
     @Size(max = 254, message = "email length pasts limitation")
     private String email;
 
-    @Size(max = 512, message = "avatarUrl must be at most 512 characters")
-    private String avatarUrl;
+    @Pattern(regexp = "^data:image/(jpeg|jpg|png|gif|webp);base64,[A-Za-z0-9+/]+=*$", 
+             message = "avatarBase64 must be a valid Base64 data URL for image")
+    private String avatarBase64;
 
     @Size(max = 1000, message = "profileDetail must be at most 1000 characters")
     private String profileDetail;
