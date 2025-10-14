@@ -487,4 +487,229 @@ public class ChapterServiceTest {
         chapter.setPublishTime(new Date());
         return chapter;
     }
+
+    // ========== Admin Delete Chapter Tests ==========
+
+    @Test
+    void adminDeleteChapter_ShouldDeleteSuccessfully() {
+        UUID chapterUuid = UUID.randomUUID();
+        Chapter existing = createTestChapter(chapterUuid, 1, 1);
+
+        when(chapterMapper.selectByUuid(chapterUuid)).thenReturn(existing);
+        when(chapterMapper.softDeleteByUuid(chapterUuid)).thenReturn(1);
+        when(novelMapper.selectByPrimaryKey(1)).thenReturn(createTestNovel(1, UUID.randomUUID()));
+        when(chapterMapper.countPublishedByNovelId(1)).thenReturn(5L);
+        when(chapterMapper.sumWordCountByNovelId(1)).thenReturn(1000L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChapter(chapterUuid);
+
+        verify(chapterMapper, times(1)).selectByUuid(chapterUuid);
+        verify(chapterMapper, times(1)).softDeleteByUuid(chapterUuid);
+        verify(chapterMapper, times(1)).countPublishedByNovelId(1);
+        verify(chapterMapper, times(1)).sumWordCountByNovelId(1);
+        verify(novelMapper, times(1)).updateByPrimaryKeySelective(any());
+    }
+
+    @Test
+    void adminDeleteChapter_ChapterNotFound_ShouldThrow() {
+        UUID chapterUuid = UUID.randomUUID();
+
+        when(chapterMapper.selectByUuid(chapterUuid)).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                chapterService.adminDeleteChapter(chapterUuid));
+
+        verify(chapterMapper, times(1)).selectByUuid(chapterUuid);
+        verify(chapterMapper, never()).softDeleteByUuid(any());
+    }
+
+    @Test
+    void adminDeleteChapter_ShouldUpdateNovelStatistics() {
+        UUID chapterUuid = UUID.randomUUID();
+        Chapter existing = createTestChapter(chapterUuid, 5, 1);
+        Novel novel = createTestNovel(5, UUID.randomUUID());
+
+        when(chapterMapper.selectByUuid(chapterUuid)).thenReturn(existing);
+        when(chapterMapper.softDeleteByUuid(chapterUuid)).thenReturn(1);
+        when(novelMapper.selectByPrimaryKey(5)).thenReturn(novel);
+        when(chapterMapper.countPublishedByNovelId(5)).thenReturn(10L);
+        when(chapterMapper.sumWordCountByNovelId(5)).thenReturn(5000L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChapter(chapterUuid);
+
+        verify(novelMapper, times(1)).selectByPrimaryKey(5);
+        verify(novelMapper, times(1)).updateByPrimaryKeySelective(argThat(n ->
+                n.getChapterCnt().equals(10) &&
+                        n.getWordCnt().equals(5000L)
+        ));
+    }
+
+// ========== Admin Delete Chapters By Novel ID Tests ==========
+
+    @Test
+    void adminDeleteChaptersByNovelId_ShouldDeleteAllChapters() {
+        Integer novelId = 1;
+        Novel novel = createTestNovel(novelId, UUID.randomUUID());
+
+        Chapter chapter1 = createTestChapter(UUID.randomUUID(), novelId, 1);
+        chapter1.setId(101);
+        Chapter chapter2 = createTestChapter(UUID.randomUUID(), novelId, 2);
+        chapter2.setId(102);
+        Chapter chapter3 = createTestChapter(UUID.randomUUID(), novelId, 3);
+        chapter3.setId(103);
+        List<Chapter> chapters = Arrays.asList(chapter1, chapter2, chapter3);
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(chapterMapper.selectByNovelId(novelId)).thenReturn(chapters);
+        when(chapterMapper.softDeleteByPrimaryKey(anyInt())).thenReturn(1);
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(0L);
+        when(chapterMapper.sumWordCountByNovelId(novelId)).thenReturn(0L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChaptersByNovelId(novelId);
+
+        verify(novelMapper, times(2)).selectByPrimaryKey(novelId); // Once for validation, once for statistics
+        verify(chapterMapper, times(1)).selectByNovelId(novelId);
+        verify(chapterMapper, times(3)).softDeleteByPrimaryKey(anyInt());
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(101);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(102);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(103);
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_NovelNotFound_ShouldThrow() {
+        Integer novelId = 999;
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(null);
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                chapterService.adminDeleteChaptersByNovelId(novelId));
+
+        verify(novelMapper, times(1)).selectByPrimaryKey(novelId);
+        verify(chapterMapper, never()).selectByNovelId(any());
+        verify(chapterMapper, never()).softDeleteByPrimaryKey(any());
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_ArchivedNovel_ShouldThrow() {
+        Integer novelId = 1;
+        Novel archivedNovel = createTestNovel(novelId, UUID.randomUUID());
+        archivedNovel.setStatus(4); // ARCHIVED status
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(archivedNovel);
+
+        assertThrows(ResourceNotFoundException.class, () ->
+                chapterService.adminDeleteChaptersByNovelId(novelId));
+
+        verify(novelMapper, times(1)).selectByPrimaryKey(novelId);
+        verify(chapterMapper, never()).selectByNovelId(any());
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_ShouldBypassAuthorCheck() {
+        // Verify that admin deletion doesn't check author ownership
+        Integer novelId = 1;
+        UUID someAuthorId = UUID.randomUUID();
+        Novel novel = createTestNovel(novelId, someAuthorId);
+
+        Chapter chapter1 = createTestChapter(UUID.randomUUID(), novelId, 1);
+        chapter1.setId(101);
+        List<Chapter> chapters = Arrays.asList(chapter1);
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(chapterMapper.selectByNovelId(novelId)).thenReturn(chapters);
+        when(chapterMapper.softDeleteByPrimaryKey(101)).thenReturn(1);
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(0L);
+        when(chapterMapper.sumWordCountByNovelId(novelId)).thenReturn(0L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        // Should not throw exception - no author check performed
+        assertDoesNotThrow(() -> chapterService.adminDeleteChaptersByNovelId(novelId));
+
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(101);
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_NoChapters_ShouldStillUpdateStatistics() {
+        Integer novelId = 1;
+        Novel novel = createTestNovel(novelId, UUID.randomUUID());
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(chapterMapper.selectByNovelId(novelId)).thenReturn(Arrays.asList());
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(0L);
+        when(chapterMapper.sumWordCountByNovelId(novelId)).thenReturn(0L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChaptersByNovelId(novelId);
+
+        verify(chapterMapper, times(1)).selectByNovelId(novelId);
+        verify(chapterMapper, never()).softDeleteByPrimaryKey(any());
+        verify(novelMapper, times(1)).updateByPrimaryKeySelective(argThat(n ->
+                n.getChapterCnt().equals(0) &&
+                        n.getWordCnt().equals(0L)
+        ));
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_ShouldUpdateNovelStatistics() {
+        Integer novelId = 2;
+        Novel novel = createTestNovel(novelId, UUID.randomUUID());
+
+        Chapter chapter1 = createTestChapter(UUID.randomUUID(), novelId, 1);
+        chapter1.setId(201);
+        Chapter chapter2 = createTestChapter(UUID.randomUUID(), novelId, 2);
+        chapter2.setId(202);
+        List<Chapter> chapters = Arrays.asList(chapter1, chapter2);
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(chapterMapper.selectByNovelId(novelId)).thenReturn(chapters);
+        when(chapterMapper.softDeleteByPrimaryKey(anyInt())).thenReturn(1);
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(0L);
+        when(chapterMapper.sumWordCountByNovelId(novelId)).thenReturn(0L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChaptersByNovelId(novelId);
+
+        verify(novelMapper, times(2)).selectByPrimaryKey(novelId);
+        verify(chapterMapper, times(1)).countPublishedByNovelId(novelId);
+        verify(chapterMapper, times(1)).sumWordCountByNovelId(novelId);
+        verify(novelMapper, times(1)).updateByPrimaryKeySelective(any());
+    }
+
+    @Test
+    void adminDeleteChaptersByNovelId_MultipleChapters_ShouldDeleteInOrder() {
+        Integer novelId = 3;
+        Novel novel = createTestNovel(novelId, UUID.randomUUID());
+
+        Chapter chapter1 = createTestChapter(UUID.randomUUID(), novelId, 1);
+        chapter1.setId(301);
+        Chapter chapter2 = createTestChapter(UUID.randomUUID(), novelId, 2);
+        chapter2.setId(302);
+        Chapter chapter3 = createTestChapter(UUID.randomUUID(), novelId, 3);
+        chapter3.setId(303);
+        Chapter chapter4 = createTestChapter(UUID.randomUUID(), novelId, 4);
+        chapter4.setId(304);
+        Chapter chapter5 = createTestChapter(UUID.randomUUID(), novelId, 5);
+        chapter5.setId(305);
+
+        List<Chapter> chapters = Arrays.asList(chapter1, chapter2, chapter3, chapter4, chapter5);
+
+        when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(novel);
+        when(chapterMapper.selectByNovelId(novelId)).thenReturn(chapters);
+        when(chapterMapper.softDeleteByPrimaryKey(anyInt())).thenReturn(1);
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(0L);
+        when(chapterMapper.sumWordCountByNovelId(novelId)).thenReturn(0L);
+        when(novelMapper.updateByPrimaryKeySelective(any())).thenReturn(1);
+
+        chapterService.adminDeleteChaptersByNovelId(novelId);
+
+        verify(chapterMapper, times(5)).softDeleteByPrimaryKey(anyInt());
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(301);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(302);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(303);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(304);
+        verify(chapterMapper, times(1)).softDeleteByPrimaryKey(305);
+    }
 }
