@@ -517,6 +517,42 @@ public class ChapterService {
         novelMapper.updateByPrimaryKeySelective(novel);
     }
 
+    /**
+     * Admin-only: Delete a chapter without author validation
+     */
+    @Transactional
+    public void adminDeleteChapter(UUID uuid) {
+        Chapter chapter = chapterMapper.selectByUuid(uuid);
+        if (chapter == null) {
+            throw new ResourceNotFoundException("chapter not found");
+        }
+
+        chapterMapper.softDeleteByUuid(uuid);
+
+        // Update novel statistics
+        updateNovelStatistics(chapter.getNovelId());
+    }
+
+    /**
+     * Admin-only: Delete all chapters of a novel without author validation
+     */
+    @Transactional
+    public void adminDeleteChaptersByNovelId(Integer novelId) {
+        // Validate novel exists
+        Novel novel = novelMapper.selectByPrimaryKey(novelId);
+        if (novel == null || novel.getStatus().equals(novelService.mapStatus(NovelStatus.ARCHIVED))) {
+            throw new ResourceNotFoundException("novel not found");
+        }
+
+        List<Chapter> chapters = chapterMapper.selectByNovelId(novelId);
+        for (Chapter chapter : chapters) {
+            chapterMapper.softDeleteByPrimaryKey(chapter.getId());
+        }
+
+        // Update novel statistics
+        updateNovelStatistics(novelId);
+    }
+
     // Helper methods
     private ChapterDetailResponseDTO toDetailResponse(Chapter chapter) {
         ChapterDetailResponseDTO dto = new ChapterDetailResponseDTO();

@@ -193,6 +193,29 @@ public class ChapterController {
     }
 
     /**
+     * Admin-only: Force delete a chapter (soft delete)
+     * Bypasses author ownership check
+     */
+    @DeleteMapping("/admin/{uuid}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> adminDeleteChapter(@PathVariable UUID uuid) {
+        chapterService.adminDeleteChapter(uuid);
+        return ApiResponse.success("Chapter deleted successfully by admin");
+    }
+
+    /**
+     * Admin-only: Force delete all chapters of a novel (soft delete)
+     * Bypasses author ownership check
+     * Use with caution!
+     */
+    @DeleteMapping("/admin/novel/{novelId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<String> adminDeleteChaptersByNovelId(@PathVariable Integer novelId) {
+        chapterService.adminDeleteChaptersByNovelId(novelId);
+        return ApiResponse.success("All chapters deleted successfully by admin");
+    }
+
+    /**
      * Get next chapter UUID for navigation (public endpoint)
      * Used for "Next Chapter" button
      */

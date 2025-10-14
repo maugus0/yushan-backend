@@ -1147,4 +1147,399 @@ public class ChapterControllerTest {
                 10 // maxChapterNumber
         );
     }
+
+    @Nested
+    @DisplayName("DELETE /api/chapters/admin/{uuid} - Admin Delete Chapter")
+    class AdminDeleteChapterTests {
+
+        @Test
+        @DisplayName("Should delete chapter successfully as ADMIN")
+        void adminDeleteChapter_AsAdmin_Returns200() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            doNothing().when(chapterService).adminDeleteChapter(eq(chapterUuid));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("Chapter deleted successfully by admin"));
+
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when AUTHOR tries to use admin delete")
+        void adminDeleteChapter_AsAuthor_Returns401() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("author@example.com").roles("AUTHOR")))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 401 when USER tries to use admin delete")
+        void adminDeleteChapter_AsUser_Returns401() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("user@example.com").roles("USER")))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 401 when unauthenticated")
+        void adminDeleteChapter_Unauthenticated_Returns401() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when chapter not found")
+        void adminDeleteChapter_ChapterNotFound_Returns404() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            doThrow(new ResourceNotFoundException("Chapter not found"))
+                    .when(chapterService).adminDeleteChapter(eq(chapterUuid));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isNotFound());
+
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+        }
+
+        @Test
+        @DisplayName("Should not require userId parameter - bypasses ownership check")
+        void adminDeleteChapter_NoUserIdRequired_Returns200() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            doNothing().when(chapterService).adminDeleteChapter(eq(chapterUuid));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Chapter deleted successfully by admin"));
+
+            // Verify service method is called without userId
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+            verify(chapterService, never()).deleteChapter(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should handle multiple admin delete requests")
+        void adminDeleteChapter_MultipleRequests_Returns200() throws Exception {
+            // Given
+            UUID chapterUuid1 = UUID.randomUUID();
+            UUID chapterUuid2 = UUID.randomUUID();
+            UUID chapterUuid3 = UUID.randomUUID();
+
+            doNothing().when(chapterService).adminDeleteChapter(any(UUID.class));
+
+            // When & Then - First deletion
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid1)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Second deletion
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid2)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Third deletion
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid3)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            verify(chapterService, times(3)).adminDeleteChapter(any(UUID.class));
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid1));
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid2));
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid3));
+        }
+    }
+
+    @Nested
+    @DisplayName("DELETE /api/chapters/admin/novel/{novelId} - Admin Delete All Chapters by Novel ID")
+    class AdminDeleteChaptersByNovelIdTests {
+
+        @Test
+        @DisplayName("Should delete all chapters successfully as ADMIN")
+        void adminDeleteChaptersByNovelId_AsAdmin_Returns200() throws Exception {
+            // Given
+            Integer novelId = 1;
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(ErrorCode.SUCCESS.getCode()))
+                    .andExpect(jsonPath("$.message").value("All chapters deleted successfully by admin"));
+
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+
+        @Test
+        @DisplayName("Should return 401 when AUTHOR tries to use admin delete all")
+        void adminDeleteChaptersByNovelId_AsAuthor_Returns401() throws Exception {
+            // Given
+            Integer novelId = 1;
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("author@example.com").roles("AUTHOR")))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 401 when USER tries to use admin delete all")
+        void adminDeleteChaptersByNovelId_AsUser_Returns401() throws Exception {
+            // Given
+            Integer novelId = 1;
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("user@example.com").roles("USER")))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 401 when unauthenticated")
+        void adminDeleteChaptersByNovelId_Unauthenticated_Returns401() throws Exception {
+            // Given
+            Integer novelId = 1;
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId))
+                    .andExpect(status().isUnauthorized());
+
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Should return 404 when novel not found")
+        void adminDeleteChaptersByNovelId_NovelNotFound_Returns404() throws Exception {
+            // Given
+            Integer novelId = 999;
+            doThrow(new ResourceNotFoundException("Novel not found"))
+                    .when(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isNotFound());
+
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+
+        @Test
+        @DisplayName("Should not require userId parameter - bypasses ownership check")
+        void adminDeleteChaptersByNovelId_NoUserIdRequired_Returns200() throws Exception {
+            // Given
+            Integer novelId = 1;
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("All chapters deleted successfully by admin"));
+
+            // Verify service method is called without userId
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+            verify(chapterService, never()).deleteChaptersByNovelId(any(), any());
+        }
+
+        @Test
+        @DisplayName("Should handle deletion of different novels")
+        void adminDeleteChaptersByNovelId_DifferentNovels_Returns200() throws Exception {
+            // Given
+            Integer novelId1 = 1;
+            Integer novelId2 = 2;
+            Integer novelId3 = 3;
+
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(any(Integer.class));
+
+            // When & Then - Delete chapters from first novel
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId1)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Delete chapters from second novel
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId2)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Delete chapters from third novel
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId3)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            verify(chapterService, times(3)).adminDeleteChaptersByNovelId(any(Integer.class));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId1));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId2));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId3));
+        }
+
+        @Test
+        @DisplayName("Should handle archived novel deletion attempt")
+        void adminDeleteChaptersByNovelId_ArchivedNovel_Returns404() throws Exception {
+            // Given
+            Integer novelId = 5;
+            doThrow(new ResourceNotFoundException("Novel not found"))
+                    .when(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isNotFound());
+
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+
+        @Test
+        @DisplayName("Should successfully delete when novel has no chapters")
+        void adminDeleteChaptersByNovelId_NoChapters_Returns200() throws Exception {
+            // Given
+            Integer novelId = 10;
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+
+            // When & Then
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("All chapters deleted successfully by admin"));
+
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+
+        @Test
+        @DisplayName("Should accept various novel ID formats")
+        void adminDeleteChaptersByNovelId_VariousIds_Returns200() throws Exception {
+            // Given
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(any(Integer.class));
+
+            // When & Then - Test with ID 1
+            mockMvc.perform(delete("/api/chapters/admin/novel/1")
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Test with large ID
+            mockMvc.perform(delete("/api/chapters/admin/novel/999999")
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(1));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(999999));
+        }
+    }
+
+    @Nested
+    @DisplayName("Admin Endpoints - Security and Authorization Tests")
+    class AdminEndpointsSecurityTests {
+
+        @Test
+        @DisplayName("Admin endpoints should be separate from author endpoints")
+        void adminEndpoints_SeparateFromAuthorEndpoints_DifferentPaths() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            Integer novelId = 1;
+
+            // When & Then - Verify admin paths are different from author paths
+            // Admin single delete
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Admin bulk delete
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            // Verify the methods are called correctly
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+
+        @Test
+        @DisplayName("Should enforce ADMIN role strictly")
+        void adminEndpoints_StrictRoleEnforcement_OnlyAdmin() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+
+            // When & Then - Test all non-admin roles
+            String[] nonAdminRoles = {"USER", "AUTHOR", "MODERATOR", "GUEST"};
+
+            for (String role : nonAdminRoles) {
+                mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                                .with(user("user@example.com").roles(role)))
+                        .andExpect(status().isUnauthorized());
+            }
+
+            // Verify service is never called for non-admin roles
+            verifyNoInteractions(chapterService);
+        }
+
+        @Test
+        @DisplayName("Admin can delete chapters from any author")
+        void adminEndpoints_CanDeleteAnyAuthorsChapters_Success() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            doNothing().when(chapterService).adminDeleteChapter(eq(chapterUuid));
+
+            // When & Then - Admin deletes without author check
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.message").value("Chapter deleted successfully by admin"));
+
+            // Verify no userId was passed (bypasses ownership check)
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+        }
+
+        @Test
+        @DisplayName("Both admin endpoints should work independently")
+        void adminEndpoints_BothWorkIndependently_Success() throws Exception {
+            // Given
+            UUID chapterUuid = UUID.randomUUID();
+            Integer novelId = 1;
+
+            doNothing().when(chapterService).adminDeleteChapter(any(UUID.class));
+            doNothing().when(chapterService).adminDeleteChaptersByNovelId(any(Integer.class));
+
+            // When & Then - Use both endpoints
+            mockMvc.perform(delete("/api/chapters/admin/{uuid}", chapterUuid)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            mockMvc.perform(delete("/api/chapters/admin/novel/{novelId}", novelId)
+                            .with(user("admin@example.com").roles("ADMIN")))
+                    .andExpect(status().isOk());
+
+            verify(chapterService).adminDeleteChapter(eq(chapterUuid));
+            verify(chapterService).adminDeleteChaptersByNovelId(eq(novelId));
+        }
+    }
 }
