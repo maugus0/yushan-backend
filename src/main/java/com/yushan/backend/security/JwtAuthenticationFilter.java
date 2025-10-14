@@ -67,6 +67,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                         CustomUserDetailsService.CustomUserDetails userDetails = 
                             new CustomUserDetailsService.CustomUserDetails(user);
                         
+                        // 5.5. Check if user is enabled (not suspended/banned)
+                        if (!userDetails.isEnabled()) {
+                            // User is disabled, don't authenticate
+                            filterChain.doFilter(request, response);
+                            return;
+                        }
+                        
                         // 6. Create authentication object
                         UsernamePasswordAuthenticationToken authentication = 
                             new UsernamePasswordAuthenticationToken(

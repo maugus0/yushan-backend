@@ -82,8 +82,8 @@ public class UserService {
                 toUpdate.setAvatarUrl(req.getGender().getAvatarUrl());
             }
         }
-        if (req.getAvatarUrl() != null && !req.getAvatarUrl().trim().isEmpty()) {
-            toUpdate.setAvatarUrl(req.getAvatarUrl().trim());
+        if (req.getAvatarBase64() != null && !req.getAvatarBase64().trim().isEmpty()) {
+            toUpdate.setAvatarUrl(convertBase64ToUrl(req.getAvatarBase64()));
         }
         if (req.getProfileDetail() != null && !req.getProfileDetail().trim().isEmpty()) {
             toUpdate.setProfileDetail(req.getProfileDetail().trim());
@@ -147,6 +147,21 @@ public class UserService {
             return null;
         }
         return user.getUsername();
+    }
+
+    /**
+     * Convert Base64 data URL to a regular URL
+     * For now, this is a placeholder implementation that returns the Base64 data as-is
+     * In a real application, you would save the image to a file storage service
+     * and return the public URL
+     */
+    private String convertBase64ToUrl(String base64DataUrl) {
+        // For now, we'll store the Base64 data directly as the URL
+        // In production, you should:
+        // 1. Extract the image data from the Base64 string
+        // 2. Save it to a file storage service (AWS S3, Google Cloud Storage, etc.)
+        // 3. Return the public URL
+        return base64DataUrl;
     }
 }
 

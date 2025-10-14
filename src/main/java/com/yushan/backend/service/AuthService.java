@@ -126,6 +126,14 @@ public class AuthService {
     public User login(String email, String password) {
         User user = userMapper.selectByEmail(email);
         if (user != null && BCrypt.checkpw(password, user.getHashPassword())) {
+            // Check if user is suspended or banned
+            UserStatus status = UserStatus.fromCode(user.getStatus());
+            if (status == UserStatus.SUSPENDED) {
+                throw new ValidationException("Account is suspended. Please contact support.");
+            }
+            if (status == UserStatus.BANNED) {
+                throw new ValidationException("Account is banned. Please contact support.");
+            }
             return user;
         }
         else {

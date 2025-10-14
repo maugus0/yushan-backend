@@ -301,7 +301,6 @@ public class CommentController {
     public ApiResponse<List<CommentResponseDTO>> getUserCommentsAdmin(
             @PathVariable String userId,
             Authentication authentication) {
-        UUID currentUserId = getUserIdFromAuthentication(authentication);
         UUID targetUserId = UUID.fromString(userId);
         List<CommentResponseDTO> comments = commentService.getUserComments(targetUserId);
         return ApiResponse.success("User comments retrieved successfully", comments);

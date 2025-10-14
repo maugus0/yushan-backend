@@ -488,7 +488,7 @@ public class NovelIntegrationTest {
         authorUser.setHashPassword(passwordEncoder.encode("password123"));
         authorUser.setEmailVerified(true);
         authorUser.setAvatarUrl("https://example.com/avatar.jpg");
-        authorUser.setStatus(1); // Active status
+        authorUser.setStatus(0); // Active status
         authorUser.setGender(1);
         authorUser.setCreateTime(new Date());
         authorUser.setUpdateTime(new Date());
@@ -511,7 +511,7 @@ public class NovelIntegrationTest {
         regularUser.setHashPassword(passwordEncoder.encode("password123"));
         regularUser.setEmailVerified(true);
         regularUser.setAvatarUrl("https://example.com/avatar.jpg");
-        regularUser.setStatus(1); // Active status
+        regularUser.setStatus(0); // Active status
         regularUser.setGender(1);
         regularUser.setCreateTime(new Date());
         regularUser.setUpdateTime(new Date());
@@ -542,7 +542,7 @@ public class NovelIntegrationTest {
         user.setHashPassword(passwordEncoder.encode("password123"));
         user.setEmailVerified(true);
         user.setAvatarUrl("https://example.com/avatar.jpg");
-        user.setStatus(1); // Active status
+        user.setStatus(0); // Active status
         user.setGender(1);
         user.setCreateTime(new Date());
         user.setUpdateTime(new Date());

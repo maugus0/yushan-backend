@@ -3,12 +3,15 @@ package com.yushan.backend.enums;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Locale;
+import java.util.Properties;
 
 public enum Gender {
-    UNKNOWN(0, "user.png"),
-    MALE(1, "user_male.png"),
-    FEMALE(2, "user_female.png");
+    UNKNOWN(0, getAvatarUrl("avatar.unknown", "user.png")),
+    MALE(1, getAvatarUrl("avatar.male", "user_male.png")),
+    FEMALE(2, getAvatarUrl("avatar.female", "user_female.png"));
 
     private final int code;
     private final String avatarUrl;
@@ -62,5 +65,19 @@ public enum Gender {
             }
         }
         return false;
+    }
+
+    private static String getAvatarUrl(String key, String defaultValue) {
+        try (InputStream input = Gender.class.getClassLoader()
+                .getResourceAsStream("avatar-base64.properties")) {
+            if (input != null) {
+                Properties props = new Properties();
+                props.load(input);
+                return props.getProperty(key, defaultValue);
+            }
+        } catch (IOException e) {
+            // Log error if needed
+        }
+        return defaultValue;
     }
 }

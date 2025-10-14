@@ -455,15 +455,11 @@ public class CommentService {
         // Get most active user
         Comment mostActiveUserComment = commentMapper.selectMostActiveUser();
         if (mostActiveUserComment != null) {
-            try {
-                String username = userService.getUsernameById(mostActiveUserComment.getUserId());
-                stats.setMostActiveUsername(username);
-                stats.setMostActiveUserCommentCount(
-                        commentMapper.countCommentsByUser(mostActiveUserComment.getUserId())
-                );
-            } catch (Exception e) {
-                stats.setMostActiveUsername("Unknown");
-            }
+            String username = userService.getUsernameById(mostActiveUserComment.getUserId());
+            stats.setMostActiveUsername(username != null ? username : "Unknown");
+            stats.setMostActiveUserCommentCount(
+                    commentMapper.countCommentsByUser(mostActiveUserComment.getUserId())
+            );
         }
 
         // Get most commented chapter

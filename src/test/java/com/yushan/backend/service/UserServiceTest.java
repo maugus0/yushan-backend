@@ -88,7 +88,7 @@ public class UserServiceTest {
 
         UserProfileUpdateRequestDTO req = new UserProfileUpdateRequestDTO();
         req.setUsername("newname");
-        req.setAvatarUrl("new.png");
+        req.setAvatarBase64("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==");
         req.setProfileDetail("new profile");
         req.setGender(Gender.FEMALE);
 
@@ -100,7 +100,7 @@ public class UserServiceTest {
         User updatedArg = captor.getValue();
         assertEquals(id, updatedArg.getUuid());
         assertEquals("newname", updatedArg.getUsername());
-        assertEquals("new.png", updatedArg.getAvatarUrl());
+        assertEquals("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==", updatedArg.getAvatarUrl());
         assertEquals("new profile", updatedArg.getProfileDetail());
         assertEquals(2, updatedArg.getGender());
         assertNotNull(updatedArg.getUpdateTime());
