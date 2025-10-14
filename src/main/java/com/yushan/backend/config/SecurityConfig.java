@@ -116,7 +116,11 @@ public class SecurityConfig {
                 
                 // CORS preflight requests - allow OPTIONS for all endpoints
                 .requestMatchers(HttpMethod.OPTIONS, "/api/**").permitAll()
-                
+
+                // Category APIs - public read, admin write
+                .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
+                .requestMatchers("/api/categories/**").hasRole("ADMIN")
+
                 // Novel APIs
                 .requestMatchers(HttpMethod.POST, "/api/novels").hasAnyRole("AUTHOR","ADMIN")
                 .requestMatchers(HttpMethod.GET, "/api/novels").permitAll()
