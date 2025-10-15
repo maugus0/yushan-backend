@@ -46,7 +46,7 @@ public class RankingController {
             @RequestParam(value = "size", defaultValue = "50") Integer size,
             @RequestParam(value = "timeRange", defaultValue = "overall") String timeRange) {
         PageResponseDTO<UserProfileResponseDTO> response = rankingService.rankUser(page,size, timeRange);
-        return ApiResponse.success("Novels retrieved successfully", response);
+        return ApiResponse.success("Users retrieved successfully", response);
     }
 
     /**
@@ -64,7 +64,7 @@ public class RankingController {
             @RequestParam(value = "sortType", defaultValue = "vote") String sortType,
             @RequestParam(value = "timeRange", defaultValue = "overall") String timeRange) {
         PageResponseDTO<AuthorResponseDTO> response = rankingService.rankAuthor(page,size, sortType, timeRange);
-        return ApiResponse.success("Novels retrieved successfully", response);
+        return ApiResponse.success("Authors retrieved successfully", response);
     }
 
     @GetMapping("/novel/{novelId}/rank")
