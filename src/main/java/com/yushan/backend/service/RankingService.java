@@ -188,12 +188,17 @@ public class RankingService {
     private NovelDetailResponseDTO convertToNovelDetailResponseDTO(Novel novel, Map<Integer, String> categoryMap) {
         NovelDetailResponseDTO dto = new NovelDetailResponseDTO();
         dto.setId(novel.getId());
+        dto.setUuid(novel.getUuid());
         dto.setTitle(novel.getTitle());
+        dto.setAuthorId(novel.getAuthorId());
+        dto.setAuthorUsername(novel.getAuthorName());
+        dto.setAvgRating(novel.getAvgRating());
         dto.setViewCnt(novel.getViewCnt());
         dto.setVoteCnt(novel.getVoteCnt());
         dto.setCoverImgUrl(novel.getCoverImgUrl());
         dto.setCategoryId(novel.getCategoryId());
         dto.setSynopsis(novel.getSynopsis());
+        dto.setIsCompleted(novel.getIsCompleted());
         if (novel.getCategoryId() != null) {
             dto.setCategoryName(categoryMap.get(novel.getCategoryId()));
         }
