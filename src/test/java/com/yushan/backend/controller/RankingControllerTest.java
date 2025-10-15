@@ -61,7 +61,7 @@ class RankingControllerTest {
         mockMvc.perform(get("/api/ranking/user")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Novels retrieved successfully"));
+                .andExpect(jsonPath("$.message").value("Users retrieved successfully"));
     }
 
     @Test
@@ -75,7 +75,7 @@ class RankingControllerTest {
         mockMvc.perform(get("/api/ranking/author")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.message").value("Novels retrieved successfully"));
+                .andExpect(jsonPath("$.message").value("Authors retrieved successfully"));
     }
 
     @Test
