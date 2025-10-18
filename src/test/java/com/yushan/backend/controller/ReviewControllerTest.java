@@ -114,4 +114,72 @@ class ReviewControllerTest {
         
         verify(reviewService).getUserReviews(userId);
     }
+
+    // ========================================
+    // LIKE FUNCTIONALITY TESTS
+    // ========================================
+
+    @Test
+    void likeReview_Success() {
+        // Given
+        Integer reviewId = 1;
+        CustomUserDetails userDetails = mock(CustomUserDetails.class);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userDetails.getUserId()).thenReturn(userId.toString());
+        
+        ReviewResponseDTO likedResponse = new ReviewResponseDTO();
+        likedResponse.setId(reviewId);
+        likedResponse.setContent("Great novel!");
+        likedResponse.setRating(5);
+        likedResponse.setUsername("testuser");
+        likedResponse.setNovelTitle("Test Novel");
+        likedResponse.setLikeCnt(1);
+        
+        when(reviewService.toggleLike(reviewId, userId, true)).thenReturn(likedResponse);
+
+        // When
+        ApiResponse<ReviewResponseDTO> response = 
+            reviewController.likeReview(reviewId, authentication);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals("Review liked successfully", response.getMessage());
+        assertEquals(likedResponse, response.getData());
+        assertEquals(1, response.getData().getLikeCnt());
+        
+        verify(reviewService).toggleLike(reviewId, userId, true);
+    }
+
+    @Test
+    void unlikeReview_Success() {
+        // Given
+        Integer reviewId = 1;
+        CustomUserDetails userDetails = mock(CustomUserDetails.class);
+        when(authentication.getPrincipal()).thenReturn(userDetails);
+        when(userDetails.getUserId()).thenReturn(userId.toString());
+        
+        ReviewResponseDTO unlikedResponse = new ReviewResponseDTO();
+        unlikedResponse.setId(reviewId);
+        unlikedResponse.setContent("Great novel!");
+        unlikedResponse.setRating(5);
+        unlikedResponse.setUsername("testuser");
+        unlikedResponse.setNovelTitle("Test Novel");
+        unlikedResponse.setLikeCnt(0);
+        
+        when(reviewService.toggleLike(reviewId, userId, false)).thenReturn(unlikedResponse);
+
+        // When
+        ApiResponse<ReviewResponseDTO> response = 
+            reviewController.unlikeReview(reviewId, authentication);
+
+        // Then
+        assertNotNull(response);
+        assertEquals(200, response.getCode());
+        assertEquals("Review unliked successfully", response.getMessage());
+        assertEquals(unlikedResponse, response.getData());
+        assertEquals(0, response.getData().getLikeCnt());
+        
+        verify(reviewService).toggleLike(reviewId, userId, false);
+    }
 }

@@ -219,19 +219,26 @@ public class ReviewService {
     }
 
     /**
-     * Like or unlike a review
+     * Toggle like on a review (increment or decrement like count)
+     * In a real application, you would need a separate table to track user likes
      */
     @Transactional
-    public boolean toggleLike(Integer reviewId) {
+    public ReviewResponseDTO toggleLike(Integer reviewId, UUID currentUserId, boolean isLiking) {
         Review review = reviewMapper.selectByPrimaryKey(reviewId);
         if (review == null) {
             throw new ResourceNotFoundException("Review not found");
         }
 
-        // For now, just increment like count
-        // In a real application, you would need a separate table to track user likes
-        int result = reviewMapper.updateLikeCount(reviewId, 1);
-        return result > 0;
+        // Increment or decrement like count
+        int increment = isLiking ? 1 : -1;
+        int result = reviewMapper.updateLikeCount(reviewId, increment);
+
+        if (result > 0) {
+            // Fetch updated review
+            review = reviewMapper.selectByPrimaryKey(reviewId);
+        }
+
+        return toResponseDTO(review);
     }
 
     /**
