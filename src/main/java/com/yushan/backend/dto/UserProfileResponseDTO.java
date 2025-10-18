@@ -26,6 +26,7 @@ public class UserProfileResponseDTO {
     private Boolean isAdmin;
     private Integer level;
     private Float exp;
+    private Float yuan;
     private Float readTime;
     private Integer readBookNum;
 

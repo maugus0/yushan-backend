@@ -180,6 +180,7 @@ public class RankingService {
         dto.setUuid(user.getUuid().toString());
         dto.setUsername(user.getUsername());
         dto.setExp(user.getExp());
+        dto.setYuan(user.getYuan());
         dto.setLevel(user.getLevel());
         dto.setAvatarUrl(user.getAvatarUrl());
         return dto;
