@@ -281,19 +281,19 @@
       </if>
             <if test="req.status != null and req.status != ''">
               <choose>
-                <when test="req.status == 'DRAFT'">
+                <when test="req.status.toUpperCase() == 'DRAFT'">
                   and status = 0
                 </when>
-                <when test="req.status == 'UNDER_REVIEW'">
+                <when test="req.status.toUpperCase() == 'UNDER_REVIEW'">
                   and status = 1
                 </when>
-                <when test="req.status == 'PUBLISHED'">
+                <when test="req.status.toUpperCase() == 'PUBLISHED'">
                   and status = 2
                 </when>
-                <when test="req.status == 'HIDDEN'">
+                <when test="req.status.toUpperCase() == 'HIDDEN'">
                   and status = 3
                 </when>
-                <when test="req.status == 'ARCHIVED'">
+                <when test="req.status.toUpperCase() == 'ARCHIVED'">
                   and status = 4
                 </when>
               </choose>
@@ -317,16 +317,16 @@
       </if>
       <if test="req.status != null and req.status != ''">
         <choose>
-          <when test="req.status == 'DRAFT'">
+          <when test="req.status.toUpperCase() == 'DRAFT'">
             and status = 0
           </when>
-          <when test="req.status == 'UNDER_REVIEW'">
+          <when test="req.status.toUpperCase() == 'UNDER_REVIEW'">
             and status = 1
           </when>
-          <when test="req.status == 'PUBLISHED'">
+          <when test="req.status.toUpperCase() == 'PUBLISHED'">
             and status = 2
           </when>
-          <when test="req.status == 'HIDDEN'">
+          <when test="req.status.toUpperCase() == 'HIDDEN'">
             and status = 3
           </when>
         </choose>
