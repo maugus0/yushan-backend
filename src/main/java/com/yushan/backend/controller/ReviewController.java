@@ -114,12 +114,23 @@ public class ReviewController {
      */
     @PostMapping("/{id}/like")
     @PreAuthorize("hasAnyRole('USER','AUTHOR','ADMIN')")
-    public ApiResponse<String> likeReview(@PathVariable Integer id) {
-        boolean liked = reviewService.toggleLike(id);
-        if (liked) {
-            return ApiResponse.success("Review liked successfully");
-        }
-        return ApiResponse.error(400, "Failed to like review");
+    public ApiResponse<ReviewResponseDTO> likeReview(@PathVariable Integer id,
+                                                    Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        ReviewResponseDTO dto = reviewService.toggleLike(id, userId, true);
+        return ApiResponse.success("Review liked successfully", dto);
+    }
+
+    /**
+     * Unlike a review (authenticated users only)
+     */
+    @PostMapping("/{id}/unlike")
+    @PreAuthorize("hasAnyRole('USER','AUTHOR','ADMIN')")
+    public ApiResponse<ReviewResponseDTO> unlikeReview(@PathVariable Integer id,
+                                                      Authentication authentication) {
+        UUID userId = getUserIdFromAuthentication(authentication);
+        ReviewResponseDTO dto = reviewService.toggleLike(id, userId, false);
+        return ApiResponse.success("Review unliked successfully", dto);
     }
 
     /**

@@ -121,4 +121,56 @@ class ReviewServiceTest {
         assertThrows(ResourceNotFoundException.class, () -> 
             reviewService.getReview(1));
     }
+
+    // ========================================
+    // LIKE FUNCTIONALITY TESTS
+    // ========================================
+
+    @Test
+    void toggleLike_LikeReview_Success() {
+        // Arrange
+        Integer reviewId = 1;
+        when(reviewMapper.selectByPrimaryKey(reviewId)).thenReturn(review);
+        when(reviewMapper.updateLikeCount(reviewId, 1)).thenReturn(1);
+        when(userService.getUsernameById(userId)).thenReturn("testuser");
+        when(novelService.getNovel(novelId)).thenReturn(mock(com.yushan.backend.dto.NovelDetailResponseDTO.class));
+
+        // Act
+        ReviewResponseDTO result = reviewService.toggleLike(reviewId, userId, true);
+
+        // Assert
+        assertNotNull(result);
+        verify(reviewMapper).updateLikeCount(reviewId, 1);
+    }
+
+    @Test
+    void toggleLike_UnlikeReview_Success() {
+        // Arrange
+        Integer reviewId = 1;
+        when(reviewMapper.selectByPrimaryKey(reviewId)).thenReturn(review);
+        when(reviewMapper.updateLikeCount(reviewId, -1)).thenReturn(1);
+        when(userService.getUsernameById(userId)).thenReturn("testuser");
+        when(novelService.getNovel(novelId)).thenReturn(mock(com.yushan.backend.dto.NovelDetailResponseDTO.class));
+
+        // Act
+        ReviewResponseDTO result = reviewService.toggleLike(reviewId, userId, false);
+
+        // Assert
+        assertNotNull(result);
+        verify(reviewMapper).updateLikeCount(reviewId, -1);
+    }
+
+    @Test
+    void toggleLike_ReviewNotFound_ThrowsException() {
+        // Arrange
+        Integer reviewId = 1;
+        when(reviewMapper.selectByPrimaryKey(reviewId)).thenReturn(null);
+
+        // Act & Assert
+        ResourceNotFoundException exception = assertThrows(
+                ResourceNotFoundException.class,
+                () -> reviewService.toggleLike(reviewId, userId, true)
+        );
+        assertEquals("Review not found", exception.getMessage());
+    }
 }
