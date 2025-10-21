@@ -272,38 +272,40 @@
     where id = #{id,jdbcType=INTEGER}
   </update>
 
-  <!-- Common WHERE clause for filtering -->
+  <!-- Common WHERE clause for filtering (Admin - includes ARCHIVED novels) -->
   <sql id="Novel_Where">
     <where>
-      status != 4  <!-- Exclude ARCHIVED novels (NovelStatus.ARCHIVED = 4) -->
       <if test="req.categoryId != null and req.categoryId > 0">
-        and category_id = #{req.categoryId,jdbcType=INTEGER}
+        category_id = #{req.categoryId,jdbcType=INTEGER}
       </if>
-            <if test="req.status != null and req.status != ''">
-              <choose>
-                <when test="req.status.toUpperCase() == 'DRAFT'">
-                  and status = 0
-                </when>
-                <when test="req.status.toUpperCase() == 'UNDER_REVIEW'">
-                  and status = 1
-                </when>
-                <when test="req.status.toUpperCase() == 'PUBLISHED'">
-                  and status = 2
-                </when>
-                <when test="req.status.toUpperCase() == 'HIDDEN'">
-                  and status = 3
-                </when>
-                <when test="req.status.toUpperCase() == 'ARCHIVED'">
-                  and status = 4
-                </when>
-              </choose>
-            </if>
+      <if test="req.status != null and req.status != ''">
+        <choose>
+          <when test="req.status.toUpperCase() == 'DRAFT'">
+            and status = 0
+          </when>
+          <when test="req.status.toUpperCase() == 'UNDER_REVIEW'">
+            and status = 1
+          </when>
+          <when test="req.status.toUpperCase() == 'PUBLISHED'">
+            and status = 2
+          </when>
+          <when test="req.status.toUpperCase() == 'HIDDEN'">
+            and status = 3
+          </when>
+          <when test="req.status.toUpperCase() == 'ARCHIVED'">
+            and status = 4
+          </when>
+        </choose>
+      </if>
       <if test="req.search != null and req.search != ''">
         <bind name="searchPattern" value="'%' + req.search + '%'" />
         and (title ILIKE #{searchPattern} or synopsis ILIKE #{searchPattern})
       </if>
       <if test="req.authorName != null and req.authorName != ''">
         and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
+      </if>
+      <if test="req.authorId != null and req.authorId != ''">
+        and author_id = #{req.authorId,jdbcType=OTHER}::uuid
       </if>
     </where>
   </sql>
@@ -338,9 +340,9 @@
       <if test="req.authorName != null and req.authorName != ''">
         and author_name ILIKE CONCAT('%', #{req.authorName}, '%')
       </if>
-        <if test="req.authorId != null and req.authorId != ''">
-          and author_id = #{req.authorId,jdbcType=OTHER}::uuid
-        </if>
+      <if test="req.authorId != null and req.authorId != ''">
+        and author_id = #{req.authorId,jdbcType=OTHER}::uuid
+      </if>
     </where>
   </sql>
 
