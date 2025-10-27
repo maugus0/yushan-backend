@@ -619,14 +619,54 @@
     </select>
 
     <select id="getHourlyActiveUsers" resultType="com.yushan.backend.dto.DailyActiveUsersResponseDTO$ActivityDataPoint">
+        WITH hourly_activity AS (
+            -- History: Count actual reading sessions
+            SELECT 
+                EXTRACT(HOUR FROM create_time) as hour,
+                user_id,
+                COUNT(*) as session_count
+            FROM history 
+            WHERE DATE(create_time) = #{date}
+            GROUP BY EXTRACT(HOUR FROM create_time), user_id
+            
+            UNION ALL
+            
+            -- Comment, Review, Vote: Count users only, no session count
+            SELECT 
+                EXTRACT(HOUR FROM create_time) as hour,
+                user_id,
+                0 as session_count
+            FROM comment 
+            WHERE DATE(create_time) = #{date}
+            GROUP BY EXTRACT(HOUR FROM create_time), user_id
+            
+            UNION ALL
+            
+            SELECT 
+                EXTRACT(HOUR FROM create_time) as hour,
+                user_id,
+                0 as session_count
+            FROM review 
+            WHERE DATE(create_time) = #{date}
+            GROUP BY EXTRACT(HOUR FROM create_time), user_id
+            
+            UNION ALL
+            
+            SELECT 
+                EXTRACT(HOUR FROM create_time) as hour,
+                user_id,
+                0 as session_count
+            FROM vote 
+            WHERE DATE(create_time) = #{date}
+            GROUP BY EXTRACT(HOUR FROM create_time), user_id
+        )
         SELECT 
-            EXTRACT(HOUR FROM create_time) as hour,
+            hour,
             COUNT(DISTINCT user_id) as activeUsers,
-            COUNT(CASE WHEN DATE(create_time) = #{date} THEN 1 END) as newUsers,
-            COUNT(*) as readingSessions
-        FROM history 
-        WHERE DATE(create_time) = #{date}
-        GROUP BY EXTRACT(HOUR FROM create_time)
+            0 as newUsers,
+            SUM(session_count) as readingSessions
+        FROM hourly_activity
+        GROUP BY hour
         ORDER BY hour
     </select>
 

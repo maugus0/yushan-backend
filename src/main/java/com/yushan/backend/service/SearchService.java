@@ -157,6 +157,10 @@ public class SearchService {
     private UserProfileResponseDTO convertToUserDTO(User user) {
         UserProfileResponseDTO dto = new UserProfileResponseDTO();
         BeanUtils.copyProperties(user, dto);
+        // Explicitly convert UUID to String
+        if (user.getUuid() != null) {
+            dto.setUuid(user.getUuid().toString());
+        }
         return dto;
     }
 }
