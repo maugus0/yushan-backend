@@ -14,50 +14,66 @@ import static org.junit.jupiter.api.Assertions.*;
 class CommentDTOTest {
 
     @Test
-    @DisplayName("Test CommentCreateRequestDTO")
-    void testCommentCreateRequestDTO() {
+    @DisplayName("Test CommentCreateRequestDTO - No args constructor")
+    void testCommentCreateRequestDTONoArgsConstructor() {
         CommentCreateRequestDTO dto = new CommentCreateRequestDTO();
-        dto.setChapterId(1);
-        dto.setContent("Great chapter!");
-        dto.setIsSpoiler(false);
+        assertNotNull(dto);
+        assertNull(dto.getChapterId());
+        assertNull(dto.getContent());
+        assertEquals(false, dto.getIsSpoiler()); // Default value
+    }
+    
+    @Test
+    @DisplayName("Test CommentCreateRequestDTO - Getter and Setter")
+    void testCommentCreateRequestDTOGetterSetter() {
+        CommentCreateRequestDTO dto = new CommentCreateRequestDTO();
         
+        // Test chapterId setter and getter
+        dto.setChapterId(1);
         assertEquals(1, dto.getChapterId());
+        
+        dto.setChapterId(100);
+        assertEquals(100, dto.getChapterId());
+        
+        // Test content setter and getter
+        dto.setContent("Great chapter!");
         assertEquals("Great chapter!", dto.getContent());
+        
+        dto.setContent("Another comment");
+        assertEquals("Another comment", dto.getContent());
+        
+        // Test isSpoiler setter and getter
+        dto.setIsSpoiler(false);
         assertFalse(dto.getIsSpoiler());
         
-        // Test default isSpoiler value
-        CommentCreateRequestDTO dto2 = new CommentCreateRequestDTO();
-        dto2.setChapterId(2);
-        dto2.setContent("Another comment");
-        assertEquals(2, dto2.getChapterId());
-        assertEquals("Another comment", dto2.getContent());
-        assertFalse(dto2.getIsSpoiler()); // Default should be false
+        dto.setIsSpoiler(true);
+        assertTrue(dto.getIsSpoiler());
         
-        // Test with null isSpoiler (should default to false in field declaration)
-        CommentCreateRequestDTO dto3 = new CommentCreateRequestDTO();
-        dto3.setChapterId(3);
-        dto3.setContent("Another comment");
-        dto3.setIsSpoiler(null);
-        assertEquals(3, dto3.getChapterId());
-        assertEquals("Another comment", dto3.getContent());
-        assertNull(dto3.getIsSpoiler()); // Can be null when explicitly set
+        dto.setIsSpoiler(null);
+        assertNull(dto.getIsSpoiler());
         
-        // Test equals, hashCode, and canEqual methods
-        CommentCreateRequestDTO dto4 = new CommentCreateRequestDTO();
-        dto4.setChapterId(1);
-        dto4.setContent("Content");
-        dto4.setIsSpoiler(false);
+        // Test with different values
+        dto.setChapterId(999);
+        dto.setContent("Long comment with many words");
+        dto.setIsSpoiler(false);
+        assertEquals(999, dto.getChapterId());
+        assertEquals("Long comment with many words", dto.getContent());
+        assertFalse(dto.getIsSpoiler());
+    }
+    
+    @Test
+    @DisplayName("Test CommentCreateRequestDTO - toString")
+    void testCommentCreateRequestDTOToString() {
+        CommentCreateRequestDTO dto = new CommentCreateRequestDTO();
+        dto.setChapterId(1);
+        dto.setContent("Test comment");
+        dto.setIsSpoiler(false);
         
-        CommentCreateRequestDTO dto5 = new CommentCreateRequestDTO();
-        dto5.setChapterId(1);
-        dto5.setContent("Content");
-        dto5.setIsSpoiler(false);
-        
-        assertEquals(dto4, dto5);
-        assertEquals(dto4.hashCode(), dto5.hashCode());
-        assertNotEquals(dto4, null);
-        assertEquals(dto4, dto4);
-        assertTrue(dto4.canEqual(dto5));
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CommentCreateRequestDTO"));
+        assertTrue(toString.contains("chapterId"));
+        assertTrue(toString.contains("content"));
     }
 
     @Test
@@ -74,45 +90,53 @@ class CommentDTOTest {
     }
 
     @Test
-    @DisplayName("Test CommentUpdateRequestDTO")
-    void testCommentUpdateRequestDTO() {
+    @DisplayName("Test CommentUpdateRequestDTO - Getter and Setter")
+    void testCommentUpdateRequestDTOGetterSetter() {
         CommentUpdateRequestDTO dto = new CommentUpdateRequestDTO();
-        dto.setContent("Updated comment");
-        dto.setIsSpoiler(false);
         
+        // Test content setter and getter
+        dto.setContent("Updated comment");
         assertEquals("Updated comment", dto.getContent());
+        
+        dto.setContent("Another updated comment");
+        assertEquals("Another updated comment", dto.getContent());
+        
+        // Test isSpoiler setter and getter
+        dto.setIsSpoiler(false);
         assertFalse(dto.getIsSpoiler());
         
-        // Test with null content (should handle gracefully)
-        CommentUpdateRequestDTO dto2 = new CommentUpdateRequestDTO();
-        dto2.setContent(null);
-        dto2.setIsSpoiler(null);
-        assertNull(dto2.getContent());
-        assertNull(dto2.getIsSpoiler());
+        dto.setIsSpoiler(true);
+        assertTrue(dto.getIsSpoiler());
         
-        // Test with empty content
-        dto2.setContent("");
-        assertEquals("", dto2.getContent());
+        dto.setIsSpoiler(null);
+        assertNull(dto.getIsSpoiler());
+        
+        // Test with null values
+        dto.setContent(null);
+        dto.setIsSpoiler(null);
+        assertNull(dto.getContent());
+        assertNull(dto.getIsSpoiler());
+        
+        // Test with empty string
+        dto.setContent("");
+        assertEquals("", dto.getContent());
         
         // Test with long content (max 2000)
         String longContent = "A".repeat(2000);
-        dto2.setContent(longContent);
-        assertEquals(2000, dto2.getContent().length());
+        dto.setContent(longContent);
+        assertEquals(2000, dto.getContent().length());
+    }
+    
+    @Test
+    @DisplayName("Test CommentUpdateRequestDTO - toString")
+    void testCommentUpdateRequestDTOToString() {
+        CommentUpdateRequestDTO dto = new CommentUpdateRequestDTO();
+        dto.setContent("Test content");
+        dto.setIsSpoiler(false);
         
-        // Test equals, hashCode, and canEqual methods
-        CommentUpdateRequestDTO dto3 = new CommentUpdateRequestDTO();
-        dto3.setContent("Updated");
-        dto3.setIsSpoiler(false);
-        
-        CommentUpdateRequestDTO dto4 = new CommentUpdateRequestDTO();
-        dto4.setContent("Updated");
-        dto4.setIsSpoiler(false);
-        
-        assertEquals(dto3, dto4);
-        assertEquals(dto3.hashCode(), dto4.hashCode());
-        assertNotEquals(dto3, null);
-        assertEquals(dto3, dto3);
-        assertTrue(dto3.canEqual(dto4));
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CommentUpdateRequestDTO"));
     }
 
     @Test
@@ -207,6 +231,51 @@ class CommentDTOTest {
     }
 
     @Test
+    @DisplayName("Test CommentSearchRequestDTO - equals, hashCode, canEqual")
+    void testCommentSearchRequestDTOEqualsHashCode() {
+        CommentSearchRequestDTO dto1 = new CommentSearchRequestDTO();
+        dto1.setChapterId(1);
+        dto1.setNovelId(10);
+        dto1.setUserId(UUID.randomUUID());
+        dto1.setIsSpoiler(true);
+        dto1.setSearch("test");
+        dto1.setSort("createTime");
+        dto1.setOrder("desc");
+        dto1.setPage(0);
+        dto1.setSize(20);
+        
+        CommentSearchRequestDTO dto2 = new CommentSearchRequestDTO();
+        dto2.setChapterId(1);
+        dto2.setNovelId(10);
+        dto2.setUserId(dto1.getUserId());
+        dto2.setIsSpoiler(true);
+        dto2.setSearch("test");
+        dto2.setSort("createTime");
+        dto2.setOrder("desc");
+        dto2.setPage(0);
+        dto2.setSize(20);
+        
+        assertEquals(dto1, dto2);
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertNotEquals(dto1, null);
+        assertEquals(dto1, dto1);
+        assertTrue(dto1.canEqual(dto2));
+        
+        // Test with different values
+        dto2.setChapterId(2);
+        assertNotEquals(dto1, dto2);
+        
+        dto2.setChapterId(1);
+        dto2.setIsSpoiler(false);
+        assertNotEquals(dto1, dto2);
+        
+        // Test toString
+        String toString = dto1.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CommentSearchRequestDTO"));
+    }
+
+    @Test
     @DisplayName("Test CommentSearchRequestDTO")
     void testCommentSearchRequestDTO() {
         CommentSearchRequestDTO dto = new CommentSearchRequestDTO();
@@ -270,6 +339,56 @@ class CommentDTOTest {
         assertEquals("desc", dto4.getOrder());
         assertEquals(0, dto4.getPage());
         assertEquals(30, dto4.getSize());
+    }
+
+    @Test
+    @DisplayName("Test CommentModerationStatsDTO - equals, hashCode, canEqual")
+    void testCommentModerationStatsDTOEqualsHashCode() {
+        CommentModerationStatsDTO dto1 = new CommentModerationStatsDTO();
+        dto1.setTotalComments(1000L);
+        dto1.setSpoilerComments(100L);
+        dto1.setNonSpoilerComments(900L);
+        dto1.setCommentsToday(50L);
+        dto1.setCommentsThisWeek(300L);
+        dto1.setCommentsThisMonth(1000L);
+        dto1.setAvgCommentsPerChapter(10.5);
+        dto1.setAvgCommentsPerUser(5.2);
+        dto1.setMostActiveUserId(123);
+        dto1.setMostActiveUsername("user123");
+        dto1.setMostActiveUserCommentCount(500L);
+        dto1.setMostCommentedChapterId(456);
+        dto1.setMostCommentedChapterTitle("Chapter 1");
+        dto1.setMostCommentedChapterCount(200L);
+        
+        CommentModerationStatsDTO dto2 = new CommentModerationStatsDTO();
+        dto2.setTotalComments(1000L);
+        dto2.setSpoilerComments(100L);
+        dto2.setNonSpoilerComments(900L);
+        dto2.setCommentsToday(50L);
+        dto2.setCommentsThisWeek(300L);
+        dto2.setCommentsThisMonth(1000L);
+        dto2.setAvgCommentsPerChapter(10.5);
+        dto2.setAvgCommentsPerUser(5.2);
+        dto2.setMostActiveUserId(123);
+        dto2.setMostActiveUsername("user123");
+        dto2.setMostActiveUserCommentCount(500L);
+        dto2.setMostCommentedChapterId(456);
+        dto2.setMostCommentedChapterTitle("Chapter 1");
+        dto2.setMostCommentedChapterCount(200L);
+        
+        assertEquals(dto1, dto2);
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertNotEquals(dto1, null);
+        assertEquals(dto1, dto1);
+        assertTrue(dto1.canEqual(dto2));
+        
+        // Test with different values
+        dto2.setTotalComments(2000L);
+        assertNotEquals(dto1, dto2);
+        
+        dto2.setTotalComments(1000L);
+        dto2.setMostActiveUserId(999);
+        assertNotEquals(dto1, dto2);
     }
 
     @Test
@@ -386,6 +505,64 @@ class CommentDTOTest {
     }
 
     @Test
+    @DisplayName("Test CommentStatisticsDTO - equals, hashCode, canEqual")
+    void testCommentStatisticsDTOEqualsHashCode() {
+        CommentStatisticsDTO dto1 = new CommentStatisticsDTO();
+        dto1.setChapterId(1);
+        dto1.setChapterTitle("Chapter 1");
+        dto1.setTotalComments(100L);
+        dto1.setSpoilerComments(20L);
+        dto1.setNonSpoilerComments(80L);
+        dto1.setAvgLikesPerComment(5);
+        dto1.setMostLikedCommentId(123);
+        
+        CommentStatisticsDTO dto2 = new CommentStatisticsDTO();
+        dto2.setChapterId(1);
+        dto2.setChapterTitle("Chapter 1");
+        dto2.setTotalComments(100L);
+        dto2.setSpoilerComments(20L);
+        dto2.setNonSpoilerComments(80L);
+        dto2.setAvgLikesPerComment(5);
+        dto2.setMostLikedCommentId(123);
+        
+        assertEquals(dto1, dto2);
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertNotEquals(dto1, null);
+        assertEquals(dto1, dto1);
+        assertTrue(dto1.canEqual(dto2));
+        
+        // Test with different values
+        dto2.setTotalComments(200L);
+        assertNotEquals(dto1, dto2);
+        
+        // Test toString
+        String toString = dto1.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CommentStatisticsDTO"));
+        
+        // Test with null values  
+        CommentStatisticsDTO dto3 = new CommentStatisticsDTO();
+        dto3.setChapterId(null);
+        dto3.setChapterTitle(null);
+        dto3.setTotalComments(50L);
+        dto3.setSpoilerComments(10L);
+        dto3.setNonSpoilerComments(40L);
+        dto3.setAvgLikesPerComment(null);
+        dto3.setMostLikedCommentId(null);
+        
+        CommentStatisticsDTO dto4 = new CommentStatisticsDTO();
+        dto4.setChapterId(null);
+        dto4.setChapterTitle(null);
+        dto4.setTotalComments(50L);
+        dto4.setSpoilerComments(10L);
+        dto4.setNonSpoilerComments(40L);
+        dto4.setAvgLikesPerComment(null);
+        dto4.setMostLikedCommentId(null);
+        
+        assertEquals(dto3, dto4);
+    }
+
+    @Test
     @DisplayName("Test CommentStatisticsDTO")
     void testCommentStatisticsDTO() {
         CommentStatisticsDTO dto = CommentStatisticsDTO.builder()
@@ -456,6 +633,49 @@ class CommentDTOTest {
         assertNotEquals(dto5, null);
         assertEquals(dto5, dto5);
         assertTrue(dto5.canEqual(dto6));
+    }
+
+    @Test
+    @DisplayName("Test CommentListResponseDTO - equals, hashCode, canEqual")
+    void testCommentListResponseDTOEqualsHashCode() {
+        CommentListResponseDTO dto1 = new CommentListResponseDTO();
+        dto1.setComments(Arrays.asList());
+        dto1.setTotalCount(100L);
+        dto1.setTotalPages(10);
+        dto1.setCurrentPage(1);
+        dto1.setPageSize(10);
+        
+        CommentListResponseDTO dto2 = new CommentListResponseDTO();
+        dto2.setComments(Arrays.asList());
+        dto2.setTotalCount(100L);
+        dto2.setTotalPages(10);
+        dto2.setCurrentPage(1);
+        dto2.setPageSize(10);
+        
+        assertEquals(dto1, dto2);
+        assertEquals(dto1.hashCode(), dto2.hashCode());
+        assertNotEquals(dto1, null);
+        assertEquals(dto1, dto1);
+        assertTrue(dto1.canEqual(dto2));
+        
+        // Test with different values
+        CommentListResponseDTO dto3 = new CommentListResponseDTO();
+        dto3.setTotalCount(200L);
+        dto3.setTotalPages(20);
+        assertNotEquals(dto1, dto3);
+        
+        // Test with null comments
+        dto1.setComments(null);
+        dto2.setComments(null);
+        assertEquals(dto1, dto2);
+        
+        dto1.setComments(Arrays.asList());
+        assertNotEquals(dto1, dto2);
+        
+        // Test toString
+        String toString = dto1.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CommentListResponseDTO"));
     }
 
     @Test

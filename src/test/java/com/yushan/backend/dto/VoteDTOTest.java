@@ -54,8 +54,16 @@ class VoteDTOTest {
     }
 
     @Test
-    @DisplayName("Test BatchRequestDTO")
-    void testBatchRequestDTO() {
+    @DisplayName("Test BatchRequestDTO - No args constructor")
+    void testBatchRequestDTONoArgs() {
+        BatchRequestDTO dto = new BatchRequestDTO();
+        assertNotNull(dto);
+        assertNull(dto.getIds());
+    }
+    
+    @Test
+    @DisplayName("Test BatchRequestDTO - Getter and Setter")
+    void testBatchRequestDTOGetterSetter() {
         BatchRequestDTO dto = new BatchRequestDTO();
         java.util.List<Integer> ids = new java.util.ArrayList<>(Arrays.asList(1, 2, 3));
         dto.setIds(ids);
@@ -73,9 +81,40 @@ class VoteDTOTest {
         java.util.List<Integer> retrieved = dto.getIds();
         assertNotSame(ids, retrieved);
         
+        // Test with different lists
+        java.util.List<Integer> ids2 = new java.util.ArrayList<>(Arrays.asList(10, 20, 30, 40));
+        dto.setIds(ids2);
+        assertEquals(4, dto.getIds().size());
+        assertEquals(10, dto.getIds().get(0));
+        
         // Test null
         dto.setIds(null);
         assertNull(dto.getIds());
+        
+        // Test with single element list
+        java.util.List<Integer> ids3 = new java.util.ArrayList<>(Arrays.asList(99));
+        dto.setIds(ids3);
+        assertEquals(1, dto.getIds().size());
+        assertEquals(99, dto.getIds().get(0));
+        
+        // Test with empty list
+        java.util.List<Integer> ids4 = new java.util.ArrayList<>();
+        dto.setIds(ids4);
+        assertNotNull(dto.getIds());
+        assertEquals(0, dto.getIds().size());
+    }
+    
+    @Test
+    @DisplayName("Test BatchRequestDTO - toString")
+    void testBatchRequestDTOToString() {
+        BatchRequestDTO dto = new BatchRequestDTO();
+        java.util.List<Integer> ids = new java.util.ArrayList<>(Arrays.asList(1, 2, 3));
+        dto.setIds(ids);
+        
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("BatchRequestDTO"));
+        assertTrue(toString.contains("ids"));
     }
 
     @Test

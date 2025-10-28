@@ -17,6 +17,7 @@ import org.springframework.web.context.WebApplicationContext;
 import java.util.Date;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -63,11 +64,11 @@ class IntegrationTest {
         // 4. All beans are created correctly
         
         // Verify essential beans are available
-        assert context != null : "WebApplicationContext should be available";
-        assert userMapper != null : "UserMapper should be available";
-        assert jwtUtil != null : "JwtUtil should be available";
-        assert passwordEncoder != null : "PasswordEncoder should be available";
-        assert redisUtil != null : "RedisUtil should be available";
+        assertNotNull(context, "WebApplicationContext should be available");
+        assertNotNull(userMapper, "UserMapper should be available");
+        assertNotNull(jwtUtil, "JwtUtil should be available");
+        assertNotNull(passwordEncoder, "PasswordEncoder should be available");
+        assertNotNull(redisUtil, "RedisUtil should be available");
     }
 
     @Test
@@ -99,8 +100,8 @@ class IntegrationTest {
         
         // Test database read
         User retrievedUser = userMapper.selectByEmail("basic-test@example.com");
-        assert retrievedUser != null : "Database connectivity should work";
-        assert retrievedUser.getEmail().equals("basic-test@example.com") : "Database data integrity should be maintained";
+        assertNotNull(retrievedUser, "Database connectivity should work");
+        assertEquals("basic-test@example.com", retrievedUser.getEmail(), "Database data integrity should be maintained");
     }
 
     @Test
@@ -112,8 +113,8 @@ class IntegrationTest {
         // Test Redis operations
         redisUtil.set(testKey, testValue);
         String retrievedValue = redisUtil.get(testKey);
-        assert retrievedValue != null : "Redis connectivity should work";
-        assert retrievedValue.equals(testValue) : "Redis data integrity should be maintained";
+        assertNotNull(retrievedValue, "Redis connectivity should work");
+        assertEquals(testValue, retrievedValue, "Redis data integrity should be maintained");
         
         // Cleanup
         redisUtil.delete(testKey);
@@ -133,17 +134,17 @@ class IntegrationTest {
         
         // Test JWT token generation
         String accessToken = jwtUtil.generateAccessToken(testUser);
-        assert accessToken != null : "JWT token generation should work";
-        assert !accessToken.isEmpty() : "JWT token should not be empty";
+        assertNotNull(accessToken, "JWT token generation should work");
+        assertFalse(accessToken.isEmpty(), "JWT token should not be empty");
         
         // Test JWT token validation
         boolean isValid = jwtUtil.validateToken(accessToken);
-        assert isValid : "JWT token validation should work";
+        assertTrue(isValid, "JWT token validation should work");
         
         // Test token claims extraction
         String email = jwtUtil.extractEmail(accessToken);
-        assert email != null : "JWT token claims extraction should work";
-        assert email.equals("jwt-test@example.com") : "JWT token claims should be correct";
+        assertNotNull(email, "JWT token claims extraction should work");
+        assertEquals("jwt-test@example.com", email, "JWT token claims should be correct");
     }
 
     @Test

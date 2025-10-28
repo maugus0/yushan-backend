@@ -90,7 +90,9 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            // Disable CSRF for JWT
+            // Disable CSRF for JWT authentication (stateless API)
+            // CSRF protection is not required for REST APIs using JWT tokens
+            // as JWT tokens are stored client-side and not in cookies
             .csrf(csrf -> csrf.disable())
             
             // Configure session management

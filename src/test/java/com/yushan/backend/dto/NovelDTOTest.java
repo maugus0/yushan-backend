@@ -55,7 +55,8 @@ class NovelDTOTest {
         assertEquals(dto2, dto2);
         
         // Test equals - different class
-        assertNotEquals(dto2, "not a DTO");
+        Object notDto = "not a DTO";
+        assertNotEquals(dto2, notDto);
         
         // Test canEqual
         assertTrue(dto2.canEqual(dto3));

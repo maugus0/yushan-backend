@@ -434,7 +434,8 @@ class AnalyticsDTOTest {
         assertEquals(dto2, dto2);
         
         // Test equals - different class
-        assertNotEquals(dto2, "not a DTO");
+        Object notDto = "not a DTO";
+        assertNotEquals(dto2, notDto);
         
         // Test canEqual
         assertTrue(dto2.canEqual(dto3));
@@ -962,6 +963,23 @@ class AnalyticsDTOTest {
         dto1.setTotalUsers(1000L);
         dto1.setNewUsers(50L);
         dto1.setActiveUsers(800L);
+        dto1.setAuthors(100L);
+        dto1.setTotalNovels(500L);
+        dto1.setNewNovels(20L);
+        dto1.setPublishedNovels(450L);
+        dto1.setCompletedNovels(50L);
+        dto1.setTotalViews(10000L);
+        dto1.setTotalChapters(5000L);
+        dto1.setTotalComments(2000L);
+        dto1.setTotalReviews(500L);
+        dto1.setTotalVotes(1000L);
+        dto1.setAverageRating(4.5);
+        dto1.setAverageViewsPerNovel(20.0);
+        dto1.setAverageCommentsPerNovel(4.0);
+        dto1.setAverageReviewsPerNovel(1.0);
+        dto1.setUserGrowthRate(5.0);
+        dto1.setNovelGrowthRate(4.0);
+        dto1.setViewGrowthRate(10.0);
         
         AnalyticsSummaryResponseDTO dto2 = new AnalyticsSummaryResponseDTO();
         dto2.setStartDate(startDate2);
@@ -970,10 +988,29 @@ class AnalyticsDTOTest {
         dto2.setTotalUsers(1000L);
         dto2.setNewUsers(50L);
         dto2.setActiveUsers(800L);
+        dto2.setAuthors(100L);
+        dto2.setTotalNovels(500L);
+        dto2.setNewNovels(20L);
+        dto2.setPublishedNovels(450L);
+        dto2.setCompletedNovels(50L);
+        dto2.setTotalViews(10000L);
+        dto2.setTotalChapters(5000L);
+        dto2.setTotalComments(2000L);
+        dto2.setTotalReviews(500L);
+        dto2.setTotalVotes(1000L);
+        dto2.setAverageRating(4.5);
+        dto2.setAverageViewsPerNovel(20.0);
+        dto2.setAverageCommentsPerNovel(4.0);
+        dto2.setAverageReviewsPerNovel(1.0);
+        dto2.setUserGrowthRate(5.0);
+        dto2.setNovelGrowthRate(4.0);
+        dto2.setViewGrowthRate(10.0);
         
         AnalyticsSummaryResponseDTO dto3 = new AnalyticsSummaryResponseDTO();
         dto3.setPeriod("weekly");
+        dto3.setTotalUsers(2000L);
         
+        // Test equals with all fields set
         assertEquals(dto1, dto2);
         assertEquals(dto1.hashCode(), dto2.hashCode());
         assertNotEquals(dto1, dto3);
@@ -983,9 +1020,110 @@ class AnalyticsDTOTest {
         assertTrue(dto1.canEqual(dto3));
         assertFalse(dto1.canEqual(null));
         
+        // Test with different values for each field
+        dto3 = new AnalyticsSummaryResponseDTO();
+        dto3.setStartDate(startDate1);
+        dto3.setEndDate(endDate1);
+        dto3.setPeriod("daily");
+        dto3.setTotalUsers(1000L);
+        dto3.setNewUsers(51L); // Different
+        dto3.setActiveUsers(800L);
+        assertNotEquals(dto1, dto3);
+        
+        dto3 = new AnalyticsSummaryResponseDTO();
+        dto3.setStartDate(startDate1);
+        dto3.setEndDate(endDate1);
+        dto3.setPeriod("daily");
+        dto3.setTotalUsers(1000L);
+        dto3.setNewUsers(50L);
+        dto3.setActiveUsers(801L); // Different
+        assertNotEquals(dto1, dto3);
+        
+        dto3 = new AnalyticsSummaryResponseDTO();
+        dto3.setStartDate(startDate1);
+        dto3.setEndDate(endDate1);
+        dto3.setPeriod("monthly"); // Different
+        dto3.setTotalUsers(1000L);
+        dto3.setNewUsers(50L);
+        dto3.setActiveUsers(800L);
+        assertNotEquals(dto1, dto3);
+        
         String toString = dto1.toString();
         assertNotNull(toString);
         assertTrue(toString.contains("AnalyticsSummaryResponseDTO"));
+    }
+    
+    @Test
+    @DisplayName("Test AnalyticsSummaryResponseDTO with null dates")
+    void testAnalyticsSummaryResponseDTONullDates() {
+        AnalyticsSummaryResponseDTO dto = new AnalyticsSummaryResponseDTO();
+        dto.setStartDate(null);
+        dto.setEndDate(null);
+        dto.setPeriod("daily");
+        
+        assertNull(dto.getStartDate());
+        assertNull(dto.getEndDate());
+        assertEquals("daily", dto.getPeriod());
+        
+        // Test toString with null dates
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("AnalyticsSummaryResponseDTO"));
+    }
+    
+    @Test
+    @DisplayName("Test AnalyticsSummaryResponseDTO with all fields null")
+    void testAnalyticsSummaryResponseDTOAllNullFields() {
+        AnalyticsSummaryResponseDTO dto = new AnalyticsSummaryResponseDTO();
+        
+        dto.setStartDate(null);
+        dto.setEndDate(null);
+        dto.setPeriod(null);
+        dto.setTotalUsers(null);
+        dto.setNewUsers(null);
+        dto.setActiveUsers(null);
+        dto.setAuthors(null);
+        dto.setTotalNovels(null);
+        dto.setNewNovels(null);
+        dto.setPublishedNovels(null);
+        dto.setCompletedNovels(null);
+        dto.setTotalViews(null);
+        dto.setTotalChapters(null);
+        dto.setTotalComments(null);
+        dto.setTotalReviews(null);
+        dto.setTotalVotes(null);
+        dto.setAverageRating(null);
+        dto.setAverageViewsPerNovel(null);
+        dto.setAverageCommentsPerNovel(null);
+        dto.setAverageReviewsPerNovel(null);
+        dto.setUserGrowthRate(null);
+        dto.setNovelGrowthRate(null);
+        dto.setViewGrowthRate(null);
+        
+        // Verify all fields are null
+        assertNull(dto.getStartDate());
+        assertNull(dto.getEndDate());
+        assertNull(dto.getPeriod());
+        assertNull(dto.getTotalUsers());
+        assertNull(dto.getNewUsers());
+        assertNull(dto.getActiveUsers());
+        assertNull(dto.getAuthors());
+        assertNull(dto.getTotalNovels());
+        assertNull(dto.getNewNovels());
+        assertNull(dto.getPublishedNovels());
+        assertNull(dto.getCompletedNovels());
+        assertNull(dto.getTotalViews());
+        assertNull(dto.getTotalChapters());
+        assertNull(dto.getTotalComments());
+        assertNull(dto.getTotalReviews());
+        assertNull(dto.getTotalVotes());
+        assertNull(dto.getAverageRating());
+        assertNull(dto.getAverageViewsPerNovel());
+        assertNull(dto.getAverageCommentsPerNovel());
+        assertNull(dto.getAverageReviewsPerNovel());
+        assertNull(dto.getUserGrowthRate());
+        assertNull(dto.getNovelGrowthRate());
+        assertNull(dto.getViewGrowthRate());
     }
 }
 

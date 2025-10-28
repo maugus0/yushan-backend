@@ -225,29 +225,67 @@ class UserDTOTest {
 
 
     @Test
-    @DisplayName("Test AuthorUpgradeRequestDTO")
-    void testAuthorUpgradeRequestDTO() {
-        AuthorUpgradeRequestDTO dto = new AuthorUpgradeRequestDTO();
-        dto.setVerificationCode("123456");
+    @DisplayName("Test AuthorUpgradeRequestDTO - No args constructor")
+    void testAuthorUpgradeRequestDTONoArgs() {
+        // Test no-args constructor
+        AuthorUpgradeRequestDTO dto1 = new AuthorUpgradeRequestDTO();
+        assertNotNull(dto1);
+        assertNull(dto1.getVerificationCode());
         
-        assertEquals("123456", dto.getVerificationCode());
+        // Set code
+        dto1.setVerificationCode("123456");
+        assertEquals("123456", dto1.getVerificationCode());
     }
 
     @Test
-    @DisplayName("Test AuthorUpgradeRequestDTO all args constructor")
+    @DisplayName("Test AuthorUpgradeRequestDTO - All args constructor")
     void testAuthorUpgradeRequestDTOAllArgs() {
-        AuthorUpgradeRequestDTO dto = new AuthorUpgradeRequestDTO("654321");
-        
-        assertEquals("654321", dto.getVerificationCode());
-        
-        // Test default constructor
-        AuthorUpgradeRequestDTO dto2 = new AuthorUpgradeRequestDTO();
-        dto2.setVerificationCode("123456");
-        assertEquals("123456", dto2.getVerificationCode());
+        // Test all-args constructor with code
+        AuthorUpgradeRequestDTO dto1 = new AuthorUpgradeRequestDTO("654321");
+        assertEquals("654321", dto1.getVerificationCode());
         
         // Test with different code
-        dto.setVerificationCode("999999");
-        assertEquals("999999", dto.getVerificationCode());
+        AuthorUpgradeRequestDTO dto2 = new AuthorUpgradeRequestDTO("123456");
+        assertEquals("123456", dto2.getVerificationCode());
+        
+        // Test with null code
+        AuthorUpgradeRequestDTO dto3 = new AuthorUpgradeRequestDTO(null);
+        assertNull(dto3.getVerificationCode());
+    }
+    
+    @Test
+    @DisplayName("Test AuthorUpgradeRequestDTO - Getter and Setter")
+    void testAuthorUpgradeRequestDTOGetterSetter() {
+        AuthorUpgradeRequestDTO dto = new AuthorUpgradeRequestDTO();
+        
+        // Test setter and getter with various codes
+        dto.setVerificationCode("123456");
+        assertEquals("123456", dto.getVerificationCode());
+        
+        dto.setVerificationCode("789012");
+        assertEquals("789012", dto.getVerificationCode());
+        
+        dto.setVerificationCode("000000");
+        assertEquals("000000", dto.getVerificationCode());
+        
+        // Test with null
+        dto.setVerificationCode(null);
+        assertNull(dto.getVerificationCode());
+        
+        // Test with empty string
+        dto.setVerificationCode("");
+        assertEquals("", dto.getVerificationCode());
+    }
+    
+    @Test
+    @DisplayName("Test AuthorUpgradeRequestDTO - toString")
+    void testAuthorUpgradeRequestDTOToString() {
+        AuthorUpgradeRequestDTO dto = new AuthorUpgradeRequestDTO("123456");
+        String toString = dto.toString();
+        
+        assertNotNull(toString);
+        assertTrue(toString.contains("AuthorUpgradeRequestDTO"));
+        assertTrue(toString.contains("verificationCode"));
     }
 
     @Test
