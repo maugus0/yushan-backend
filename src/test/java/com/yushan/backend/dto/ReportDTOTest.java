@@ -12,14 +12,64 @@ import static org.junit.jupiter.api.Assertions.*;
 class ReportDTOTest {
 
     @Test
-    @DisplayName("Test ReportCreateRequestDTO")
-    void testReportCreateRequestDTO() {
+    @DisplayName("Test ReportCreateRequestDTO - No args constructor")
+    void testReportCreateRequestDTONoArgs() {
+        ReportCreateRequestDTO dto = new ReportCreateRequestDTO();
+        assertNotNull(dto);
+        assertNull(dto.getReportType());
+        assertNull(dto.getReason());
+    }
+    
+    @Test
+    @DisplayName("Test ReportCreateRequestDTO - Getter and Setter")
+    void testReportCreateRequestDTOGetterSetter() {
+        ReportCreateRequestDTO dto = new ReportCreateRequestDTO();
+        
+        // Test reportType setter and getter
+        dto.setReportType("COMMENT");
+        assertEquals("COMMENT", dto.getReportType());
+        
+        dto.setReportType("NOVEL");
+        assertEquals("NOVEL", dto.getReportType());
+        
+        dto.setReportType("USER");
+        assertEquals("USER", dto.getReportType());
+        
+        // Test reason setter and getter
+        dto.setReason("Spam");
+        assertEquals("Spam", dto.getReason());
+        
+        dto.setReason("Harassment");
+        assertEquals("Harassment", dto.getReason());
+        
+        dto.setReason("Inappropriate content");
+        assertEquals("Inappropriate content", dto.getReason());
+        
+        // Test with null values
+        dto.setReportType(null);
+        dto.setReason(null);
+        assertNull(dto.getReportType());
+        assertNull(dto.getReason());
+        
+        // Test with empty strings
+        dto.setReportType("");
+        dto.setReason("");
+        assertEquals("", dto.getReportType());
+        assertEquals("", dto.getReason());
+    }
+    
+    @Test
+    @DisplayName("Test ReportCreateRequestDTO - toString")
+    void testReportCreateRequestDTOToString() {
         ReportCreateRequestDTO dto = new ReportCreateRequestDTO();
         dto.setReportType("COMMENT");
         dto.setReason("Spam");
         
-        assertEquals("COMMENT", dto.getReportType());
-        assertEquals("Spam", dto.getReason());
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("ReportCreateRequestDTO"));
+        assertTrue(toString.contains("reportType"));
+        assertTrue(toString.contains("reason"));
     }
 
     @Test
@@ -229,6 +279,61 @@ class ReportDTOTest {
         assertEquals("desc", dto2.getOrder());
         assertEquals(0, dto2.getPage());
         assertEquals(10, dto2.getSize());
+    }
+
+    @Test
+    @DisplayName("Test ReportResolutionRequestDTO - No args constructor")
+    void testReportResolutionRequestDTONoArgs() {
+        ReportResolutionRequestDTO dto = new ReportResolutionRequestDTO();
+        assertNotNull(dto);
+        assertNull(dto.getAction());
+        assertNull(dto.getAdminNotes());
+    }
+    
+    @Test
+    @DisplayName("Test ReportResolutionRequestDTO - Getter and Setter")
+    void testReportResolutionRequestDTOGetterSetter() {
+        ReportResolutionRequestDTO dto = new ReportResolutionRequestDTO();
+        
+        // Test action setter and getter
+        dto.setAction("RESOLVED");
+        assertEquals("RESOLVED", dto.getAction());
+        
+        dto.setAction("DISMISSED");
+        assertEquals("DISMISSED", dto.getAction());
+        
+        // Test adminNotes setter and getter
+        dto.setAdminNotes("Notes here");
+        assertEquals("Notes here", dto.getAdminNotes());
+        
+        dto.setAdminNotes("Different notes");
+        assertEquals("Different notes", dto.getAdminNotes());
+        
+        // Test with null values
+        dto.setAction(null);
+        dto.setAdminNotes(null);
+        assertNull(dto.getAction());
+        assertNull(dto.getAdminNotes());
+        
+        // Test with empty strings
+        dto.setAction("");
+        dto.setAdminNotes("");
+        assertEquals("", dto.getAction());
+        assertEquals("", dto.getAdminNotes());
+    }
+    
+    @Test
+    @DisplayName("Test ReportResolutionRequestDTO - toString")
+    void testReportResolutionRequestDTOToString() {
+        ReportResolutionRequestDTO dto = new ReportResolutionRequestDTO();
+        dto.setAction("RESOLVED");
+        dto.setAdminNotes("Admin notes");
+        
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("ReportResolutionRequestDTO"));
+        assertTrue(toString.contains("action"));
+        assertTrue(toString.contains("adminNotes"));
     }
 
     @Test

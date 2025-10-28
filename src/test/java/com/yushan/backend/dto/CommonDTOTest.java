@@ -193,9 +193,12 @@ class CommonDTOTest {
         ApiResponse<String> api2 = new ApiResponse<>(200, "Success", "data");
         
         // Test hashCode (should work even with different timestamps)
-        assertNotNull(api1.hashCode());
-        assertNotNull(api2.hashCode());
-        assertNotEquals(api1, null);
+        int hashCode1 = api1.hashCode();
+        int hashCode2 = api2.hashCode();
+        assertNotNull(Integer.valueOf(hashCode1));
+        assertNotNull(Integer.valueOf(hashCode2));
+        Object nullObj = null;
+        assertNotEquals(api1, nullObj);
         assertEquals(api1, api1);
         assertTrue(api1.canEqual(api2));
         

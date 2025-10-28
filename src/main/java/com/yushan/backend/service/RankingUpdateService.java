@@ -51,7 +51,7 @@ public class RankingUpdateService {
     }
 
     @Scheduled(cron = "0 0 0 * * ?")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = false)
     public void updateAllRankings() {
         log.info("Start updating daily ranking");
         updateNovelRankings();

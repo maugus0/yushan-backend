@@ -25,6 +25,7 @@ import java.util.Map;
 import java.util.Date;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
@@ -193,30 +194,30 @@ public class JwtAuthenticationTest {
     void testJwtTokenGeneration() throws Exception {
         // Test access token generation
         String accessToken = jwtUtil.generateAccessToken(testUser);
-        assert accessToken != null;
-        assert !accessToken.isEmpty();
+        assertNotNull(accessToken, "Access token should not be null");
+        assertFalse(accessToken.isEmpty(), "Access token should not be empty");
 
         // Test refresh token generation
         String refreshToken = jwtUtil.generateRefreshToken(testUser);
-        assert refreshToken != null;
-        assert !refreshToken.isEmpty();
+        assertNotNull(refreshToken, "Refresh token should not be null");
+        assertFalse(refreshToken.isEmpty(), "Refresh token should not be empty");
 
         // Verify tokens are different
-        assert !accessToken.equals(refreshToken);
+        assertNotEquals(accessToken, refreshToken, "Access token and refresh token should be different");
     }
 
     @Test
     void testJwtTokenValidation() throws Exception {
         // Test valid token
-        assert jwtUtil.validateToken(testUserToken);
-        assert jwtUtil.validateToken(testUserToken, testUser);
+        assertTrue(jwtUtil.validateToken(testUserToken), "Valid token should be accepted");
+        assertTrue(jwtUtil.validateToken(testUserToken, testUser), "Valid token for correct user should be accepted");
 
         // Test invalid token
         String invalidToken = "invalid.token.here";
-        assert !jwtUtil.validateToken(invalidToken);
+        assertFalse(jwtUtil.validateToken(invalidToken), "Invalid token should be rejected");
 
         // Test token with wrong user
-        assert !jwtUtil.validateToken(testUserToken, authorUser);
+        assertFalse(jwtUtil.validateToken(testUserToken, authorUser), "Token for wrong user should be rejected");
     }
 
     @Test
@@ -226,9 +227,9 @@ public class JwtAuthenticationTest {
         String userId = jwtUtil.extractUserId(testUserToken);
         String tokenType = jwtUtil.extractTokenType(testUserToken);
 
-        assert email.equals(testUser.getEmail());
-        assert userId.equals(testUser.getUuid().toString());
-        assert tokenType.equals("access");
+        assertEquals(testUser.getEmail(), email, "Extracted email should match user email");
+        assertEquals(testUser.getUuid().toString(), userId, "Extracted user ID should match user UUID");
+        assertEquals("access", tokenType, "Token type should be 'access'");
     }
 
     // ==================== AUTHENTICATION ENDPOINT TESTS ====================

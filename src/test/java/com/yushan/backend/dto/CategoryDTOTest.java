@@ -13,49 +13,115 @@ import static org.junit.jupiter.api.Assertions.*;
 class CategoryDTOTest {
 
     @Test
-    @DisplayName("Test CategoryCreateRequestDTO")
-    void testCategoryCreateRequestDTO() {
+    @DisplayName("Test CategoryCreateRequestDTO - Getter and Setter")
+    void testCategoryCreateRequestDTOGetterSetter() {
         CategoryCreateRequestDTO dto = new CategoryCreateRequestDTO();
-        dto.setName("Fantasy");
-        dto.setDescription("Fantasy novels");
         
+        // Test name setter and getter
+        dto.setName("Fantasy");
         assertEquals("Fantasy", dto.getName());
+        
+        dto.setName("Science Fiction");
+        assertEquals("Science Fiction", dto.getName());
+        
+        dto.setName("Romance");
+        assertEquals("Romance", dto.getName());
+        
+        // Test description setter and getter
+        dto.setDescription("Fantasy novels");
         assertEquals("Fantasy novels", dto.getDescription());
         
-        // Test with null description
-        CategoryCreateRequestDTO dto2 = new CategoryCreateRequestDTO();
-        dto2.setName("Romance");
-        dto2.setDescription(null);
-        assertEquals("Romance", dto2.getName());
-        assertNull(dto2.getDescription());
+        dto.setDescription("Sci-fi novels");
+        assertEquals("Sci-fi novels", dto.getDescription());
+        
+        // Test with null
+        dto.setName(null);
+        dto.setDescription(null);
+        assertNull(dto.getName());
+        assertNull(dto.getDescription());
+        
+        // Test with empty string
+        dto.setName("");
+        dto.setDescription("");
+        assertEquals("", dto.getName());
+        assertEquals("", dto.getDescription());
+        
+        // Test with long strings
+        dto.setName("Very Long Category Name That Exceeds Normal Length");
+        dto.setDescription("Very Long Description That Exceeds Normal Length And Should Still Work");
+        assertEquals("Very Long Category Name That Exceeds Normal Length", dto.getName());
+        assertEquals("Very Long Description That Exceeds Normal Length And Should Still Work", dto.getDescription());
+    }
+    
+    @Test
+    @DisplayName("Test CategoryCreateRequestDTO - toString")
+    void testCategoryCreateRequestDTOToString() {
+        CategoryCreateRequestDTO dto = new CategoryCreateRequestDTO();
+        dto.setName("Test Category");
+        dto.setDescription("Test Description");
+        
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CategoryCreateRequestDTO"));
+        assertTrue(toString.contains("name"));
+        assertTrue(toString.contains("description"));
     }
 
     @Test
-    @DisplayName("Test CategoryUpdateRequestDTO")
-    void testCategoryUpdateRequestDTO() {
+    @DisplayName("Test CategoryUpdateRequestDTO - Getter and Setter")
+    void testCategoryUpdateRequestDTOGetterSetter() {
         CategoryUpdateRequestDTO dto = new CategoryUpdateRequestDTO();
-        dto.setName("Science Fiction");
-        dto.setDescription("Sci-fi novels");
-        dto.setIsActive(true);
         
+        // Test name setter and getter
+        dto.setName("Science Fiction");
         assertEquals("Science Fiction", dto.getName());
+        
+        dto.setName("Updated Fiction");
+        assertEquals("Updated Fiction", dto.getName());
+        
+        // Test description setter and getter
+        dto.setDescription("Sci-fi novels");
         assertEquals("Sci-fi novels", dto.getDescription());
+        
+        dto.setDescription("Updated description");
+        assertEquals("Updated description", dto.getDescription());
+        
+        // Test isActive setter and getter
+        dto.setIsActive(true);
         assertTrue(dto.getIsActive());
         
-        // Test partial update
-        CategoryUpdateRequestDTO dto2 = new CategoryUpdateRequestDTO();
-        dto2.setName("Updated Name");
-        assertEquals("Updated Name", dto2.getName());
-        assertNull(dto2.getDescription());
-        assertNull(dto2.getIsActive());
+        dto.setIsActive(false);
+        assertFalse(dto.getIsActive());
         
-        // Test null values
-        dto2.setName(null);
-        dto2.setDescription(null);
-        dto2.setIsActive(null);
-        assertNull(dto2.getName());
-        assertNull(dto2.getDescription());
-        assertNull(dto2.getIsActive());
+        dto.setIsActive(null);
+        assertNull(dto.getIsActive());
+        
+        // Test with null values
+        dto.setName(null);
+        dto.setDescription(null);
+        dto.setIsActive(null);
+        assertNull(dto.getName());
+        assertNull(dto.getDescription());
+        assertNull(dto.getIsActive());
+        
+        // Test with empty strings
+        dto.setName("");
+        dto.setDescription("");
+        assertEquals("", dto.getName());
+        assertEquals("", dto.getDescription());
+    }
+    
+    @Test
+    @DisplayName("Test CategoryUpdateRequestDTO - toString")
+    void testCategoryUpdateRequestDTOToString() {
+        CategoryUpdateRequestDTO dto = new CategoryUpdateRequestDTO();
+        dto.setName("Updated Category");
+        dto.setDescription("Updated Description");
+        dto.setIsActive(true);
+        
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("CategoryUpdateRequestDTO"));
     }
 
     @Test

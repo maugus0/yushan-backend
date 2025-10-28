@@ -12,22 +12,89 @@ import static org.junit.jupiter.api.Assertions.*;
 class SearchDTOTest {
 
     @Test
-    @DisplayName("Test SearchRequestDTO")
-    void testSearchRequestDTO() {
+    @DisplayName("Test SearchRequestDTO - No args constructor with defaults")
+    void testSearchRequestDTODefaults() {
         SearchRequestDTO dto = new SearchRequestDTO();
+        assertNotNull(dto);
+        assertEquals(1, dto.getPage()); // Default value
+        assertEquals(10, dto.getPageSize()); // Default value
+        assertEquals("created_at", dto.getSortBy()); // Default value
+        assertEquals("DESC", dto.getSortOrder()); // Default value
+        assertNull(dto.getKeyword());
+        assertNull(dto.getCategory());
+    }
+    
+    @Test
+    @DisplayName("Test SearchRequestDTO - Getter and Setter")
+    void testSearchRequestDTOGetterSetter() {
+        SearchRequestDTO dto = new SearchRequestDTO();
+        
+        // Test keyword setter and getter
         dto.setKeyword("test query");
+        assertEquals("test query", dto.getKeyword());
+        
+        dto.setKeyword("another query");
+        assertEquals("another query", dto.getKeyword());
+        
+        // Test category setter and getter
+        dto.setCategory("Fantasy");
+        assertEquals("Fantasy", dto.getCategory());
+        
+        dto.setCategory("Romance");
+        assertEquals("Romance", dto.getCategory());
+        
+        // Test page setter and getter
+        dto.setPage(2);
+        assertEquals(2, dto.getPage());
+        
+        dto.setPage(5);
+        assertEquals(5, dto.getPage());
+        
+        // Test pageSize setter and getter
+        dto.setPageSize(20);
+        assertEquals(20, dto.getPageSize());
+        
+        dto.setPageSize(50);
+        assertEquals(50, dto.getPageSize());
+        
+        // Test sortBy setter and getter
+        dto.setSortBy("title");
+        assertEquals("title", dto.getSortBy());
+        
+        dto.setSortBy("viewCnt");
+        assertEquals("viewCnt", dto.getSortBy());
+        
+        // Test sortOrder setter and getter
+        dto.setSortOrder("ASC");
+        assertEquals("ASC", dto.getSortOrder());
+        
+        dto.setSortOrder("DESC");
+        assertEquals("DESC", dto.getSortOrder());
+        
+        // Test with null values
+        dto.setKeyword(null);
+        dto.setCategory(null);
+        assertNull(dto.getKeyword());
+        assertNull(dto.getCategory());
+        
+        // Test with empty strings
+        dto.setKeyword("");
+        dto.setCategory("");
+        assertEquals("", dto.getKeyword());
+        assertEquals("", dto.getCategory());
+    }
+    
+    @Test
+    @DisplayName("Test SearchRequestDTO - toString")
+    void testSearchRequestDTOToString() {
+        SearchRequestDTO dto = new SearchRequestDTO();
+        dto.setKeyword("test");
         dto.setCategory("Fantasy");
         dto.setPage(2);
-        dto.setPageSize(20);
-        dto.setSortBy("created_at");
-        dto.setSortOrder("DESC");
         
-        assertEquals("test query", dto.getKeyword());
-        assertEquals("Fantasy", dto.getCategory());
-        assertEquals(2, dto.getPage());
-        assertEquals(20, dto.getPageSize());
-        assertEquals("created_at", dto.getSortBy());
-        assertEquals("DESC", dto.getSortOrder());
+        String toString = dto.toString();
+        assertNotNull(toString);
+        assertTrue(toString.contains("SearchRequestDTO"));
     }
 
     @Test

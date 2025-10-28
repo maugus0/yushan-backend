@@ -10,24 +10,67 @@ import static org.junit.jupiter.api.Assertions.*;
 class AdminDTOTest {
 
     @Test
-    @DisplayName("Test AdminPromoteRequestDTO")
-    void testAdminPromoteRequestDTO() {
-        AdminPromoteRequestDTO dto = new AdminPromoteRequestDTO();
-        dto.setEmail("admin@example.com");
+    @DisplayName("Test AdminPromoteRequestDTO - No args constructor")
+    void testAdminPromoteRequestDTONoArgsConstructor() {
+        // Test no-args constructor
+        AdminPromoteRequestDTO dto1 = new AdminPromoteRequestDTO();
+        assertNotNull(dto1);
+        assertNull(dto1.getEmail());
         
-        assertEquals("admin@example.com", dto.getEmail());
+        // Set email
+        dto1.setEmail("test@example.com");
+        assertEquals("test@example.com", dto1.getEmail());
+    }
+    
+    @Test
+    @DisplayName("Test AdminPromoteRequestDTO - All args constructor")
+    void testAdminPromoteRequestDTOAllArgsConstructor() {
+        // Test all-args constructor with email
+        AdminPromoteRequestDTO dto1 = new AdminPromoteRequestDTO("admin@example.com");
+        assertEquals("admin@example.com", dto1.getEmail());
         
         // Test with different email
+        AdminPromoteRequestDTO dto2 = new AdminPromoteRequestDTO("user@test.com");
+        assertEquals("user@test.com", dto2.getEmail());
+        
+        // Test with null email
+        AdminPromoteRequestDTO dto3 = new AdminPromoteRequestDTO(null);
+        assertNull(dto3.getEmail());
+    }
+    
+    @Test
+    @DisplayName("Test AdminPromoteRequestDTO - Getter and Setter")
+    void testAdminPromoteRequestDTOGetterSetter() {
+        AdminPromoteRequestDTO dto = new AdminPromoteRequestDTO();
+        
+        // Test setter and getter with various email formats
+        dto.setEmail("admin@example.com");
+        assertEquals("admin@example.com", dto.getEmail());
+        
         dto.setEmail("another@example.com");
         assertEquals("another@example.com", dto.getEmail());
-    }
-
-    @Test
-    @DisplayName("Test AdminPromoteRequestDTO with all args")
-    void testAdminPromoteRequestDTOAllArgsConstructor() {
-        AdminPromoteRequestDTO dto = new AdminPromoteRequestDTO("admin@example.com");
         
-        assertEquals("admin@example.com", dto.getEmail());
+        dto.setEmail("test.user@example.co.uk");
+        assertEquals("test.user@example.co.uk", dto.getEmail());
+        
+        // Test with null
+        dto.setEmail(null);
+        assertNull(dto.getEmail());
+        
+        // Test with empty string
+        dto.setEmail("");
+        assertEquals("", dto.getEmail());
+    }
+    
+    @Test
+    @DisplayName("Test AdminPromoteRequestDTO - toString")
+    void testAdminPromoteRequestDTOToString() {
+        AdminPromoteRequestDTO dto = new AdminPromoteRequestDTO("admin@example.com");
+        String toString = dto.toString();
+        
+        assertNotNull(toString);
+        assertTrue(toString.contains("AdminPromoteRequestDTO"));
+        assertTrue(toString.contains("email"));
     }
 
     @Test
