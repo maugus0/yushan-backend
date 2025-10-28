@@ -41,6 +41,7 @@ public class RankingUpdateService {
     private static final String RANK_AUTHOR_NOVEL_NUM = "ranking:author:novelNum";
 
     @PostConstruct
+    @Transactional(readOnly = false)
     public void runUpdateOnStartup() {
         log.info("update ranking while starting");
         try {

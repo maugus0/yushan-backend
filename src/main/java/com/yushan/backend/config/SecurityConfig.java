@@ -88,11 +88,17 @@ public class SecurityConfig {
      * @throws Exception if configuration error
      */
     @Bean
+    @SuppressWarnings("java:S4502") // CSRF protection is not required for REST APIs using JWT tokens
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             // Disable CSRF for JWT authentication (stateless API)
             // CSRF protection is not required for REST APIs using JWT tokens
             // as JWT tokens are stored client-side and not in cookies
+            // This is safe because:
+            // 1. We use JWT tokens for authentication (not cookies)
+            // 2. The API is stateless (SessionCreationPolicy.STATELESS)
+            // 3. JWT tokens are sent in Authorization header, not in cookies
+            // 4. CSRF attacks rely on cookies which we don't use
             .csrf(csrf -> csrf.disable())
             
             // Configure session management
