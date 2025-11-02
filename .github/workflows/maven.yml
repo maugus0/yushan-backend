@@ -7,7 +7,7 @@ on:
     branches: [ main ]
     types: [opened, synchronize, reopened]
 
-# Avoid overlapping runs
+# Avoid overlapping runs for the same workflow and branch
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
