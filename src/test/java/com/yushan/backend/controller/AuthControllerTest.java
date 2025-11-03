@@ -7,6 +7,7 @@ import com.yushan.backend.entity.User;
 import com.yushan.backend.service.AuthService;
 import com.yushan.backend.service.MailService;
 import com.yushan.backend.util.JwtUtil;
+import com.yushan.backend.util.RedisUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +50,9 @@ public class AuthControllerTest {
 
     @MockBean
     private JwtUtil jwtUtil;
+
+    @MockBean
+    private RedisUtil redisUtil;
 
     @MockBean
 
