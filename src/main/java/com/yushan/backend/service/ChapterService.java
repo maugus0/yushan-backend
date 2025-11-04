@@ -350,22 +350,29 @@ public class ChapterService {
             hasChanges = true;
         }
 
+        boolean isValidChanged = false;
         if (req.getIsValid() != null && !req.getIsValid().equals(existing.getIsValid())) {
             existing.setIsValid(req.getIsValid());
             hasChanges = true;
+            isValidChanged = true;
         }
 
+        boolean publishTimeChanged = false;
         if (req.getPublishTime() != null && !req.getPublishTime().equals(existing.getPublishTime())) {
             existing.setPublishTime(req.getPublishTime());
             hasChanges = true;
+            publishTimeChanged = true;
         }
 
         if (hasChanges) {
             existing.setUpdateTime(new Date());
             chapterMapper.updateByPrimaryKeySelective(existing);
 
-            // Update novel statistics if word count changed
-            if (req.getWordCnt() != null || req.getContent() != null) {
+            // Update novel statistics if word count, content, isValid, or publishTime changed
+            // because these affect published chapter count
+            boolean shouldUpdateStats = (req.getWordCnt() != null || req.getContent() != null)
+                    || isValidChanged || publishTimeChanged;
+            if (shouldUpdateStats) {
                 updateNovelStatistics(existing.getNovelId());
             }
         }
@@ -393,6 +400,9 @@ public class ChapterService {
         chapter.setUpdateTime(new Date());
 
         chapterMapper.updateByPrimaryKeySelective(chapter);
+        
+        // Update novel statistics after publishing/unpublishing chapter
+        updateNovelStatistics(chapter.getNovelId());
     }
 
     @Transactional
@@ -414,6 +424,9 @@ public class ChapterService {
 
         if (!ids.isEmpty()) {
             chapterMapper.updatePublishStatusByIds(ids, isValid);
+            
+            // Update novel statistics after batch publishing/unpublishing chapters
+            updateNovelStatistics(novelId);
         }
     }
 

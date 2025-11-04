@@ -1,5 +1,6 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.ChapterMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Novel;
@@ -22,6 +23,9 @@ public class NovelService {
 
     @Autowired
     private CategoryService categoryService;
+
+    @Autowired
+    private ChapterMapper chapterMapper;
 
     public NovelDetailResponseDTO createNovel(UUID userId, String authorName, NovelCreateRequestDTO req) {
         if (req.getCategoryId() == null) {
@@ -151,7 +155,10 @@ public class NovelService {
         if (n.getStatus().equals(mapStatus(NovelStatus.ARCHIVED))) {
             throw new ResourceNotFoundException("novel not found");
         }
-        return toResponse(n);
+        // Dynamically calculate published chapter count to ensure it's always up-to-date
+        // This ensures consistency with the chapters API endpoint
+        long publishedChapterCount = chapterMapper.countPublishedByNovelId(id);
+        return toResponse(n, (int) publishedChapterCount);
     }
 
     public int mapStatus(NovelStatus status) {
@@ -172,6 +179,10 @@ public class NovelService {
     }
 
     private NovelDetailResponseDTO toResponse(Novel n) {
+        return toResponse(n, n.getChapterCnt());
+    }
+
+    private NovelDetailResponseDTO toResponse(Novel n, Integer chapterCnt) {
         NovelDetailResponseDTO dto = new NovelDetailResponseDTO();
         dto.setId(n.getId());
         dto.setUuid(n.getUuid());
@@ -191,7 +202,7 @@ public class NovelService {
         dto.setCoverImgUrl(n.getCoverImgUrl());
         dto.setStatus(reverseStatus(n.getStatus()));
         dto.setIsCompleted(n.getIsCompleted());
-        dto.setChapterCnt(n.getChapterCnt());
+        dto.setChapterCnt(chapterCnt);
         dto.setWordCnt(n.getWordCnt());
         dto.setAvgRating(n.getAvgRating());
         dto.setReviewCnt(n.getReviewCnt());
