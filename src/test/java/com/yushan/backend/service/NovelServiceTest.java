@@ -1,5 +1,6 @@
 package com.yushan.backend.service;
 
+import com.yushan.backend.dao.ChapterMapper;
 import com.yushan.backend.dao.NovelMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Category;
@@ -24,12 +25,14 @@ public class NovelServiceTest {
 
     private NovelMapper novelMapper;
     private CategoryService categoryService;
+    private ChapterMapper chapterMapper;
     private NovelService novelService;
 
     @BeforeEach
     void setUp() {
         novelMapper = Mockito.mock(NovelMapper.class);
         categoryService = Mockito.mock(CategoryService.class);
+        chapterMapper = Mockito.mock(ChapterMapper.class);
 
         novelService = new NovelService();
         try {
@@ -40,6 +43,10 @@ public class NovelServiceTest {
             java.lang.reflect.Field f2 = NovelService.class.getDeclaredField("categoryService");
             f2.setAccessible(true);
             f2.set(novelService, categoryService);
+
+            java.lang.reflect.Field f3 = NovelService.class.getDeclaredField("chapterMapper");
+            f3.setAccessible(true);
+            f3.set(novelService, chapterMapper);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -153,10 +160,13 @@ public class NovelServiceTest {
         ok.setStatus(1); // PUBLISHED
         ok.setTitle("OK");
         when(novelMapper.selectByPrimaryKey(novelId)).thenReturn(ok);
+        when(chapterMapper.countPublishedByNovelId(novelId)).thenReturn(5L);
 
         NovelDetailResponseDTO response = novelService.getNovel(novelId);
         assertNotNull(response);
         assertEquals("OK", response.getTitle());
+        assertEquals(5, response.getChapterCnt()); // Should use dynamically calculated count
+        verify(chapterMapper, times(1)).countPublishedByNovelId(novelId);
     }
 
     @Test
