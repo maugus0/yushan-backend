@@ -1,5 +1,6 @@
 server:
   port: 8010
+  forward-headers-strategy: framework
   servlet:
     session:
       timeout: 86400
