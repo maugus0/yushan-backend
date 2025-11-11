@@ -52,7 +52,9 @@ spring:
     baseline-on-migrate: true
     validate-on-migrate: true
     clean-disabled: true
-
+springdoc:
+  swagger-ui:
+    version: 5.19.0
 mybatis:
   mapper-locations: classpath:/mapper/**Mapper.xml
   type-aliases-package: com.yushan.backend.entity
