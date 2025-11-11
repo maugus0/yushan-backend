@@ -1,20 +1,24 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.ReportMapper;
 import com.yushan.backend.dao.CommentMapper;
+import com.yushan.backend.dao.ReportMapper;
 import com.yushan.backend.dto.*;
 import com.yushan.backend.entity.Report;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.Comment;
-import com.yushan.backend.enums.ReportType;
-import com.yushan.backend.enums.ReportStatus;
+import com.yushan.backend.enums.ReportContentType;
 import com.yushan.backend.exception.ResourceNotFoundException;
 import com.yushan.backend.exception.ValidationException;
+import com.yushan.backend.repository.ReportRepository;
+import com.yushan.backend.service.report.ReportContext;
+import com.yushan.backend.service.report.ReportHandler;
+import com.yushan.backend.service.report.ReportHandlerFactory;
+import com.yushan.backend.service.report.ValidationHandler;
+import com.yushan.backend.service.report.ValidationPipelineBuilder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -34,40 +38,21 @@ public class ReportService {
     @Autowired
     private CommentMapper commentMapper;
 
+    @Autowired
+    private ReportHandlerFactory reportHandlerFactory;
+
+    @Autowired
+    private ValidationPipelineBuilder validationPipelineBuilder;
+
+    @Autowired
+    private ReportRepository reportRepository;
+
     /**
      * Create a report for a novel
      */
     @Transactional
     public ReportResponseDTO createNovelReport(UUID reporterId, Integer novelId, ReportCreateRequestDTO request) {
-        // Validate novel exists
-        Novel novel = novelService.getNovelEntity(novelId);
-
-        // Validate report type
-        ReportType reportType = ReportType.fromString(request.getReportType());
-        if (reportType == null) {
-            throw new ValidationException("Invalid report type");
-        }
-
-        // Check if user already reported this novel
-        if (reportMapper.existsReportByUserAndContent(reporterId, "NOVEL", novelId)) {
-            throw new ValidationException("You have already reported this novel");
-        }
-
-        // Create report
-        Report report = new Report();
-        report.setUuid(UUID.randomUUID());
-        report.setReporterId(reporterId);
-        report.setReportType(reportType.name());
-        report.setReason(request.getReason());
-        report.setStatus(ReportStatus.IN_REVIEW.name());
-        report.setContentType("NOVEL");
-        report.setContentId(novelId);
-        report.setCreatedAt(new Date());
-        report.setUpdatedAt(new Date());
-
-        reportMapper.insertSelective(report);
-
-        return toReportResponseDTO(report, novel, null);
+        return submitReport(ReportContentType.NOVEL, novelId, reporterId, request);
     }
 
     /**
@@ -75,40 +60,7 @@ public class ReportService {
      */
     @Transactional
     public ReportResponseDTO createCommentReport(UUID reporterId, Integer commentId, ReportCreateRequestDTO request) {
-        // Validate comment exists - we need to get comment entity
-        // Since CommentService doesn't have getCommentEntity, we'll use mapper directly
-        // This is acceptable as it's for validation only
-        Comment comment = commentMapper.selectByPrimaryKey(commentId);
-        if (comment == null) {
-            throw new ResourceNotFoundException("Comment not found");
-        }
-
-        // Validate report type
-        ReportType reportType = ReportType.fromString(request.getReportType());
-        if (reportType == null) {
-            throw new ValidationException("Invalid report type");
-        }
-
-        // Check if user already reported this comment
-        if (reportMapper.existsReportByUserAndContent(reporterId, "COMMENT", commentId)) {
-            throw new ValidationException("You have already reported this comment");
-        }
-
-        // Create report
-        Report report = new Report();
-        report.setUuid(UUID.randomUUID());
-        report.setReporterId(reporterId);
-        report.setReportType(reportType.name());
-        report.setReason(request.getReason());
-        report.setStatus(ReportStatus.IN_REVIEW.name());
-        report.setContentType("COMMENT");
-        report.setContentId(commentId);
-        report.setCreatedAt(new Date());
-        report.setUpdatedAt(new Date());
-
-        reportMapper.insertSelective(report);
-
-        return toReportResponseDTO(report, null, comment);
+        return submitReport(ReportContentType.COMMENT, commentId, reporterId, request);
     }
 
     /**
@@ -253,5 +205,23 @@ public class ReportService {
      */
     private ReportResponseDTO toReportResponseDTO(Report report) {
         return toReportResponseDTO(report, null, null);
+    }
+
+    private ReportResponseDTO submitReport(ReportContentType contentType,
+                                           Integer contentId,
+                                           UUID reporterId,
+                                           ReportCreateRequestDTO request) {
+        ReportContext context = new ReportContext(contentType, contentId, reporterId, request);
+        ValidationHandler pipeline = validationPipelineBuilder.build();
+        pipeline.handle(context);
+
+        ReportHandler handler = reportHandlerFactory.create(contentType);
+        Report report = handler.buildReport(context);
+
+        reportRepository.save(report);
+
+        ReportResponseDTO response = toReportResponseDTO(report, context.getNovel(), context.getComment());
+        handler.enrichResponse(context, report, response);
+        return response;
     }
 }
