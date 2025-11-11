@@ -38,7 +38,7 @@
 		<snakeyaml.version>2.2</snakeyaml.version>
 		<commons-lang3.version>3.18.0</commons-lang3.version>
 		<logback.version>1.5.19</logback.version>
-		<tomcat.version>10.1.41</tomcat.version>
+		<tomcat.version>10.1.45</tomcat.version>
 		<h2.version>2.3.232</h2.version>
 	</properties>
 	<dependencies>
