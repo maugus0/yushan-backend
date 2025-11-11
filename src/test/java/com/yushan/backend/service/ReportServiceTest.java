@@ -1,15 +1,23 @@
 package com.yushan.backend.service;
 
-import com.yushan.backend.dao.ReportMapper;
 import com.yushan.backend.dao.CommentMapper;
+import com.yushan.backend.dao.ReportMapper;
 import com.yushan.backend.dto.ReportCreateRequestDTO;
 import com.yushan.backend.dto.ReportResponseDTO;
 import com.yushan.backend.dto.ReportResolutionRequestDTO;
 import com.yushan.backend.entity.Report;
 import com.yushan.backend.entity.Novel;
 import com.yushan.backend.entity.Comment;
+import com.yushan.backend.enums.ReportContentType;
+import com.yushan.backend.enums.ReportType;
 import com.yushan.backend.exception.ResourceNotFoundException;
 import com.yushan.backend.exception.ValidationException;
+import com.yushan.backend.repository.ReportRepository;
+import com.yushan.backend.service.report.ReportContext;
+import com.yushan.backend.service.report.ReportHandlerFactory;
+import com.yushan.backend.service.report.ReportHandler;
+import com.yushan.backend.service.report.ValidationHandler;
+import com.yushan.backend.service.report.ValidationPipelineBuilder;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -38,6 +46,18 @@ class ReportServiceTest {
 
     @Mock
     private CommentMapper commentMapper;
+
+    @Mock
+    private ReportHandlerFactory reportHandlerFactory;
+
+    @Mock
+    private ValidationPipelineBuilder validationPipelineBuilder;
+
+    @Mock
+    private ReportRepository reportRepository;
+
+    @Mock
+    private ReportHandler reportHandler;
 
     @InjectMocks
     private ReportService reportService;
@@ -84,9 +104,17 @@ class ReportServiceTest {
     @Test
     void createNovelReport_ShouldCreateReportSuccessfully() {
         // Given
-        when(novelService.getNovelEntity(novelId)).thenReturn(novel);
-        when(reportMapper.existsReportByUserAndContent(reporterId, "NOVEL", novelId)).thenReturn(false);
-        when(reportMapper.insertSelective(any(Report.class))).thenReturn(1);
+        ValidationHandler pipeline = new ValidationHandler() {
+            @Override
+            protected void doHandle(ReportContext context) {
+                context.setReportType(ReportType.SPAM);
+                context.setNovel(novel);
+            }
+        };
+        when(validationPipelineBuilder.build()).thenReturn(pipeline);
+        when(reportHandlerFactory.create(ReportContentType.NOVEL)).thenReturn(reportHandler);
+        when(reportHandler.buildReport(any(ReportContext.class))).thenReturn(report);
+        when(reportRepository.save(report)).thenReturn(report);
         when(userService.getUsernameById(reporterId)).thenReturn("testuser");
 
         // When
@@ -101,36 +129,47 @@ class ReportServiceTest {
         assertEquals(novelId, result.getContentId());
         assertEquals("testuser", result.getReporterUsername());
 
-        verify(novelService).getNovelEntity(novelId);
-        verify(reportMapper).existsReportByUserAndContent(reporterId, "NOVEL", novelId);
-        verify(reportMapper).insertSelective(any(Report.class));
+        verify(validationPipelineBuilder).build();
+        verify(reportHandlerFactory).create(ReportContentType.NOVEL);
+        verify(reportRepository).save(report);
+        verify(reportHandler).enrichResponse(any(ReportContext.class), eq(report), any(ReportResponseDTO.class));
     }
 
     @Test
     void createNovelReport_ShouldThrowExceptionWhenNovelNotFound() {
         // Given
-        when(novelService.getNovelEntity(novelId)).thenThrow(new ResourceNotFoundException("Novel not found"));
+        ValidationHandler pipeline = new ValidationHandler() {
+            @Override
+            protected void doHandle(ReportContext context) {
+                throw new ResourceNotFoundException("Novel not found");
+            }
+        };
+        when(validationPipelineBuilder.build()).thenReturn(pipeline);
 
         // When & Then
         assertThrows(ResourceNotFoundException.class, () -> 
             reportService.createNovelReport(reporterId, novelId, requestDTO));
         
-        verify(novelService).getNovelEntity(novelId);
-        verify(reportMapper, never()).insertSelective(any(Report.class));
+        verify(reportRepository, never()).save(any(Report.class));
     }
 
     @Test
     void createNovelReport_ShouldThrowExceptionWhenAlreadyReported() {
         // Given
-        when(novelService.getNovelEntity(novelId)).thenReturn(novel);
-        when(reportMapper.existsReportByUserAndContent(reporterId, "NOVEL", novelId)).thenReturn(true);
+        ValidationHandler pipeline = new ValidationHandler() {
+            @Override
+            protected void doHandle(ReportContext context) {
+                throw new ValidationException("You have already reported this novel");
+            }
+        };
+        when(validationPipelineBuilder.build()).thenReturn(pipeline);
 
         // When & Then
         ValidationException exception = assertThrows(ValidationException.class, () -> 
             reportService.createNovelReport(reporterId, novelId, requestDTO));
         
         assertEquals("You have already reported this novel", exception.getMessage());
-        verify(reportMapper, never()).insertSelective(any(Report.class));
+        verify(reportRepository, never()).save(any(Report.class));
     }
 
     @Test

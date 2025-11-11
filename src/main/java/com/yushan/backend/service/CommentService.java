@@ -33,6 +33,17 @@ public class CommentService {
     private static final Float COMMENT_EXP = 5f;
 
     /**
+     * Retrieve the comment entity by id or throw if it does not exist.
+     */
+    public Comment getCommentEntity(Integer commentId) {
+        Comment comment = commentMapper.selectByPrimaryKey(commentId);
+        if (comment == null) {
+            throw new ResourceNotFoundException("Comment not found");
+        }
+        return comment;
+    }
+
+    /**
      * Create a new comment
      * Users can only have one comment per chapter
      */
