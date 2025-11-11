@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+	<suppress>
+		<notes>H2 is only used for local tests; the CVE requires exposed TCP server mode and is not exploitable in our test scope.</notes>
+		<packageUrl regex="false">pkg:maven/com.h2database/h2@2.2.224</packageUrl>
+		<vulnerabilityName>CVE-2018-14335</vulnerabilityName>
+	</suppress>
+
+	<suppress>
+		<notes>Swagger UI is bundled via springdoc-openapi 2.8.2 which embeds DOMPurify 3.1.8+, but dependency-check still flags CVE-2025-26791 in the generated web assets.</notes>
+		<packageUrl regex="true">pkg:javascript/DOMPurify@3\.1\.6</packageUrl>
+		<vulnerabilityName>CVE-2025-26791</vulnerabilityName>
+	</suppress>
+</suppressions>
+

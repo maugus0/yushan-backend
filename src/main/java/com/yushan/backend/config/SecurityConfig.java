@@ -21,6 +21,9 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.config.Customizer;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter.ReferrerPolicy;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -104,6 +107,33 @@ public class SecurityConfig {
             // Configure session management
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
+            // Security headers to address ZAP informational findings
+            .headers(headers -> headers
+                .httpStrictTransportSecurity(hsts -> hsts
+                    .includeSubDomains(true)
+                    .preload(true)
+                    .maxAgeInSeconds(31536000)
+                )
+                .contentTypeOptions(Customizer.withDefaults())
+                .frameOptions(frame -> frame.deny())
+                .referrerPolicy(referrer -> referrer.policy(ReferrerPolicy.SAME_ORIGIN))
+                .contentSecurityPolicy(csp -> csp
+                    .policyDirectives(
+                        "default-src 'self'; " +
+                        "frame-ancestors 'none'; " +
+                        "form-action 'self'; " +
+                        "img-src 'self' data:; " +
+                        "style-src 'self' 'unsafe-inline'; " +
+                        "script-src 'self'; " +
+                        "object-src 'none'; " +
+                        "base-uri 'self'; " +
+                        "connect-src 'self'"))
+                .addHeaderWriter(new StaticHeadersWriter("Permissions-Policy",
+                    "geolocation=(), microphone=(), camera=(), payment=()"))
+                .addHeaderWriter(new StaticHeadersWriter("X-XSS-Protection", "1; mode=block"))
+                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Opener-Policy", "same-origin"))
+                .addHeaderWriter(new StaticHeadersWriter("Cross-Origin-Resource-Policy", "same-origin"))
             )
             
             // Configure exception handling
